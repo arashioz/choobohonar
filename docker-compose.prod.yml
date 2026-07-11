@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - ./data/mongo:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/choob-va-honar
+      FRONTEND_URL: http://95.38.165.133
+      NODE_ENV: production
+    volumes:
+      - ./backend/uploads:/app/uploads
+    expose:
+      - '3001'
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_ENV: production
+    expose:
+      - '3000'
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      # bind nginx to the specified host IP (public IP)
+      - '95.38.165.133:80:80'
+    volumes:
+      - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/uploads:/var/www/uploads:ro
+    depends_on:
+      - frontend
+      - backend
