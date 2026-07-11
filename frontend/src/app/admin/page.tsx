@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function AdminPage() {
   const [user, setUser] = useState('');
@@ -11,7 +12,7 @@ export default function AdminPage() {
 
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch(`${API_BASE}/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, password: pass }),
@@ -26,7 +27,7 @@ export default function AdminPage() {
     const fd = new FormData();
     fd.append('file', file);
     if (target) fd.append('target', target);
-    const res = await fetch('/api/admin/upload', {
+    const res = await fetch(`${API_BASE}/admin/upload`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: fd,
