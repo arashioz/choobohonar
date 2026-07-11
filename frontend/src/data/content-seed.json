@@ -1,0 +1,154 @@
+[
+  {
+    "_id": "674a1001a1b2c3d4e5f60001",
+    "type": "blog",
+    "language": "fa",
+    "priority": "normal",
+    "input": {
+      "topic": "سبک روستیک در طراحی داخلی",
+      "targetKeywords": [
+        "سبک روستیک",
+        "دکوراسیون چوبی",
+        "چوب طبیعی"
+      ]
+    },
+    "status": "awaiting_review",
+    "currentStep": "آماده بررسی",
+    "progress": 100,
+    "result": {
+      "title": "سبک روستیک در طراحی داخلی: راهنمای کاربردی",
+      "slug": "rustic-interior-style-guide",
+      "excerpt": "چطور با چوب طبیعی، بافت‌های خام و پالت خاکی، فضایی گرم و اصیل بسازیم — بدون شلوغی بصری.",
+      "category": "طراحی داخلی",
+      "author": "تیم خانه چوب و هنر",
+      "readingTime": "۷ دقیقه",
+      "coverImage": "/images/aknoon-04.jpg",
+      "outline": [
+        "مقدمه",
+        "ویژگی‌های سبک روستیک",
+        "مواد و متریال",
+        "ترکیب رنگ‌ها",
+        "جمع‌بندی"
+      ],
+      "body": "سبک روستیک بر پایه مواد طبیعی بنا شده است.",
+      "content": [
+        {
+          "type": "paragraph",
+          "text": "سبک روستیک بر پایه‌ی مواد طبیعی بنا شده است: چوب، سنگ و فلز با پرداخت کم. هدف، نمایان نگه‌داشتن بافت واقعی متریال است، نه پنهان‌کردن آن."
+        },
+        {
+          "type": "heading",
+          "text": "ویژگی‌های اصلی سبک روستیک"
+        },
+        {
+          "type": "paragraph",
+          "text": "چوب با رگه‌ی آشکار و پرداخت مات، بافت‌های طبیعی، و پالت رنگ‌های خاکی. در این سبک، نشانه‌ی کار دست و سن متریال عیب نیست، بخشی از زبان طراحی است."
+        },
+        {
+          "type": "image",
+          "src": "/images/aknoon-18.jpg",
+          "caption": "بافت طبیعی چوب، زبان اصلی سبک روستیک است.",
+          "alt": "مبلمان چوبی روستیک"
+        },
+        {
+          "type": "quote",
+          "text": "در سبک روستیک، بافت‌ی واقعی چوب پنهان نمی‌شود.",
+          "cite": "کارگاه خانه چوب و هنر"
+        },
+        {
+          "type": "paragraph",
+          "text": "برای ترکیب این سبک با فضاهای مدرن، خطوط ساده‌ی مبلمان و فضای منفی کافی را حفظ کنید. یک یا دو قطعه‌ی چوب ماسیو کافی است؛ بقیه‌ی عناصر باید سکوت بصری ایجاد کنند."
+        }
+      ],
+      "metaTitle": "سبک روستیک در طراحی داخلی | خانه چوب و هنر",
+      "metaDescription": "راهنمای کاربردی سبک روستیک: مواد طبیعی، بافت چوب، ترکیب رنگ‌های خاکی و نکات عملی برای دکوراسیون.",
+      "keywords": [
+        "سبک روستیک",
+        "طراحی داخلی روستیک",
+        "دکوراسیون چوبی",
+        "بافت طبیعی"
+      ],
+      "tags": [
+        "روستیک",
+        "طراحی داخلی",
+        "چوب",
+        "دکوراسیون"
+      ],
+      "internalLinks": [
+        {
+          "label": "مبل آلدر",
+          "url": "/products/alder-sofa",
+          "anchor": "مبل روستیک",
+          "rel": "dofollow"
+        },
+        {
+          "label": "پروژه‌ی Aknoon",
+          "url": "/projects/aknoon-residence",
+          "rel": "dofollow"
+        },
+        {
+          "label": "کالکشن گردو",
+          "url": "/collection/walnut",
+          "rel": "dofollow"
+        }
+      ],
+      "gallery": [
+        {
+          "url": "/images/aknoon-04.jpg",
+          "caption": "فضای نشیمن با پالت خاکی",
+          "alt": "نشیمن روستیک"
+        },
+        {
+          "url": "/images/aknoon-16.jpg",
+          "caption": "پرداخت مات چوب گردو",
+          "alt": "پرداخت چوب"
+        }
+      ],
+      "imagePrompt": "Rustic wood interior, natural grain, warm daylight",
+      "imageUrl": "/images/aknoon-04.jpg",
+      "marketingCopy": "در سبک روستیک، بافت‌ی واقعی چوب پنهان نمی‌شود.",
+      "canonicalUrl": "https://choobohonar.com/magazine/rustic-interior-style-guide"
+    },
+    "llmProvider": "mock",
+    "imageProvider": "mock"
+  },
+  {
+    "_id": "674a1002a1b2c3d4e5f60002",
+    "type": "product",
+    "language": "fa",
+    "priority": "high",
+    "input": {
+      "productName": "میز ناهارخوری گردو ماسیو",
+      "materials": [
+        "چوب گردو ماسیو",
+        "روغن طبیعی"
+      ],
+      "features": [
+        "۸ نفره",
+        "ابعاد ۲۰۰×۱۰۰ سانتی‌متر",
+        "اتصالات سنتی"
+      ]
+    },
+    "status": "approved",
+    "currentStep": "تایید شده",
+    "progress": 100,
+    "result": {
+      "title": "میز ناهارخوری گردو ماسیو | خانه چوب و هنر",
+      "body": "میز ناهارخوری گردو ماسیو از چوب گردوی ایرانی ساخته شده و رگه‌های طبیعی آن در سطح میز حفظ شده است.\n\nمشخصات: چوب گردو ماسیو، ابعاد ۲۰۰×۱۰۰ سانتی‌متر، ظرفیت ۸ نفر، پرداخت روغن طبیعی مات.",
+      "metaTitle": "میز ناهارخوری گردو ماسیو | خانه چوب و هنر",
+      "metaDescription": "میز ناهارخوری دست‌ساز از چوب گردو ماسیو، ۸ نفره، با پرداخت روغن طبیعی.",
+      "keywords": [
+        "میز ناهارخوری",
+        "چوب گردو",
+        "مبلمان دست‌ساز",
+        "میز ۸ نفره"
+      ],
+      "imagePrompt": "Solid walnut dining table product photo",
+      "imageUrl": "https://picsum.photos/seed/walnut-table/1200/630",
+      "marketingCopy": "گردوی ماسیو، برای میزی که سال‌ها می‌ماند."
+    },
+    "llmProvider": "mock",
+    "imageProvider": "mock",
+    "reviewedAt": "2026-06-23T12:00:00.000Z"
+  }
+]

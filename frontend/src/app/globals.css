@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f4efe8;
+  --foreground: #092b1c;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+    width: 100%;
+  }
+
+  body {
+    background-color: theme("colors.paper");
+    color: theme("colors.forest.DEFAULT");
+    font-feature-settings: "ss01", "ss02";
+    overflow-x: clip;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  ::selection {
+    background-color: theme("colors.peach.DEFAULT");
+    color: theme("colors.forest.DEFAULT");
+  }
+
+  /* Latin fragments inside RTL copy */
+  [dir="ltr"] {
+    unicode-bidi: isolate;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  /* Thin uppercase eyebrow used across sections */
+  .eyebrow {
+    @apply text-xs tracking-[0.3em] uppercase font-medium;
+  }
+}
+
+/* Hide scrollbar on the horizontal-feeling rails while keeping scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#mobile-nav {
+  -webkit-overflow-scrolling: touch;
+}
+
+.gallery-marquee-track {
+  animation: gallery-marquee 50s linear infinite;
+  will-change: transform;
+}
+
+@keyframes gallery-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-marquee-track {
+    animation: none;
+  }
+}
+
+/* Scroll-reveal elements stay hidden only while JS is booting; failsafe reveals them. */
+.motion-reveal {
+  opacity: 0;
+  transform: translate3d(0, 2.5rem, 0);
+}
+
+.motion-reveal.is-visible,
+.motion-reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+html.motion-enabled .motion-reveal:not(.is-visible):not([data-revealed="true"]) {
+  animation: motion-reveal-failsafe 0.01s 2.2s forwards;
+}
+
+@keyframes motion-reveal-failsafe {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hero intro overlay — hide when JS never boots (no motion-enabled on html). */
+html:not(.motion-enabled) .hero-loader {
+  animation: hero-loader-failsafe 0.01s 1.5s forwards;
+}
+
+@keyframes hero-loader-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .hero-loader {
+    display: none;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

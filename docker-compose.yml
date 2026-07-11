@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./data/mongo:/data/db
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/choob-va-honar
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_USER: admin
+      ADMIN_PASS: changeme
+      JWT_SECRET: changeme_secret
+    volumes:
+      - ./backend/uploads:/app/uploads
+    ports:
+      - '3001:3001'
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+    environment:
+      NEXT_TELEMETRY_DISABLED: '1'
