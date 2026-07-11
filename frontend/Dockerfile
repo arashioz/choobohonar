@@ -1,4 +1,4 @@
-FROM node:20-bullseye-slim
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json next.config.mjs tsconfig.json ./
 # Install build tools required by some native npm modules, then install dependencies
