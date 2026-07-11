@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { diskStorage } from 'multer';
+import * as multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -35,7 +35,7 @@ export class AdminController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
+      storage: multer.diskStorage({
         destination: './uploads',
         filename: (_req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
