@@ -36,5 +36,3 @@ yarn-error.log*
 next-env.d.ts
 
 # media assets (hosted separately — see README)
-/public/images/
-/public/videos/
