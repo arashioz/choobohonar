@@ -38,3 +38,19 @@ yarn-error.log*
 # Python
 __pycache__/
 *.pyc
+
+# MongoDB
+data/
+mongo/
+mongodb/
+*.wt
+WiredTiger
+WiredTiger.lock
+WiredTiger.turtle
+WiredTigerLAS.wt
+WiredTigerLog.*
+
+# Docker volumes
+volumes/
+data/*
+!data/.gitkeep
