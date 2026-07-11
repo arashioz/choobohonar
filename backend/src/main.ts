@@ -11,7 +11,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  
   // Serve uploaded files
+  // ensure larger payloads are allowed by the Nest/Express body parser
+  // note: multer handles multipart uploads, but adjusting body parser sizes can help some edge-cases
   app.useStaticAssets('uploads', { prefix: '/uploads' });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

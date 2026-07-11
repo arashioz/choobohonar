@@ -7,6 +7,7 @@ export default function AdminPage() {
   const [token, setToken] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [images, setImages] = useState<Array<{ filename: string; url: string }>>([]);
+  const [target, setTarget] = useState<string>('');
 
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,6 +25,7 @@ export default function AdminPage() {
     if (!file || !token) return;
     const fd = new FormData();
     fd.append('file', file);
+    if (target) fd.append('target', target);
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -48,7 +50,8 @@ export default function AdminPage() {
           <div>
               <form onSubmit={upload} className="space-y-3 mb-4">
                <input type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)} />
-              <button className="px-4 py-2 bg-green-600 text-white rounded">آپلود عکس</button>
+               <input value={target} onChange={e => setTarget(e.target.value)} placeholder="placement target (e.g. hero, gallery)" className="w-full p-2 border" />
+              <button className="px-4 py-2 bg-green-600 text-white rounded">آپلود</button>
             </form>
             <div className="grid grid-cols-3 gap-3">
               {images.map(img => (

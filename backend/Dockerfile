@@ -3,7 +3,7 @@
 FROM node:20-bullseye-slim
 WORKDIR /app
 COPY package*.json tsconfig*.json ./
-RUN npm ci 
+RUN npm ci || npm install --production --no-audit --no-fund
 COPY . .
 RUN npm run build
 ENV NODE_ENV=production
