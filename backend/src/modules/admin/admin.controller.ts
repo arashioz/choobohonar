@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import * as multer from 'multer';
+import multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt.guard';
