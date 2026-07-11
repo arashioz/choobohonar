@@ -5,10 +5,10 @@ export default function AdminPage() {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const [token, setToken] = useState('');
-  const [file, setFile] = useState(null as any);
-  const [images, setImages] = useState<any[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [images, setImages] = useState<Array<{ filename: string; url: string }>>([]);
 
-  async function login(e: any) {
+  async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const res = await fetch('/api/admin/login', {
       method: 'POST',
@@ -19,7 +19,7 @@ export default function AdminPage() {
     if (data.token) setToken(data.token);
   }
 
-  async function upload(e: any) {
+  async function upload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!file || !token) return;
     const fd = new FormData();
@@ -46,8 +46,8 @@ export default function AdminPage() {
           </form>
         ) : (
           <div>
-            <form onSubmit={upload} className="space-y-3 mb-4">
-              <input type="file" onChange={e => setFile((e.target as any).files[0])} />
+              <form onSubmit={upload} className="space-y-3 mb-4">
+               <input type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)} />
               <button className="px-4 py-2 bg-green-600 text-white rounded">آپلود عکس</button>
             </form>
             <div className="grid grid-cols-3 gap-3">
