@@ -2,8 +2,10 @@ version: "3.9"
 services:
   mongodb:
     image: mongo:7
+    # Bind to an alternate host port to avoid conflicts with any local
+    # mongodb instance that might already be running on 27017.
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
 
