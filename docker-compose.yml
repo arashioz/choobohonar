@@ -4,8 +4,10 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
+    # Avoid binding to host 27017 if a local MongoDB is already running.
+    # Map to 27018 on the host by default; change to 27017 if you want the standard port
     ports:
-      - '27017:27017'
+      - '27018:27017'
     volumes:
       - ./data/mongo:/data/db
   backend:
