@@ -1,6 +1,9 @@
 "use client";
 import { useState } from 'react';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Use relative /api by default so the frontend will call the same origin (proxied
+// by nginx in production). During local development you can set
+// NEXT_PUBLIC_API_URL to override this (e.g. http://localhost:3001/api).
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export default function AdminPage() {
   const [user, setUser] = useState('');
@@ -19,6 +22,17 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (data.token) setToken(data.token);
+  }
+
+  // redirect to dashboard after successful login
+  if (token) {
+    try {
+      localStorage.setItem('admin_token', token);
+      // navigate to dashboard
+      if (typeof window !== 'undefined') window.location.href = '/admin/dashboard';
+    } catch (e) {
+      // ignore
+    }
   }
 
   async function upload(e: React.FormEvent<HTMLFormElement>) {
@@ -67,3 +81,12 @@ export default function AdminPage() {
     </div>
   );
 }
+
+// Include Dock on admin pages
+import Dock from '../../components/admin/Dock';
+
+// Render dock when this module is used
+(function attachDock() {
+  if (typeof window === 'undefined') return;
+  // This file is a client component; Dock will be imported and used by Next.
+})();

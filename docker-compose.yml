@@ -11,9 +11,10 @@ services:
     volumes:
       - ./data/mongo:/data/db
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    # Use a lightweight node image for development so we can mount source and
+    # avoid rebuilding images on every change. In production you can switch
+    # this back to a build image or use docker-compose.prod.yml.
+    image: node:20-alpine
     restart: unless-stopped
     env_file:
       - ./backend/.env
@@ -23,21 +24,49 @@ services:
       ADMIN_USER: admin
       ADMIN_PASS: changeme
       JWT_SECRET: changeme_secret
+      REDIS_URL: redis://redis:6379
+    # Mount the backend source so changes are reflected immediately in the
+    # running container. We also mount uploads for persisted files.
     volumes:
+      - ./backend:/app
       - ./backend/uploads:/app/uploads
     ports:
       - '3001:3001'
     depends_on:
       - mongo
+      - redis
+    working_dir: /app
+    command: sh -c "npm install --silent && npm run start:dev"
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    # Development-friendly frontend service: mount source and run `npm run dev`.
+    image: node:20-alpine
     restart: unless-stopped
+    # Mount the project but keep node_modules inside the container to avoid
+    # host-driven file changes triggering Next.js restarts (common cause of
+    # continuous "Starting..." loops). The anonymous volume for /app/node_modules
+    # ensures dependencies are stored in the container filesystem instead of
+    # being created/modified on the host.
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - '3000:3000'
     depends_on:
       - backend
+      - redis
+    working_dir: /app
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
+      # Point the client to the backend running on the host machine's port 3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    # Use npm ci for reproducible installs and keep install output quiet. The
+    # node_modules volume prevents these changes from being seen by the host
+    # Next.js watcher which resolves infinite restart loops caused by mounts.
+    command: sh -c "npm ci --silent --no-audit --no-fund && npm run dev"
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
