@@ -18,9 +18,9 @@ import type { File as MulterFile } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
-// multer packaging can export differently depending on ESM/CJS interop.
-// Resolve diskStorage at runtime from either the imported object or its default.
-const disk = ((multer as any).diskStorage ?? (multer as any).default?.diskStorage) as any;
+// Note: we use multer via the FileInterceptor; multer's diskStorage
+// packaging can vary between builds. The interceptor below uses the
+// simpler `dest` option which is robust across environments.
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme_secret';
 
@@ -52,15 +52,10 @@ export class AdminController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: disk({
-        destination: './uploads',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
+      // Some multer builds/interop may not expose diskStorage in a predictable
+      // way at import-time. Passing `dest` is a simpler, robust option that
+      // tells multer to store files on disk under the given folder.
+      dest: './uploads',
 
       limits: {
         fileSize: 200 * 1024 * 1024,
