@@ -8,7 +8,23 @@ import {
   prefersReducedMotion,
   scrollTriggerConfig,
 } from "@/lib/gsap";
+import { brandAssets } from "@/lib/brand-assets";
 import { cn } from "@/lib/utils";
+
+/**
+ * White cloth pulled from the green floor.
+ * 4 cubics / state. Flanks tuck inward; crest stays modest and rounded.
+ */
+const WHITE = {
+  rest:
+    "M0 80 C32 80 55 80 68 80 C82 80 90 80 100 80 C110 80 118 80 132 80 C145 80 168 80 200 80 L200 80 L0 80 Z",
+  // Weight gathers — sides already draw inward
+  tension:
+    "M0 80 C32 80 55 77 68 72 C82 66 90 64 100 64 C110 64 118 66 132 72 C145 77 168 80 200 80 L200 80 L0 80 Z",
+  // Pinch — rounded crest, deep inward waists on both flanks
+  pull:
+    "M0 80 C34 80 58 75 70 68 C84 58 92 55 100 55 C108 55 116 58 130 68 C142 75 166 80 200 80 L200 80 L0 80 Z",
+} as const;
 
 export default function HeroSection() {
   const root = useRef<HTMLElement>(null);
@@ -40,6 +56,9 @@ export default function HeroSection() {
         yPercent: 0,
         clearProps: "transform",
       });
+      // Keep white fabric hidden at rest
+      const fabric = el.querySelector<SVGPathElement>("[data-hero-fabric]");
+      if (fabric) gsap.set(fabric, { attr: { d: WHITE.rest } });
       hideLoader();
     };
 
@@ -83,6 +102,32 @@ export default function HeroSection() {
           .to(eyebrow, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.8")
           .to(cue, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4");
 
+        const fabric = el.querySelector<SVGPathElement>("[data-hero-fabric]");
+        const shade = el.querySelector<SVGPathElement>("[data-hero-shade]");
+
+        if (fabric) {
+          gsap.set(fabric, { attr: { d: WHITE.rest } });
+          if (shade) gsap.set(shade, { attr: { d: WHITE.rest }, opacity: 0 });
+
+          const pull = gsap.timeline({ repeat: -1, repeatDelay: 1.45, delay: 0.55 });
+
+          // 1) Slow gather — weight loads, sides tuck in
+          pull
+            .to(fabric, { attr: { d: WHITE.tension }, duration: 0.58, ease: "power2.in" }, 0)
+            .to(shade, { attr: { d: WHITE.tension }, opacity: 0.18, duration: 0.58, ease: "power2.in" }, 0.04)
+
+            // 2) Sharp lift — then immediate release
+            .to(fabric, { attr: { d: WHITE.pull }, duration: 0.48, ease: "power3.out" }, 0.58)
+            .to(shade, { attr: { d: WHITE.pull }, opacity: 0.28, duration: 0.48, ease: "power3.out" }, 0.62)
+
+            // 3) Heavy drop (no hold)
+            .to(fabric, { attr: { d: WHITE.tension }, duration: 0.16, ease: "power4.in" })
+            .to(shade, { attr: { d: WHITE.tension }, opacity: 0.12, duration: 0.16, ease: "power4.in" }, "<")
+
+            .to(fabric, { attr: { d: WHITE.rest }, duration: 0.52, ease: "power2.out" })
+            .to(shade, { attr: { d: WHITE.rest }, opacity: 0, duration: 0.42, ease: "power2.out" }, "<0.04");
+        }
+
         gsap.to(media.current, {
           yPercent: 12,
           ease: "none",
@@ -119,14 +164,15 @@ export default function HeroSection() {
         >
           <source src="/videos/anzhelik.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/30 to-forest/40" />
+        {/* Stronger floor wash so the field reads as solid green */}
+        <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/45" />
       </div>
 
       <div className="relative z-10 mx-auto flex h-full min-h-0 max-w-container flex-col justify-end px-5 pb-[max(4.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-20 md:px-10 md:pb-24 lg:px-16">
-        <p data-hero-eyebrow className="eyebrow mb-4 text-peach sm:mb-6">
+        <p data-hero-eyebrow className="eyebrow mb-3 text-peach sm:mb-4">
           خانه چوب و هنر — میراثی نیم‌قرنی
         </p>
-        <h1 className="max-w-5xl text-balance text-[clamp(2rem,5.5vw,7.5rem)] font-light leading-[1.08] tracking-tightest text-paper">
+        <h1 className="max-w-4xl text-balance text-[clamp(1.75rem,4.5vw,5rem)] font-light leading-[1.1] tracking-tightest text-paper">
           <span className="block overflow-hidden py-[0.04em]">
             <span data-hero-line className="block will-change-transform">
               فرم،
@@ -138,12 +184,36 @@ export default function HeroSection() {
             </span>
           </span>
         </h1>
-        <div data-hero-cue className="mt-8 flex items-center gap-3 text-paper/70 sm:mt-12">
-          <span className="text-xs tracking-[0.25em]">اسکرول کنید</span>
-          <span className="relative flex h-10 w-px justify-center bg-paper/30">
-            <span className="absolute top-0 h-3 w-px animate-scroll-cue bg-peach" />
-          </span>
-        </div>
+      </div>
+
+      {/* White cloth — hidden at rest; rises from the green floor */}
+      <div
+        data-hero-cue
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[4.5rem] overflow-hidden sm:h-20"
+        aria-hidden
+      >
+        <svg className="h-full w-full" viewBox="0 0 200 80" preserveAspectRatio="none">
+          <defs>
+            <filter id="hero-cloth-soft" x="-8%" y="-20%" width="116%" height="140%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" result="blur" />
+              <feOffset dy="1" result="off" />
+              <feComponentTransfer>
+                <feFuncA type="linear" slope="0.22" />
+              </feComponentTransfer>
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <path data-hero-shade d={WHITE.rest} fill="#041510" opacity="0" />
+          <path
+            data-hero-fabric
+            d={WHITE.rest}
+            fill="#F4EFE8"
+            filter="url(#hero-cloth-soft)"
+          />
+        </svg>
       </div>
 
       <div
@@ -156,7 +226,7 @@ export default function HeroSection() {
         )}
       >
         <div ref={monogram} className="relative h-16 w-[72px] opacity-0 sm:h-20 sm:w-[90px]">
-          <Image src="/brand/monogram-white.svg" alt="" fill className="object-contain" priority />
+          <Image src={brandAssets.monogram.white} alt="" fill className="object-contain" priority />
         </div>
       </div>
     </section>
