@@ -1,247 +1,327 @@
-import { projects } from "@/data/projects";
-import { resolveProjectImage } from "@/lib/project-images";
-import { finishes, products, getProductsByFinish } from "@/data/products";
+import { getProjectImages } from "@/data/project-image-manifest";
+import { materials } from "@/data/materials";
+import { collections } from "@/data/collections";
 
-export type GallerySource = "project" | "product" | "collection";
+export type GalleryTag =
+  | "project"
+  | "event"
+  | "exhibition"
+  | "behind-scenes"
+  | "collection"
+  | "material";
 
-export type GalleryLink = {
-  source: GallerySource;
-  label: string;
-  href: string;
-};
+export type GalleryFilter = GalleryTag | "all";
+
+/** Bento span hints for the CSS grid. */
+export type GalleryBentoSize = "hero" | "tall" | "wide" | "square";
 
 export type GalleryItem = {
   id: string;
   src: string;
   alt: string;
-  primary: GalleryLink;
-  related: GalleryLink[];
+  /** One-line caption shown under / beside the image. */
+  caption: string;
+  tag: GalleryTag;
+  /** Optional deep-link to a related site page. */
+  href?: string;
+  /** Related gallery entry ids for the lightbox rail. */
+  relatedIds: string[];
+  bento: GalleryBentoSize;
 };
 
-export type GalleryFilter = GallerySource | "all";
-
-const sourcePriority: Record<GallerySource, number> = {
-  project: 0,
-  product: 1,
-  collection: 2,
+export const tagLabels: Record<GalleryTag, string> = {
+  project: "پروژه",
+  event: "رویداد",
+  exhibition: "نمایشگاه",
+  "behind-scenes": "پشت‌صحنه",
+  collection: "کالکشن",
+  material: "متریال",
 };
 
-function isGalleryImage(src: string) {
-  return src.startsWith("/images/");
+export const galleryFilters: { id: GalleryFilter; label: string }[] = [
+  { id: "all", label: "همه" },
+  { id: "project", label: "پروژه" },
+  { id: "event", label: "رویداد" },
+  { id: "exhibition", label: "نمایشگاه" },
+  { id: "behind-scenes", label: "پشت‌صحنه" },
+  { id: "collection", label: "کالکشن" },
+  { id: "material", label: "متریال" },
+];
+
+const aknoon = getProjectImages("aknoon-residence");
+const armon = getProjectImages("armon-hotel");
+const araz = getProjectImages("araz-suite");
+const shenaj = getProjectImages("shenaj-villa");
+
+/**
+ * Curated editorial gallery — mix of projects, events, exhibitions,
+ * behind-the-scenes, collections, and materials (not a product dump).
+ */
+export const galleryItems: GalleryItem[] = [
+  // ── Projects ──────────────────────────────────────────────────────────────
+  {
+    id: "proj-aknoon-living",
+    src: aknoon[3] ?? "/images/aknoon-15.jpg",
+    alt: "نشیمن اقامتگاه آکنون",
+    caption: "نشیمن آکنون با مبلمان سفارشی و پالت چوب گرم.",
+    tag: "project",
+    href: "/projects/aknoon-residence",
+    relatedIds: ["proj-aknoon-detail", "bts-aknoon-install", "mat-wood-grain"],
+    bento: "hero",
+  },
+  {
+    id: "proj-aknoon-detail",
+    src: aknoon[8] ?? "/images/aknoon-16.jpg",
+    alt: "جزئیات چوب اقامتگاه آکنون",
+    caption: "جزئیات روکش و اتصال در فضای خصوصی اقامتگاه.",
+    tag: "project",
+    href: "/projects/aknoon-residence",
+    relatedIds: ["proj-aknoon-living", "mat-veneer", "bts-finish-check"],
+    bento: "tall",
+  },
+  {
+    id: "proj-shenaj-villa",
+    src: shenaj[4] ?? "/images/aknoon-09.jpg",
+    alt: "ویلای شناژ",
+    caption: "ارتباط فضا با منظره در ویلای شناژ شمال.",
+    tag: "project",
+    href: "/projects/shenaj-villa",
+    relatedIds: ["proj-shenaj-terrace", "bts-shenaj-site", "mat-wood-grain"],
+    bento: "wide",
+  },
+  {
+    id: "proj-shenaj-terrace",
+    src: shenaj[12] ?? "/images/aknoon-11.jpg",
+    alt: "تراس ویلای شناژ",
+    caption: "تراس و مبلمان بیرونی هماهنگ با معماری ویلا.",
+    tag: "project",
+    href: "/projects/shenaj-villa",
+    relatedIds: ["proj-shenaj-villa", "event-showroom-tour"],
+    bento: "square",
+  },
+  {
+    id: "proj-armon-lobby",
+    src: armon[23] ?? "/images/aknoon-18.jpg",
+    alt: "لابی هتل آرمون",
+    caption: "لابی هتل آرمون با متریال مقاوم و پالت چوب روشن.",
+    tag: "project",
+    href: "/projects/armon-hotel",
+    relatedIds: ["proj-armon-suite", "bts-armon-assembly", "exhibition-hotel-suite"],
+    bento: "tall",
+  },
+  {
+    id: "proj-armon-suite",
+    src: armon[40] ?? "/images/aknoon-21.jpg",
+    alt: "سوئیت هتل آرمون",
+    caption: "سوئیت اقامتی با مبلمان یکپارچه و نور کنترل‌شده.",
+    tag: "project",
+    href: "/projects/armon-hotel",
+    relatedIds: ["proj-armon-lobby", "proj-araz", "mat-fabric"],
+    bento: "square",
+  },
+  {
+    id: "proj-araz",
+    src: araz[5] ?? "/images/aknoon-22.jpg",
+    alt: "سوئیت آراز",
+    caption: "سوئیت آراز؛ مقیاس کوچک‌تر با همان زبان متریال.",
+    tag: "project",
+    href: "/projects/araz-suite",
+    relatedIds: ["proj-armon-suite", "mat-metal", "bts-finish-check"],
+    bento: "wide",
+  },
+
+  // ── Events ────────────────────────────────────────────────────────────────
+  {
+    id: "event-showroom-tour",
+    src: aknoon[14] ?? "/images/aknoon-07.jpg",
+    alt: "بازدید شوروم",
+    caption: "بازدید گروهی از شوروم و گفت‌وگو درباره نمونه‌های متریال.",
+    tag: "event",
+    href: "/contact",
+    relatedIds: ["event-design-talk", "exhibition-material-wall", "bts-workshop"],
+    bento: "square",
+  },
+  {
+    id: "event-design-talk",
+    src: armon[60] ?? "/images/aknoon-05.jpg",
+    alt: "نشست طراحی",
+    caption: "نشست کوتاه درباره انتخاب متریال برای فضاهای اقامتی.",
+    tag: "event",
+    relatedIds: ["event-showroom-tour", "exhibition-hotel-suite", "bts-workshop"],
+    bento: "wide",
+  },
+  {
+    id: "event-client-review",
+    src: shenaj[22] ?? "/images/aknoon-12.jpg",
+    alt: "بازبینی پروژه با کارفرما",
+    caption: "بازبینی نهایی چیدمان و پرداخت‌ها پیش از تحویل.",
+    tag: "event",
+    relatedIds: ["proj-shenaj-villa", "bts-shenaj-site", "mat-wood-grain"],
+    bento: "square",
+  },
+
+  // ── Exhibitions ───────────────────────────────────────────────────────────
+  {
+    id: "exhibition-material-wall",
+    src: aknoon[18] ?? "/images/aknoon-16.jpg",
+    alt: "دیوار نمونه متریال",
+    caption: "دیوار نمونه‌های چوب، روکش و پارچه در نمایشگاه داخلی.",
+    tag: "exhibition",
+    href: "/materials",
+    relatedIds: ["mat-wood-grain", "mat-fabric", "mat-veneer", "exhibition-hotel-suite"],
+    bento: "hero",
+  },
+  {
+    id: "exhibition-hotel-suite",
+    src: armon[75] ?? "/images/aknoon-24.jpg",
+    alt: "نمایش سوئیت هتلی",
+    caption: "چیدمان نمایشی سوئیت برای بازدیدکنندگان صنعت هتلداری.",
+    tag: "exhibition",
+    relatedIds: ["proj-armon-lobby", "event-design-talk", "mat-fabric"],
+    bento: "tall",
+  },
+  {
+    id: "exhibition-solo-set",
+    src: collections[0]?.image ?? "/images/aknoon-02.jpg",
+    alt: "نمایش کالکشن سولو",
+    caption: "چیدمان کالکشن سولو در فضای نمایشگاهی شوروم.",
+    tag: "exhibition",
+    href: "/collection/solo",
+    relatedIds: ["col-solo-sofa", "col-solo-dining", "event-showroom-tour"],
+    bento: "square",
+  },
+
+  // ── Behind the scenes ─────────────────────────────────────────────────────
+  {
+    id: "bts-workshop",
+    src: aknoon[22] ?? "/images/aknoon-18.jpg",
+    alt: "کارگاه ساخت",
+    caption: "ساخت اسکلت و آماده‌سازی پنل‌ها در کارگاه.",
+    tag: "behind-scenes",
+    relatedIds: ["bts-finish-check", "bts-aknoon-install", "mat-wood-grain"],
+    bento: "tall",
+  },
+  {
+    id: "bts-finish-check",
+    src: aknoon[27] ?? "/images/aknoon-09.jpg",
+    alt: "کنترل کیفیت پرداخت",
+    caption: "کنترل کیفیت پرداخت مات و یکنواختی رنگ سطح.",
+    tag: "behind-scenes",
+    href: "/materials/wood",
+    relatedIds: ["bts-workshop", "mat-wood-grain", "mat-veneer"],
+    bento: "square",
+  },
+  {
+    id: "bts-aknoon-install",
+    src: aknoon[31] ?? "/images/aknoon-11.jpg",
+    alt: "نصب در محل آکنون",
+    caption: "نصب و تنظیم نهایی مبلمان در محل اقامتگاه آکنون.",
+    tag: "behind-scenes",
+    href: "/projects/aknoon-residence",
+    relatedIds: ["proj-aknoon-living", "bts-workshop", "event-client-review"],
+    bento: "wide",
+  },
+  {
+    id: "bts-armon-assembly",
+    src: armon[90] ?? "/images/aknoon-27.jpg",
+    alt: "مونتاژ مبلمان هتل",
+    caption: "مونتاژ قطعات بزرگ برای فضاهای عمومی هتل.",
+    tag: "behind-scenes",
+    href: "/projects/armon-hotel",
+    relatedIds: ["proj-armon-lobby", "bts-workshop", "mat-metal"],
+    bento: "square",
+  },
+  {
+    id: "bts-shenaj-site",
+    src: shenaj[30] ?? "/images/aknoon-29.jpg",
+    alt: "بازدید کارگاهی ویلا",
+    caption: "هماهنگی اجرا با نور و رطوبت اقلیم شمال در سایت.",
+    tag: "behind-scenes",
+    href: "/projects/shenaj-villa",
+    relatedIds: ["proj-shenaj-villa", "bts-finish-check", "mat-veneer"],
+    bento: "tall",
+  },
+
+  // ── Collections ───────────────────────────────────────────────────────────
+  {
+    id: "col-solo-sofa",
+    src: collections[0]?.image ?? "/images/aknoon-02.jpg",
+    alt: "کالکشن سولو",
+    caption: "خطوط آرام کالکشن سولو برای نشیمن معاصر.",
+    tag: "collection",
+    href: "/collection/solo",
+    relatedIds: ["col-solo-dining", "exhibition-solo-set", "mat-fabric"],
+    bento: "wide",
+  },
+  {
+    id: "col-solo-dining",
+    src: "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    alt: "میز غذاخوری سولو",
+    caption: "میز و صندلی غذاخوری سولو در یک زبان طراحی.",
+    tag: "collection",
+    href: "/collection/solo",
+    relatedIds: ["col-solo-sofa", "exhibition-solo-set", "mat-wood-grain"],
+    bento: "square",
+  },
+
+  // ── Materials ─────────────────────────────────────────────────────────────
+  {
+    id: "mat-wood-grain",
+    src: materials.find((m) => m.id === "wood")?.image ?? "/images/aknoon-16.jpg",
+    alt: "متریال چوب",
+    caption: "رگه طبیعی چوب سخت پس از پرداخت مات.",
+    tag: "material",
+    href: "/materials/wood",
+    relatedIds: ["mat-veneer", "bts-finish-check", "exhibition-material-wall"],
+    bento: "square",
+  },
+  {
+    id: "mat-fabric",
+    src: materials.find((m) => m.id === "fabric")?.image ?? "/images/aknoon-02.jpg",
+    alt: "متریال پارچه",
+    caption: "نمونه پارچه رویه در کنار پالت چوب شوروم.",
+    tag: "material",
+    href: "/materials/fabric",
+    relatedIds: ["mat-wood-grain", "col-solo-sofa", "exhibition-material-wall"],
+    bento: "tall",
+  },
+  {
+    id: "mat-veneer",
+    src: materials.find((m) => m.id === "veneer")?.image ?? "/images/aknoon-18.jpg",
+    alt: "متریال روکش",
+    caption: "روکش اصیل برای سطوح وسیع با رگه‌ای یکدست.",
+    tag: "material",
+    href: "/materials/veneer",
+    relatedIds: ["mat-wood-grain", "bts-finish-check", "proj-aknoon-detail"],
+    bento: "square",
+  },
+  {
+    id: "mat-metal",
+    src: materials.find((m) => m.id === "metal")?.image ?? "/images/aknoon-09.jpg",
+    alt: "متریال فلز",
+    caption: "جزئیات فلزی برای اتصال و تأکید بصری ظریف.",
+    tag: "material",
+    href: "/materials/metal",
+    relatedIds: ["mat-wood-grain", "bts-armon-assembly", "proj-araz"],
+    bento: "wide",
+  },
+];
+
+const byId = new Map(galleryItems.map((item) => [item.id, item]));
+
+export function getGalleryItem(id: string): GalleryItem | undefined {
+  return byId.get(id);
 }
 
-export const sourceLabels: Record<GallerySource, string> = {
-  project: "\u067e\u0631\u0648\u0698\u0647",
-  product: "\u0645\u062d\u0635\u0648\u0644",
-  collection: "\u06a9\u0627\u0644\u06a9\u0634\u0646",
-};
-
-function addLink(map: Map<string, GalleryLink[]>, src: string, link: GalleryLink) {
-  const list = map.get(src) ?? [];
-  if (!list.some((l) => l.href === link.href)) list.push(link);
-  map.set(src, list);
-}
-
-function buildLinkMap(): Map<string, GalleryLink[]> {
-  const map = new Map<string, GalleryLink[]>();
-
-  for (const project of projects) {
-    const link: GalleryLink = {
-      source: "project",
-      label: project.title,
-      href: `/projects/${project.slug}`,
-    };
-    addLink(map, project.image, link);
-    project.gallery.forEach((img) => addLink(map, resolveProjectImage(img).src, link));
-    project.sections.forEach((section) => {
-      if (section.image) addLink(map, section.image, link);
-    });
-    project.featuredImages?.forEach((src) => addLink(map, src, link));
-  }
-
-  for (const product of products) {
-    const link: GalleryLink = {
-      source: "product",
-      label: product.name,
-      href: `/products/${product.slug}`,
-    };
-    addLink(map, product.image, link);
-    product.gallery.forEach((src) => addLink(map, src, link));
-  }
-
-  for (const finish of finishes) {
-    const link: GalleryLink = {
-      source: "collection",
-      label: `\u06a9\u0627\u0644\u06a9\u0634\u0646 ${finish.label}`,
-      href: `/collection/${finish.id}`,
-    };
-    getProductsByFinish(finish.id)
-      .slice(0, 2)
-      .forEach((product) => {
-        addLink(map, product.image, link);
-        addLink(map, product.image, {
-          source: "product",
-          label: product.name,
-          href: `/products/${product.slug}`,
-        });
-      });
-  }
-
-  return map;
-}
-
-function pickPrimary(links: GalleryLink[]): GalleryLink {
-  return [...links].sort((a, b) => sourcePriority[a.source] - sourcePriority[b.source])[0];
-}
-
-export function buildGalleryItems(): GalleryItem[] {
-  const map = buildLinkMap();
-  const items: GalleryItem[] = [];
-  let i = 0;
-
-  Array.from(map.entries()).forEach(([src, links]) => {
-    if (!links.length || !isGalleryImage(src)) return;
-    const primary = pickPrimary(links);
-    const related = links.filter((l) => l.href !== primary.href);
-    items.push({
-      id: `${primary.source}-${i}`,
-      src,
-      alt: primary.label,
-      primary,
-      related,
-    });
-    i += 1;
-  });
-
-  return items;
+export function getRelatedGalleryItems(item: GalleryItem): GalleryItem[] {
+  return item.relatedIds.map((id) => byId.get(id)).filter((x): x is GalleryItem => Boolean(x));
 }
 
 export function filterGalleryItems(items: GalleryItem[], filter: GalleryFilter): GalleryItem[] {
   if (filter === "all") return items;
-  return items.filter(
-    (item) => item.primary.source === filter || item.related.some((l) => l.source === filter)
-  );
+  return items.filter((item) => item.tag === filter);
 }
 
-export function getGalleryMarqueeItems(items: GalleryItem[], count = 12): GalleryItem[] {
-  return items.slice(0, count);
-}
-
-export type GalleryRowKind = "pair" | "triple";
-
-export type GalleryCycle = {
-  id: string;
-  rowKind: GalleryRowKind;
-  rowItems: GalleryItem[];
-  /** Deterministic random index into rowItems for fullscreen expand. */
-  focusIndex: number;
-  /** Horizontal rail after pair cycles. */
-  railItems: GalleryItem[];
-  /** Two extra vertical rows after triple cycles. */
-  verticalRows: GalleryItem[][];
-};
-
-function pickFocusIndex(cycleId: number, count: number): number {
-  if (count <= 1) return 0;
-  let s = cycleId * 9301 + 49297;
-  s = (s * 16807) % 2147483647;
-  return Math.abs(s) % count;
-}
-
-/**
- * Each cycle: grid row -> fullscreen (random card from row) -> horizontal rail (pair) or 2 vertical rows (triple).
- */
-export function buildGalleryCycles(items: GalleryItem[]): GalleryCycle[] {
-  if (!items.length) return [];
-
-  const pool = seededShuffle(interleaveBySource(items), items.length * 13 + 7);
-  const cycles: GalleryCycle[] = [];
-  let cursor = 0;
-  let cycleId = 0;
-
-  while (cursor < pool.length) {
-    const rowKind: GalleryRowKind = cycleId % 2 === 0 ? "pair" : "triple";
-    const rowSize = rowKind === "pair" ? 2 : 3;
-    const rowItems = pool.slice(cursor, cursor + rowSize);
-    if (!rowItems.length) break;
-    cursor += rowItems.length;
-
-    const focusIndex = pickFocusIndex(cycleId, rowItems.length);
-
-    const railItems: GalleryItem[] = rowKind === "pair" ? pool.slice(cursor, cursor + 5) : [];
-    cursor += railItems.length;
-
-    const verticalRows: GalleryItem[][] = [];
-    if (rowKind === "triple") {
-      for (let r = 0; r < 2; r++) {
-        const row = pool.slice(cursor, cursor + 3);
-        if (!row.length) break;
-        verticalRows.push(row);
-        cursor += row.length;
-      }
-    }
-
-    cycles.push({
-      id: `cycle-${cycleId}`,
-      rowKind,
-      rowItems,
-      focusIndex,
-      railItems,
-      verticalRows,
-    });
-
-    cycleId += 1;
-    if (rowItems.length < rowSize && cursor >= pool.length) break;
-  }
-
-  return cycles;
-}
-
-/** @deprecated Use buildGalleryCycles */
-export type GalleryBlockType = "scatter" | "fullscreen";
-export type GalleryBlock = {
-  id: string;
-  type: GalleryBlockType;
-  items: GalleryItem[];
-  variant?: number;
-};
-
-export function buildGallerySequence(items: GalleryItem[]): GalleryBlock[] {
-  return buildGalleryCycles(items).flatMap((c) => [
-    { id: `${c.id}-row`, type: "scatter" as const, items: c.rowItems, variant: 0 },
-  ]);
-}
-
-function seededShuffle<T>(arr: T[], seed = 7): T[] {
-  const result = [...arr];
-  let s = seed;
-  const rand = () => {
-    s = (s * 16807) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
-/** Interleave sources so project / product / collection appear in mixed order. */
-function interleaveBySource(items: GalleryItem[]): GalleryItem[] {
-  const buckets: Record<GallerySource, GalleryItem[]> = {
-    project: [],
-    product: [],
-    collection: [],
-  };
-  for (const item of items) {
-    buckets[item.primary.source].push(item);
-  }
-  const max = Math.max(buckets.project.length, buckets.product.length, buckets.collection.length);
-  const mixed: GalleryItem[] = [];
-  for (let i = 0; i < max; i++) {
-    for (const key of ["project", "product", "collection"] as GallerySource[]) {
-      if (buckets[key][i]) mixed.push(buckets[key][i]);
-    }
-  }
-  return mixed.length ? mixed : items;
+export function getGalleryItems(): GalleryItem[] {
+  return galleryItems;
 }
