@@ -46,16 +46,6 @@ const config: Config = {
         "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
         "in-out-quint": "cubic-bezier(0.83, 0, 0.17, 1)",
       },
-      keyframes: {
-        "scroll-cue": {
-          "0%": { transform: "translateY(0)", opacity: "0" },
-          "40%": { opacity: "1" },
-          "100%": { transform: "translateY(14px)", opacity: "0" },
-        },
-      },
-      animation: {
-        "scroll-cue": "scroll-cue 2s ease-in-out infinite",
-      },
     },
   },
   plugins: [],

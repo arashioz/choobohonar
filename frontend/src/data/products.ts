@@ -1,7 +1,11 @@
-export type Finish = { id: string; label: string; hex: string };
 export type ProductRoom = "living" | "bedroom" | "bedding" | "dining" | "decor" | "carpet" | "lighting" | "dishes";
 
 import shopCatalogRaw from "./shop-catalog.json";
+import { woodFinishes, type WoodFinish } from "@/data/materials";
+
+/** @deprecated Prefer `woodFinishes` from `@/data/materials` — kept as alias for product finish swatches. */
+export type Finish = WoodFinish;
+export const finishes = woodFinishes;
 
 export type ProductReview = {
   author: string;
@@ -37,14 +41,6 @@ export type Product = {
   reviews: ProductReview[];
   faq: ProductFaq[];
 };
-
-export const finishes: Finish[] = [
-  { id: "walnut", label: "گردو", hex: "#5A3830" },
-  { id: "mahogany", label: "ماهاگونی", hex: "#7B3A2A" },
-  { id: "natural", label: "نچرال", hex: "#C9A37A" },
-  { id: "hazelnut", label: "فندقی", hex: "#A9784E" },
-  { id: "beige", label: "بژ روشن", hex: "#D8C4A8" },
-];
 
 export { roomLabels, getRoomLabel } from "@/data/product-categories";
 

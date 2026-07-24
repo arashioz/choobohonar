@@ -64,7 +64,7 @@ export default function ProductHero({ product }: { product: Product }) {
               if (!f) return null;
               const selected = activeFinish === fid;
               return (
-                <a key={fid} href={`/collection/${fid}`} className="group flex items-center gap-2" title={f.label} onMouseEnter={() => setActiveFinish(fid)}>
+                <a key={fid} href={`/materials/wood/${fid}`} className="group flex items-center gap-2" title={f.label} onMouseEnter={() => setActiveFinish(fid)}>
                   <span
                     className={cn(
                       "h-9 w-9 rounded-full border transition-all duration-300",

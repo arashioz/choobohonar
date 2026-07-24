@@ -1,27 +1,28 @@
 import type { NavChildItem, NavItem } from "@/data/nav-types";
-import { buildProductsFilterHref, productRooms } from "@/data/product-categories";
+import { productRooms } from "@/data/product-categories";
+import { getShopCategoryUrl, getShopUrl } from "@/lib/shop";
 
 export type { NavChildItem, NavItem };
 
-/** Mega-menu: top-level rooms from choobohonar.com */
+/** Mega-menu: top-level rooms on choobohonar.com */
 export const productMegaMenu: NavChildItem[] = productRooms.map((room) => ({
   label: room.label,
-  href: buildProductsFilterHref(room.id),
+  href: getShopCategoryUrl(room.id),
   description: room.description,
 }));
 
 export const navItems: NavItem[] = [
-  { label: "محصولات", href: "/products", children: productMegaMenu },
+  { label: "محصولات", href: getShopUrl(), children: productMegaMenu },
   { label: "کالکشن", href: "/collection" },
+  { label: "متریال", href: "/materials" },
   { label: "پروژه‌ها", href: "/projects" },
   { label: "معماری داخلی", href: "/interior-architecture-services" },
   { label: "گالری", href: "/gallery" },
   { label: "مجله", href: "/magazine" },
-  { label: "تماس", href: "/contact" },
+  { label: "ارتباط با ما", href: "/contact" },
 ];
 
 export const homeSectionLinks: NavChildItem[] = [
-  { label: "محصولات منتخب", href: "/#products" },
   { label: "پروژه‌های منتخب", href: "/#projects" },
   { label: "حوزه‌های کاری", href: "/#work-areas" },
   { label: "رویکرد ما", href: "/#approach" },
