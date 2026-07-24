@@ -11,8 +11,8 @@
 03  Hotel Armon/
 04  Hotel Araz/
 05  Aknoon/
-BrandBook/
-Catalogue/
+/BrandBook/
+/Catalogue/
 
 Video/
 design/
@@ -39,10 +39,26 @@ yarn-error.log*
 __pycache__/
 *.pyc
 
+# Brandbook dev artifacts
+**/guideline/assets/_debug-*
+
+# Brandbook binary assets (delivered via brandbook-assets-v*.zip — see admin/public/brand/ASSETS.md)
+admin/public/brand/**/*.png
+admin/public/brand/**/*.webp
+admin/public/brand/**/*.jpg
+admin/public/brand/**/*.jpeg
+admin/public/brand/**/*.ai
+admin/public/brand/downloads/*.zip
+brandbook-assets-v*.zip
+brandbook-assets-manifest.json
+
+# Source brand guidelines (not deployed with app)
+BrandGuideline/
+
 # MongoDB
-data/
-mongo/
-mongodb/
+/data/
+/mongo/
+/mongodb/
 *.wt
 WiredTiger
 WiredTiger.lock
@@ -52,5 +68,5 @@ WiredTigerLog.*
 
 # Docker volumes
 volumes/
-data/*
-!data/.gitkeep
+/data/*
+!/data/.gitkeep

@@ -12,12 +12,20 @@ import { ProductPipelineAgent } from './agents/product/product-pipeline.agent';
 import { ImagePromptAgent } from './agents/shared/image-prompt.agent';
 import { ImageGeneratorAgent } from './agents/shared/image-generator.agent';
 import { ContentJob, ContentJobSchema } from '../content/schemas/content-job.schema';
+import { BrandChunk, BrandChunkSchema } from './schemas/brand-chunk.schema';
+import { LocalEmbeddingService } from './services/local-embedding.service';
+import { BrandRagService } from './services/brand-rag.service';
+import { BrandChatController } from './controllers/brand-chat.controller';
 
 @Module({
   imports: [
     ConfigModule,
-    MongooseModule.forFeature([{ name: ContentJob.name, schema: ContentJobSchema }]),
+    MongooseModule.forFeature([
+      { name: ContentJob.name, schema: ContentJobSchema },
+      { name: BrandChunk.name, schema: BrandChunkSchema },
+    ]),
   ],
+  controllers: [BrandChatController],
   providers: [
     {
       provide: LLM_PROVIDER,
@@ -42,7 +50,10 @@ import { ContentJob, ContentJobSchema } from '../content/schemas/content-job.sch
     ProductPipelineAgent,
     ImagePromptAgent,
     ImageGeneratorAgent,
+    LocalEmbeddingService,
+    BrandRagService,
   ],
-  exports: [OrchestratorAgent],
+  exports: [OrchestratorAgent, BrandRagService, LocalEmbeddingService],
 })
 export class AiModule {}
+

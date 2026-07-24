@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F4EFE8;
+  --foreground: #092B1C;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+    width: 100%;
+    scroll-padding-top: 2rem;
+    background: theme("colors.forest.DEFAULT");
+  }
+
+  body {
+    background-color: theme("colors.paper");
+    color: theme("colors.forest.DEFAULT");
+    font-feature-settings: "ss01", "ss02";
+    overflow-x: clip;
+    width: 100%;
+    min-height: 100vh;
+    overscroll-behavior-x: none;
+  }
+
+  ::selection {
+    background-color: theme("colors.peach.DEFAULT");
+    color: theme("colors.forest.DEFAULT");
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme("colors.peach.DEFAULT");
+    outline-offset: 3px;
+  }
+
+  /* Latin fragments inside RTL copy */
+  [dir="ltr"] {
+    unicode-bidi: isolate;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  /* Thin uppercase eyebrow used across sections */
+  .eyebrow {
+    @apply text-xs tracking-[0.3em] uppercase font-medium;
+  }
+}
+
+/* Hide scrollbar on the horizontal-feeling rails while keeping scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.brandbook-grid {
+  background-image:
+    linear-gradient(to right, rgba(9, 43, 28, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(9, 43, 28, 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.brandbook-grid-dark {
+  background-image:
+    linear-gradient(to right, rgba(244, 239, 232, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 239, 232, 0.055) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+
+.brandbook-logo-grid {
+  background-image:
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px),
+    linear-gradient(45deg, transparent calc(50% - 0.5px), currentColor 50%, transparent calc(50% + 0.5px));
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  color: rgba(9, 43, 28, 0.16);
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+
+@media (max-width: 767px) {
+  .brandbook-grid,
+  .brandbook-grid-dark {
+    background-size: 48px 48px;
+  }
+}
+
+/* Scroll-reveal: opacity only in CSS — transforms are owned by GSAP. */
+.motion-reveal {
+  opacity: 0;
+}
+
+.motion-reveal.is-visible,
+.motion-reveal[data-revealed="true"] {
+  opacity: 1;
+}
+
+html.motion-enabled .motion-reveal:not(.is-visible):not([data-revealed="true"]) {
+  animation: motion-reveal-failsafe 0.01s 2.8s forwards;
+}
+
+@keyframes motion-reveal-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
+.motion-stagger > * {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .motion-stagger > * {
+    opacity: 1;
+  }
+}
+
+/* Hero intro — hidden until GSAP timeline runs */
+[data-hero-logo],
+[data-hero-line],
+[data-hero-soft],
+[data-hero-cue] {
+  opacity: 0;
+}
+
+html.motion-enabled [data-hero-logo]:not([data-revealed="true"]),
+html.motion-enabled [data-hero-line]:not([data-revealed="true"]),
+html.motion-enabled [data-hero-soft]:not([data-revealed="true"]),
+html.motion-enabled [data-hero-cue]:not([data-revealed="true"]) {
+  animation: motion-reveal-failsafe 0.01s 2.5s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-logo],
+  [data-hero-line],
+  [data-hero-soft],
+  [data-hero-cue] {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes manifestoLineIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
