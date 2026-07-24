@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Post } from "@/data/posts";
+import type { Post } from "@/data/posts/types";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import PostCard from "@/components/magazine/PostCard";

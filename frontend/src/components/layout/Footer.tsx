@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { brand, homeSectionLinks, navItems, productMegaMenu } from "@/data/nav";
+import { brandAssets } from "@/lib/brand-assets";
 
 export default function Footer() {
   return (
@@ -10,19 +11,19 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <div className="relative h-10 w-[180px]">
-              <Image src="/brand/lockup-fa-white.svg" alt={brand.nameFa} fill className="object-contain object-right" />
+              <Image src={brandAssets.wordmarkFa.white} alt={brand.nameFa} fill className="object-contain object-right" />
             </div>
             <p className="mt-5 max-w-sm text-lg font-light leading-relaxed text-paper/85 md:text-xl">
               {brand.sloganSubFa}
             </p>
             <div className="relative mt-5 h-7 w-[160px] opacity-90">
-              <Image src="/brand/slogan-fa-peach.svg" alt={brand.sloganFa} fill className="object-contain object-right" />
+              <Image src={brandAssets.sloganFa} alt={brand.sloganFa} fill className="object-contain object-right" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-5">
             <div>
-              <h3 className="eyebrow text-peach">نقشه سایت</h3>
+              <h3 className="eyebrow text-peach">نقشه سایت خانه</h3>
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 {navItems.map((item) => (
                   <li key={item.href}>
@@ -35,7 +36,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h3 className="eyebrow text-peach">دسته‌بندی</h3>
+              <h3 className="eyebrow text-peach">دسته بندی خانه</h3>
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 {productMegaMenu.map((item) => (
                   <li key={item.href}>
@@ -48,7 +49,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h3 className="eyebrow text-peach">بخش‌های خانه</h3>
+              <h3 className="eyebrow text-peach">بخش های خانه</h3>
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 {homeSectionLinks.map((item) => (
                   <li key={item.href}>
@@ -62,7 +63,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-3">
-            <h3 className="eyebrow text-peach">تماس</h3>
+            <h3 className="eyebrow text-peach">ارتباط با ما</h3>
             <ul className="mt-4 space-y-2 text-sm text-paper/80">
               <li>{brand.addressFa}</li>
               <li>{brand.showroomHoursFa}</li>
@@ -79,24 +80,25 @@ export default function Footer() {
               </li>
               <li>
                 <a href="/contact" className="transition-colors hover:text-peach">
-                  فرم تماس و مشاوره
+                  انتخاب نوع درخواست
+                </a>
+              </li>
+              <li>
+                <a href="/contact/cooperation" className="transition-colors hover:text-peach">
+                  درخواست همکاری
+                </a>
+              </li>
+              <li>
+                <a href="/contact/representation" className="transition-colors hover:text-peach">
+                  درخواست نمایندگی
+                </a>
+              </li>
+              <li>
+                <a href="/contact/consultation" className="transition-colors hover:text-peach">
+                  درخواست مشاوره
                 </a>
               </li>
             </ul>
-
-            <form className="mt-5" onSubmit={(e) => e.preventDefault()}>
-              <label className="eyebrow text-peach">خبرنامه</label>
-              <div className="mt-2 flex items-center border-b border-paper/30 focus-within:border-peach">
-                <input
-                  type="email"
-                  placeholder="ایمیل شما"
-                  className="w-full bg-transparent py-2 text-sm text-paper placeholder:text-paper/40 focus:outline-none"
-                />
-                <button type="submit" className="shrink-0 px-2 text-peach" aria-label="عضویت">
-                  ←
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       </div>

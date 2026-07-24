@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { getAllCatalogProducts, finishes } from "@/data/products";
+import { collections } from "@/data/collections";
+import { materials, woodFinishes } from "@/data/materials";
+import { getAllCatalogProducts } from "@/data/products";
 import { projects } from "@/data/projects";
 import { posts } from "@/data/posts";
 
@@ -12,10 +14,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/products",
     "/collection",
+    "/materials",
     "/projects",
     "/gallery",
     "/magazine",
     "/contact",
+    "/contact/cooperation",
+    "/contact/representation",
+    "/contact/consultation",
   ].map((path) => ({
     url: `${BASE}${path}`,
     changeFrequency: "monthly",
@@ -28,8 +34,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const finishRoutes: MetadataRoute.Sitemap = finishes.map((f) => ({
-    url: `${BASE}/collection/${f.id}`,
+  const collectionRoutes: MetadataRoute.Sitemap = collections.map((c) => ({
+    url: `${BASE}/collection/${c.slug}`,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  const materialRoutes: MetadataRoute.Sitemap = materials.map((m) => ({
+    url: `${BASE}/materials/${m.id}`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  const finishRoutes: MetadataRoute.Sitemap = woodFinishes.map((f) => ({
+    url: `${BASE}/materials/wood/${f.id}`,
     changeFrequency: "monthly",
     priority: 0.5,
   }));
@@ -46,5 +64,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...productRoutes, ...finishRoutes, ...projectRoutes, ...postRoutes];
+  return [
+    ...staticRoutes,
+    ...productRoutes,
+    ...collectionRoutes,
+    ...materialRoutes,
+    ...finishRoutes,
+    ...projectRoutes,
+    ...postRoutes,
+  ];
 }

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Post } from "@/data/posts";
+import type { Post } from "@/data/posts/types";
 import FadeUp from "@/components/motion/FadeUp";
 
 export default function PostBody({ post }: { post: Post }) {

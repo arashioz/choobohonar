@@ -12,6 +12,8 @@ export const productRooms: {
   label: string;
   description: string;
   wpSlug: string;
+  /** Override when WooCommerce path differs from wpSlug (e.g. decor/dishes). */
+  shopPath?: string;
 }[] = [
   { id: "living", label: "نشیمن", description: "مبل، میز و مبلمان نشیمن", wpSlug: "livingroom" },
   { id: "bedroom", label: "اتاق خواب", description: "تخت، میز آرایش و کمد", wpSlug: "bedroom" },
@@ -20,7 +22,7 @@ export const productRooms: {
   { id: "decor", label: "دکوراتیو", description: "بوفه، کنسول، آینه و اکسسوری", wpSlug: "decor" },
   { id: "carpet", label: "فرش و قالی", description: "فرش و زیرانداز", wpSlug: "carpet" },
   { id: "lighting", label: "روشنایی", description: "آباژور و آویز", wpSlug: "lighting" },
-  { id: "dishes", label: "ظروف", description: "ظروف سرو و پذیرایی", wpSlug: "dishes" },
+  { id: "dishes", label: "ظروف", description: "ظروف سرو و پذیرایی", wpSlug: "dishes", shopPath: "decor/dishes" },
 ];
 
 /** Sub-categories shown in nav and product filters (from live site menu). */

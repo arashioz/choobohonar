@@ -161,8 +161,8 @@ export default function ProductsCatalogPage() {
             {" · "}
             {toFa(categoryCount)} دسته در کل کاتالوگ
           </p>
-          <Link href="/collection" className="inline-flex items-center gap-2 text-forest transition-colors hover:text-brick">
-            مشاهده کالکشن پرداخت‌ها
+          <Link href="/materials" className="inline-flex items-center gap-2 text-forest transition-colors hover:text-brick">
+            مشاهده متریال‌ها
             <span>←</span>
           </Link>
         </div>

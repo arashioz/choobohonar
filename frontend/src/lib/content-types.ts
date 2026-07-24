@@ -40,7 +40,14 @@ export interface ContentJobResult {
   canonicalUrl?: string;
 }
 
-export const ARTICLE_CATEGORIES = ["راهنمای خرید","مراقبت و نگهداری","طراحی داخلی","اخبار و رویداد","پشت صحنه"] as const;
+export const ARTICLE_CATEGORIES = [
+  "راهنمای انتخاب مبلمان",
+  "نگهداری مبلمان",
+  "معرفی متریال",
+  "مقالات آموزشی",
+  "سبک‌های طراحی داخلی",
+  "مقالات تخصصی",
+] as const;
 
 export function emptyResult(): ContentJobResult {
   return {

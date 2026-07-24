@@ -21,8 +21,8 @@ export default function InteriorConsultationCta() {
               <Button href="/interior-architecture-services/order" variant="primary" showArrow>
                 شروع فرم سفارش
               </Button>
-              <Button href="/contact?intent=services" variant="secondary">
-                تماس با کارشناس
+              <Button href="/contact/consultation" variant="secondary">
+                درخواست مشاوره
               </Button>
             </div>
           </FadeUp>

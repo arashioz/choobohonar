@@ -5,6 +5,9 @@ import { posts, getPost, getRelatedPosts } from "@/data/posts";
 import Container from "@/components/layout/Container";
 import PostHero from "@/components/magazine/PostHero";
 import PostBody from "@/components/magazine/PostBody";
+import PostOutline from "@/components/magazine/PostOutline";
+import PostPodcast from "@/components/magazine/PostPodcast";
+import PostFAQ from "@/components/magazine/PostFAQ";
 import RelatedPosts from "@/components/magazine/RelatedPosts";
 
 export function generateStaticParams() {
@@ -16,10 +19,10 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   if (!post) return { title: "مقاله یافت نشد | خانه چوب و هنر" };
   return {
     title: `${post.title} | مجله خانه چوب و هنر`,
-    description: post.excerpt,
+    description: post.metaDescription ?? post.excerpt,
     openGraph: {
       title: `${post.title} | مجله خانه چوب و هنر`,
-      description: post.excerpt,
+      description: post.metaDescription ?? post.excerpt,
       images: [post.coverImage],
       type: "article",
       locale: "fa_IR",
@@ -50,7 +53,10 @@ export default function PostPage({ params }: { params: { slug: string } }) {
           </nav>
 
           <PostHero post={post} />
+          {post.outline && post.outline.length > 0 && <PostOutline items={post.outline} />}
           <PostBody post={post} />
+          {post.podcast && <PostPodcast episode={post.podcast} />}
+          {post.faq && post.faq.length > 0 && <PostFAQ items={post.faq} />}
         </Container>
       </section>
 

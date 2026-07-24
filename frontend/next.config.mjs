@@ -17,6 +17,14 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    const finishIds = ["walnut", "mahogany", "natural", "hazelnut", "beige"];
+    return finishIds.map((id) => ({
+      source: `/collection/${id}`,
+      destination: `/materials/wood/${id}`,
+      permanent: true,
+    }));
+  },
 };
 
 export default nextConfig;

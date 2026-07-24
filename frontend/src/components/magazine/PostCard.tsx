@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Post } from "@/data/posts";
+import type { Post } from "@/data/posts/types";
 
 export default function PostCard({ post }: { post: Post }) {
   return (
@@ -14,10 +14,16 @@ export default function PostCard({ post }: { post: Post }) {
           className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]"
         />
       </div>
-      <div className="mt-4 flex items-center gap-3 text-sm text-forest/65">
+      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-forest/65">
         <span className="text-brick">{post.category}</span>
         <span>·</span>
         <span>{post.readingTime}</span>
+        {post.podcast && (
+          <>
+            <span>·</span>
+            <span className="text-forest/45">نسخه صوتی</span>
+          </>
+        )}
       </div>
       <h3 className="mt-2 text-xl font-light leading-snug tracking-tight text-forest transition-colors group-hover:text-brick">
         {post.title}

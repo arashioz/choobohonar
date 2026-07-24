@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { brand, homeSectionLinks, navItems } from "@/data/nav";
+import { brandAssets } from "@/lib/brand-assets";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
 import { cn } from "@/lib/utils";
 
@@ -84,7 +85,7 @@ export default function Header() {
           >
             <span className="relative block h-9 w-8 sm:h-10 sm:w-9">
               <Image
-                src="/brand/monogram-white.svg"
+                src={brandAssets.monogram.white}
                 alt=""
                 fill
                 priority
@@ -95,7 +96,7 @@ export default function Header() {
                 )}
               />
               <Image
-                src="/brand/monogram-black.svg"
+                src={brandAssets.monogram.black}
                 alt=""
                 fill
                 aria-hidden
@@ -105,13 +106,32 @@ export default function Header() {
                 )}
               />
             </span>
-            <span
-              className={cn(
-                "text-sm font-medium tracking-[0.02em] transition-colors duration-300 md:text-[15px]",
-                onSolid ? "text-forest" : "text-paper"
-              )}
-            >
-              {brand.nameFa}
+            <span className="relative block h-9 w-[5.75rem] shrink-0 sm:h-10 sm:w-[6.5rem]">
+              {/* Native img — SVG wordmark must keep 260:110 aspect; Next/Image squashes the two-line FA lockup. */}
+              <img
+                src={brandAssets.wordmarkFa.white}
+                alt=""
+                aria-hidden
+                width={260}
+                height={110}
+                decoding="async"
+                className={cn(
+                  "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
+                  onSolid ? "opacity-0" : "opacity-100"
+                )}
+              />
+              <img
+                src={brandAssets.wordmarkFa.black}
+                alt=""
+                aria-hidden
+                width={260}
+                height={110}
+                decoding="async"
+                className={cn(
+                  "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
+                  onSolid ? "opacity-100" : "opacity-0"
+                )}
+              />
             </span>
           </a>
 
@@ -125,14 +145,20 @@ export default function Header() {
           >
             {navItems.map((item) => (
               <div key={item.href} className="group relative shrink-0 py-1">
-                <a href={item.href} className="relative block whitespace-nowrap opacity-90 transition-opacity hover:opacity-100">
+                <a
+                  href={item.href}
+                  className="relative block whitespace-nowrap opacity-90 transition-opacity hover:opacity-100"
+                  {...(item.children?.length
+                    ? { onClick: (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault() }
+                    : {})}
+                >
                   {item.label}
                   <span className="absolute inset-x-0 -bottom-0.5 h-px origin-right scale-x-0 bg-current transition-transform duration-300 ease-out-expo group-hover:scale-x-100" />
                 </a>
 
                 {item.children?.length ? (
-                  <div className="pointer-events-none absolute right-0 top-full z-50 w-[min(20rem,calc(100vw-3rem))] translate-y-4 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-2 group-hover:opacity-100 xl:w-[22rem]">
-                    <div className="mt-4 border border-forest/10 bg-paper p-3 text-right text-forest shadow-[0_16px_40px_rgba(9,43,28,0.08)] xl:p-4">
+                  <div className="pointer-events-none absolute right-0 top-full z-50 w-[min(20rem,calc(100vw-3rem))] pt-3 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 xl:w-[22rem]">
+                    <div className="border border-forest/10 bg-paper p-3 text-right text-forest shadow-[0_16px_40px_rgba(9,43,28,0.08)] xl:p-4">
                       <p className="px-1 text-xs tracking-[0.2em] text-forest/65">دسته‌بندی محصولات</p>
                       <div className="mt-2 grid grid-cols-2 gap-1.5">
                         {item.children.map((child) => (
@@ -145,6 +171,12 @@ export default function Header() {
                           </a>
                         ))}
                       </div>
+                      <a
+                        href={item.href}
+                        className="mt-3 block border-t border-forest/10 px-1 pt-3 text-xs font-medium text-brick transition-colors hover:text-forest"
+                      >
+                        مشاهده همه محصولات
+                      </a>
                     </div>
                   </div>
                 ) : null}

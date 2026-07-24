@@ -32,7 +32,7 @@ export default function ShopProductIntro({ product }: { product: ShopProduct }) 
           <Button as="a" href={product.shopUrl} variant="primary" showArrow target="_blank" rel="noopener noreferrer">
             مشاهده و خرید در فروشگاه
           </Button>
-          <Button as="a" href="/contact?intent=services" variant="secondary">
+          <Button as="a" href="/contact/consultation" variant="secondary">
             مشاوره طراحی داخلی
           </Button>
         </div>
