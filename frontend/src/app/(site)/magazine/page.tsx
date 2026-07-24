@@ -7,7 +7,7 @@ import MagazineList from "@/components/magazine/MagazineList";
 export const metadata: Metadata = {
   title: "مجله | خانه چوب و هنر",
   description:
-    "مجله‌ی خانه چوب و هنر؛ راهنمای خرید، مراقبت از چوب، الهام دکوراسیون و پشت صحنه‌ی ساخت مبلمان.",
+    "مجله خانه چوب و هنر؛ راهنمای انتخاب مبلمان، نگهداری چوب، معرفی متریال، مقالات آموزشی، سبک‌های طراحی داخلی و مطالب تخصصی.",
 };
 
 export default function MagazineIndexPage() {
@@ -30,7 +30,7 @@ export default function MagazineIndexPage() {
             مجله
           </FadeUp>
           <FadeUp as="p" delay={0.1} className="max-w-md text-lg text-forest/60">
-            یادداشت‌هایی درباره‌ی چوب، طراحی و زندگی در خانه‌ای که دوستش دارید.
+            یادداشت‌هایی درباره چوب، متریال، طراحی و زندگی در خانه‌ای که دوستش دارید.
           </FadeUp>
         </div>
 
