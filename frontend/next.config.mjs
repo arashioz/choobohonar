@@ -25,6 +25,19 @@ const nextConfig = {
       permanent: true,
     }));
   },
+  async rewrites() {
+    // Only in local/dev. In production nginx already proxies /api → backend.
+    if (process.env.NODE_ENV === "production") return [];
+
+    const api =
+      process.env.API_PROXY_TARGET || "http://localhost:3001/api";
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${api.replace(/\/$/, "")}/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

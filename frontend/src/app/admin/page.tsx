@@ -1,92 +1,137 @@
 "use client";
-import { useState } from 'react';
-// Use relative /api by default so the frontend will call the same origin (proxied
-// by nginx in production). During local development you can set
-// NEXT_PUBLIC_API_URL to override this (e.g. http://localhost:3001/api).
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+import { FormEvent, useState } from "react";
+import Dock from "../../components/admin/Dock";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export default function AdminPage() {
-  const [user, setUser] = useState('');
-  const [pass, setPass] = useState('');
-  const [token, setToken] = useState('');
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [token, setToken] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [images, setImages] = useState<Array<{ filename: string; url: string }>>([]);
-  const [target, setTarget] = useState<string>('');
+  const [target, setTarget] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function login(e: React.FormEvent<HTMLFormElement>) {
+  async function login(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const res = await fetch(`${API_BASE}/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: user, password: pass }),
-    });
-    const data = await res.json();
-    if (data.token) setToken(data.token);
-  }
+    setError("");
+    setLoading(true);
 
-  // redirect to dashboard after successful login
-  if (token) {
     try {
-      localStorage.setItem('admin_token', token);
-      // navigate to dashboard
-      if (typeof window !== 'undefined') window.location.href = '/admin/dashboard';
-    } catch (e) {
-      // ignore
+      const res = await fetch(`${API_BASE}/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as {
+        token?: string;
+        message?: string;
+      };
+
+      if (!res.ok || !data.token) {
+        setError(
+          data.message === "Invalid credentials"
+            ? "نام کاربری یا رمز عبور اشتباه است"
+            : data.message || "ورود ناموفق بود",
+        );
+        return;
+      }
+
+      localStorage.setItem("admin_token", data.token);
+      setToken(data.token);
+      window.location.href = "/admin/dashboard";
+    } catch {
+      setError("ارتباط با سرور برقرار نشد. مطمئن شوید API روی پورت 3001 در حال اجرا است.");
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function upload(e: React.FormEvent<HTMLFormElement>) {
+  async function upload(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!file || !token) return;
     const fd = new FormData();
-    fd.append('file', file);
-    if (target) fd.append('target', target);
+    fd.append("file", file);
+    if (target) fd.append("target", target);
     const res = await fetch(`${API_BASE}/admin/upload`, {
-      method: 'POST',
+      method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: fd,
     });
     const data = await res.json();
-    if (data.url) setImages(prev => [data, ...prev]);
+    if (data.url) setImages((prev) => [data, ...prev]);
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-semibold mb-4">پنل ادمین</h1>
+      <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow">
+        <h1 className="mb-4 text-2xl font-semibold">پنل ادمین</h1>
 
         {!token ? (
           <form onSubmit={login} className="space-y-3">
-            <input value={user} onChange={e => setUser(e.target.value)} placeholder="username" className="w-full p-2 border" />
-            <input value={pass} onChange={e => setPass(e.target.value)} placeholder="password" type="password" className="w-full p-2 border" />
-            <button className="px-4 py-2 bg-blue-600 text-white rounded">ورود</button>
+            <input
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+              placeholder="choobhonar"
+              autoComplete="username"
+              className="w-full border p-2"
+              dir="ltr"
+            />
+            <input
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              placeholder="••••••••"
+              type="password"
+              autoComplete="current-password"
+              className="w-full border p-2"
+              dir="ltr"
+            />
+            {error ? (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-60"
+            >
+              {loading ? "در حال ورود…" : "ورود"}
+            </button>
           </form>
         ) : (
           <div>
-              <form onSubmit={upload} className="space-y-3 mb-4">
-               <input type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] ?? null)} />
-               <input value={target} onChange={e => setTarget(e.target.value)} placeholder="placement target (e.g. hero, gallery)" className="w-full p-2 border" />
-              <button className="px-4 py-2 bg-green-600 text-white rounded">آپلود</button>
+            <form onSubmit={upload} className="mb-4 space-y-3">
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <input
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                placeholder="placement target (e.g. hero, gallery)"
+                className="w-full border p-2"
+              />
+              <button type="submit" className="rounded bg-green-600 px-4 py-2 text-white">
+                آپلود
+              </button>
             </form>
             <div className="grid grid-cols-3 gap-3">
-              {images.map(img => (
+              {images.map((img) => (
                 <div key={img.filename} className="bg-gray-100 p-2">
-                  <img src={img.url} alt="uploaded" className="w-full h-32 object-cover" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.url} alt="uploaded" className="h-32 w-full object-cover" />
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+      <Dock />
     </div>
   );
 }
-
-// Include Dock on admin pages
-import Dock from '../../components/admin/Dock';
-
-// Render dock when this module is used
-(function attachDock() {
-  if (typeof window === 'undefined') return;
-  // This file is a client component; Dock will be imported and used by Next.
-})();
