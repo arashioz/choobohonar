@@ -58,6 +58,8 @@ services:
       NEXT_TELEMETRY_DISABLED: '1'
       # Browser uses same-origin /api; Next rewrites it to the backend service.
       API_PROXY_TARGET: http://backend:3001/api
+      # Brandbook UI runs in the admin service (:3003).
+      NEXT_PUBLIC_BRANDBOOK_URL: http://95.38.165.133:3003/admin/brandbook
     # Use npm ci for reproducible installs and keep install output quiet. The
     # node_modules volume prevents these changes from being seen by the host
     # Next.js watcher which resolves infinite restart loops caused by mounts.
