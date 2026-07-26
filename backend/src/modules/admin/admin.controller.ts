@@ -33,8 +33,8 @@ export class AdminController {
     @Body() body: { username: string; password: string },
     @Res() res: Response,
   ) {
-    const adminUser = process.env.ADMIN_USER || 'admin';
-    const adminPass = process.env.ADMIN_PASS || 'changeme';
+    const adminUser = process.env.ADMIN_USER || 'choobhonar';
+    const adminPass = process.env.ADMIN_PASS || 'admin123';
 
     if (body.username === adminUser && body.password === adminPass) {
       const token = jwt.sign(

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { cn } from "@/lib/utils";
 import { scrollToTarget } from "@/lib/lenis-control";
@@ -158,6 +159,16 @@ export default function BrandbookNavigation({
               );
             })}
           </nav>
+
+          <div className="mt-2 border-t border-forest/8 px-2 pt-2">
+            <Link
+              href="/admin"
+              className="flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-sm text-forest/55 transition-colors hover:bg-forest/[0.055] hover:text-forest"
+            >
+              بازگشت به پنل
+              <span aria-hidden>←</span>
+            </Link>
+          </div>
         </div>
         </div>
       </div>
@@ -262,6 +273,14 @@ export default function BrandbookNavigation({
             );
           })}
         </nav>
+
+        <Link
+          href="/admin"
+          className="mt-4 flex w-full items-center justify-between rounded-2xl border border-forest/10 px-4 py-3 text-sm text-forest/60"
+        >
+          بازگشت به پنل
+          <span aria-hidden>←</span>
+        </Link>
       </div>
     </>
   );

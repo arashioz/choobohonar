@@ -1,10 +1,24 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  {
+    label: "پنل",
+    href: "/admin",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
   {
     label: "برندبوک",
     href: "/brandbook",
@@ -17,33 +31,46 @@ const navItems = [
       </svg>
     ),
   },
-  {
-    label: "ورود",
-    href: "/login",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-        <polyline points="10 17 15 12 10 7" />
-        <line x1="15" y1="12" x2="3" y2="12" />
-      </svg>
-    ),
-  },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function logout() {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.replace("/login");
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   return (
-    <aside className="fixed right-0 top-0 z-40 flex h-screen w-[72px] flex-col border-l border-forest/10 bg-white/80 backdrop-blur-xl transition-all duration-300">
+    <aside className="fixed right-0 top-0 z-40 flex h-screen w-[72px] flex-col border-l border-forest/10 bg-white/80 backdrop-blur-xl">
       <div className="flex h-16 items-center justify-center border-b border-forest/10">
-        <Link href="/brandbook" className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest p-1.5 transition-colors duration-300 hover:bg-forest-700">
-          <img src="/brand/monogram-black.svg" alt="چوب و هنر" className="h-full w-full object-contain brightness-0 invert" />
+        <Link
+          href="/admin"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-forest p-1.5 transition-colors duration-300 hover:bg-forest-700"
+        >
+          <Image
+            src="/brand/monogram-black.svg"
+            alt="چوب و هنر"
+            width={28}
+            height={28}
+            className="object-contain brightness-0 invert"
+          />
         </Link>
       </div>
 
       <nav className="flex flex-1 flex-col items-center gap-1 px-3 py-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/admin" && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
@@ -53,7 +80,7 @@ export default function AdminSidebar() {
                 "group relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300",
                 isActive
                   ? "bg-forest text-peach shadow-md shadow-forest/20"
-                  : "text-forest/40 hover:bg-forest/5 hover:text-forest"
+                  : "text-forest/40 hover:bg-forest/5 hover:text-forest",
               )}
             >
               {item.icon}
@@ -69,22 +96,22 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="flex flex-col items-center gap-1 border-t border-forest/10 px-3 py-4">
-        <a
-          href="http://localhost:3000/admin"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="پنل مدیریت"
-          className="group relative flex h-11 w-11 items-center justify-center rounded-xl text-forest/40 transition-all duration-300 hover:bg-forest/5 hover:text-forest"
+        <button
+          type="button"
+          onClick={logout}
+          disabled={loggingOut}
+          title="خروج"
+          className="group relative flex h-11 w-11 items-center justify-center rounded-xl text-forest/40 transition-all duration-300 hover:bg-forest/5 hover:text-forest disabled:opacity-50"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
           <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-forest px-3 py-1.5 text-xs font-medium text-paper opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-            پنل مدیریت
+            {loggingOut ? "خروج…" : "خروج"}
           </span>
-        </a>
+        </button>
       </div>
     </aside>
   );

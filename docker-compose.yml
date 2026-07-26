@@ -20,9 +20,9 @@ services:
       - ./backend/.env
     environment:
       MONGODB_URI: mongodb://mongo:27017/choob-va-honar
-      FRONTEND_URL: http://localhost:3000
-      ADMIN_USER: admin
-      ADMIN_PASS: changeme
+      FRONTEND_URL: http://localhost:3000,http://localhost:3003
+      ADMIN_USER: choobhonar
+      ADMIN_PASS: admin123
       JWT_SECRET: changeme_secret
       REDIS_URL: redis://redis:6379
     # Mount the backend source so changes are reflected immediately in the

@@ -1,6 +1,5 @@
-import BrandbookPage from "../brandbook/page";
+import { redirect } from "next/navigation";
 
-export default function AdminBrandbookWrapper() {
-  // Simple wrapper so the admin route is under /admin/brandbook
-  return <BrandbookPage />;
+export default function AdminBrandbookPage() {
+  redirect("/brandbook");
 }
