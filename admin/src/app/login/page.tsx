@@ -62,7 +62,7 @@ export default function LoginPage() {
             </div>
 
             <Link
-              href="/brandbook"
+              href="/admin/brandbook"
               className={cn(
                 "group relative mt-1 flex w-full items-center justify-center overflow-hidden rounded-xl bg-forest px-6 py-3.5 text-sm font-medium text-paper",
                 "transition-all duration-500 ease-out-expo hover:shadow-md hover:shadow-forest/15",

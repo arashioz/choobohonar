@@ -65,6 +65,28 @@ services:
     # Next.js watcher which resolves infinite restart loops caused by mounts.
     command: sh -c "npm ci --silent --no-audit --no-fund && npm run dev"
 
+  admin:
+    # Development-friendly admin UI (Next.js) — mounted so changes are picked up
+    image: node:20-alpine
+    restart: unless-stopped
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    ports:
+      # Run the admin on host port 3003 (container still serves 3000).
+      # 3002 was previously taken on this machine; using 3003 avoids port conflicts.
+      - '3003:3000'
+    depends_on:
+      - backend
+      - redis
+    working_dir: /app
+    environment:
+      NEXT_TELEMETRY_DISABLED: '1'
+      # Point admin to the backend API running on host port 3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    # Use npm ci for reproducible installs and run the dev server
+    command: sh -c "npm ci --silent --no-audit --no-fund && npm run dev"
+
   redis:
     image: redis:7
     restart: unless-stopped
