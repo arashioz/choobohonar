@@ -16,16 +16,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Brandbook + admin panel require login
+  const needsAuth =
+    pathname.startsWith("/admin") ||
+    pathname === "/brandbook" ||
+    pathname.startsWith("/brandbook/");
+
   if (pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = token ? "/admin" : "/login";
     return NextResponse.redirect(url);
   }
 
-  if (!token && !isPublic) {
+  if (!token && (needsAuth || !isPublic)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", pathname);
+    url.searchParams.set("next", pathname === "/brandbook" ? "/admin/brandbook" : pathname);
     return NextResponse.redirect(url);
   }
 
@@ -35,14 +41,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Normalize legacy /brandbook → /admin/brandbook
+  if (pathname === "/brandbook" || pathname.startsWith("/brandbook/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/brandbook/, "/admin/brandbook") || "/admin/brandbook";
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except static assets and Next internals.
-     */
     "/((?!_next/static|_next/image|favicon.ico|brand/|file.svg|window.svg|vercel.svg).*)",
   ],
 };

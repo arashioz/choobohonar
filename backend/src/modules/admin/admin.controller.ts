@@ -43,6 +43,15 @@ export class AdminController {
         { expiresIn: '8h' },
       );
 
+      res.cookie('admin_session', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        // Site is currently served over HTTP; enable only when HTTPS is forced.
+        secure: process.env.FORCE_HTTPS === 'true',
+        path: '/',
+        maxAge: 8 * 60 * 60 * 1000,
+      });
+
       return res.status(HttpStatus.OK).json({ token });
     }
 

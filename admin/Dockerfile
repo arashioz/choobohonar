@@ -7,27 +7,28 @@ RUN npm ci
 
 COPY . .
 
-# Browser calls same-origin /api (nginx proxies to backend). Never bake localhost.
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_BRANDBOOK_URL=/brandbook
-ENV NEXT_PUBLIC_BRANDBOOK_URL=$NEXT_PUBLIC_BRANDBOOK_URL
+ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+# Prefer classic build in Docker for stability.
+RUN npx next build
 
 FROM node:20-alpine
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=builder /app/package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src ./src
 
 EXPOSE 3000
 

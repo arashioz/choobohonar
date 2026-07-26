@@ -69,7 +69,7 @@ export default function AdminHomePage() {
         </div>
 
         <Link
-          href="/brandbook"
+          href="/admin/brandbook"
           className={cn(
             "group relative flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-forest p-7 sm:p-9",
             "transition-all duration-500 ease-out-expo hover:shadow-xl hover:shadow-forest/20",

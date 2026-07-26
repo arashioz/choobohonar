@@ -74,20 +74,9 @@ export default function ContentJobDetailPage() {
 
     loadJob();
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api";
-
-    // Derive the API origin to connect the socket. Support three cases:
-    // 1) Explicit full URL via NEXT_PUBLIC_API_URL (e.g. http://localhost:3001/api)
-    // 2) Relative API on same origin (default '/api') -> use window.location origin
-    // 3) Other relative paths -> resolve against current origin
-    let apiOrigin = apiBase.replace(/\/api\/?$/, "");
-
-    if (!apiOrigin) {
-      apiOrigin = `${window.location.protocol}//${window.location.host}`;
-    } else if (!/^https?:\/\//.test(apiOrigin)) {
-      // relative path like '/api' or '/some' -> make absolute against current origin
-      apiOrigin = `${window.location.protocol}//${window.location.host}${apiOrigin}`;
-    }
+    // Socket shares the page origin; nginx proxies /api (HTTP) and
+    // websocket upgrade paths when configured. Default to same host.
+    const apiOrigin = `${window.location.protocol}//${window.location.host}`;
 
     const socket = io(`${apiOrigin}/content`);
     socketRef.current = socket;
