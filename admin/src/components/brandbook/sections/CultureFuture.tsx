@@ -10,8 +10,9 @@ import {
 } from '@/data/brandbook';
 import FadeUp from '@/components/motion/FadeUp';
 import StagedTextReveal from '@/components/motion/StagedTextReveal';
-import RevealLine from '@/components/motion/RevealLine';
+import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
 import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
+import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
 import {
   CheckCircleIcon,
   CheckIcon,
@@ -20,49 +21,24 @@ import {
 } from '@/components/brandbook/icons';
 
 /* ─────────────────────────────────────────────────────────────
-   Section Divider
-   ───────────────────────────────────────────────────────────── */
-
-function SectionDivider({
-  number,
-  title,
-  subtitle,
-}: {
-  number: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <FadeUp>
-      <div className="mb-10 flex flex-col gap-2">
-        <span className="eyebrow text-brick">{number}</span>
-        <h3 className="text-2xl font-light tracking-tightest text-forest sm:text-3xl">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="max-w-2xl text-sm leading-relaxed text-forest/60">
-            {subtitle}
-          </p>
-        )}
-        <div className="mt-3 h-px w-16 bg-forest/20" />
-      </div>
-    </FadeUp>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
    7.1 Brand Culture & Behaviors
    ───────────────────────────────────────────────────────────── */
 
 function CultureAndBehaviorsSection() {
   return (
-    <div className="mb-14 space-y-8">
+    <div className="mx-auto mb-14 max-w-5xl space-y-8">
       <FadeUp>
         <div className="rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
           <h4 className="text-lg font-bold text-forest mb-2">فرهنگ سازمانی و نقش کارکنان</h4>
           <p className="text-sm text-forest/80 leading-relaxed mb-4">{brandCulture.intro}</p>
-          <div className="rounded-xl bg-forest/5 p-4 border border-forest/10">
+          {'closing' in brandCulture && brandCulture.closing && (
+            <p className="text-sm text-forest/75 leading-relaxed mb-4">{brandCulture.closing}</p>
+          )}
+          <div className="rounded-xl bg-forest/5 p-4 border border-forest/10 space-y-3">
             <p className="text-xs font-semibold text-brick">{employeeRole.statement}</p>
+            {'closing' in employeeRole && employeeRole.closing && (
+              <p className="text-xs text-forest/70 leading-relaxed">{employeeRole.closing}</p>
+            )}
           </div>
         </div>
       </FadeUp>
@@ -70,7 +46,7 @@ function CultureAndBehaviorsSection() {
       <FadeUp>
         <div className="rounded-2xl border border-forest/10 bg-paper p-8">
           <h4 className="text-lg font-bold text-forest mb-6">اصول رفتار برند</h4>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {brandBehaviors.map((b) => (
               <div key={b.titleFa} className="rounded-xl bg-forest/[0.03] p-5 border border-forest/10">
                 <h5 className="text-base font-bold text-forest mb-2">{b.titleFa}</h5>
@@ -91,7 +67,7 @@ function CultureAndBehaviorsSection() {
 function DosAndDontsSection() {
   return (
     <FadeUp>
-      <div className="mb-14 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="mx-auto mb-14 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
         {/* Do's column */}
         <div className="rounded-2xl bg-sage/10 p-6 sm:p-8 border border-sage/30">
           <div className="mb-6 flex items-center gap-3">
@@ -149,7 +125,7 @@ function DosAndDontsSection() {
 function GrowthVisionSection() {
   return (
     <FadeUp>
-      <div className="mb-20 rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
+      <div className="mx-auto mb-20 max-w-5xl rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
         <h4 className="text-lg font-bold text-forest mb-2">چشم‌انداز توسعه برند</h4>
         <p className="text-sm text-forest/80 leading-relaxed mb-6">{brandGrowthVision.intro}</p>
 
@@ -195,51 +171,36 @@ function ManifestoSection() {
 
 export default function CultureFuture() {
   return (
-    <section
-      id="culture-future"
-      className="relative w-full bg-paper pt-20 text-forest md:pt-28"
-    >
-      <BrandbookContainer>
-        {/* Chapter Title */}
-        <FadeUp>
-          <div className="mb-12 flex flex-col gap-3 sm:mb-14">
-            <span className="eyebrow text-brick">فصل هفتم</span>
-            <h2 className="text-4xl font-light tracking-tightest text-forest sm:text-5xl lg:text-6xl">
-              فرهنگ و آینده برند
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-forest/60 sm:text-lg">
-              فرهنگ سازمانی، نقش کارکنان، رفتار برند، بایدها و نبایدها، چشم‌انداز توسعه و مانیفست.
-            </p>
-            <RevealLine className="mt-2 w-12" origin="right" />
-          </div>
-        </FadeUp>
+    <section id="culture-future" className="relative w-full bg-paper text-forest">
+      <BrandbookChapterHeader
+        chapter="فصل هفتم"
+        title="فرهنگ و آینده برند"
+        subtitle="فرهنگ سازمانی، نقش کارکنان، رفتار برند، بایدها و نبایدها، چشم‌انداز توسعه و مانیفست."
+      />
 
-        {/* 7.1 Culture & Behaviors */}
-        <SectionDivider
+      <BrandbookContainer className="pb-8 md:pb-12">
+        <BrandbookSectionDivider
           number="۷.۱"
           title="فرهنگ سازمانی و رفتار برند"
           subtitle="نقش هر عضو سازمان و چهار اصل رفتار برند در تعاملات."
         />
         <CultureAndBehaviorsSection />
 
-        {/* 7.2 Do's & Don'ts */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۷.۲"
           title="بایدها و نبایدها"
           subtitle="اصول رفتاری برند در ارتباطات و محتوا."
         />
         <DosAndDontsSection />
 
-        {/* 7.3 Growth Vision */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۷.۳"
           title="چشم‌انداز توسعه برند"
           subtitle="مسیر توسعه آینده از یک برند محصول به مرجع سبک زندگی."
         />
         <GrowthVisionSection />
 
-        {/* 7.4 Manifesto */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۷.۴"
           title="مانیفست برند"
           subtitle="بیانیه‌ای برای تمام آنچه باور داریم."

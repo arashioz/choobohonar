@@ -14,40 +14,12 @@ import {
 import Stagger from '@/components/motion/Stagger';
 import { cn } from '@/lib/utils';
 import FadeUp from '@/components/motion/FadeUp';
-import RevealLine from '@/components/motion/RevealLine';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
+import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
+import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
+import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
 import { MessageIcon } from '@/components/brandbook/icons';
-
-/* ─────────────────────────────────────────────────────────────
-   Section Divider
-   ───────────────────────────────────────────────────────────── */
-
-function SectionDivider({
-  number,
-  title,
-  subtitle,
-}: {
-  number: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <FadeUp>
-      <div className="mb-10 flex flex-col gap-2">
-        <span className="eyebrow text-brick">{number}</span>
-        <h3 className="text-2xl font-light tracking-tightest text-forest sm:text-3xl">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="max-w-2xl text-sm leading-relaxed text-forest/60">
-            {subtitle}
-          </p>
-        )}
-        <div className="mt-3 h-px w-16 bg-forest/20" />
-      </div>
-    </FadeUp>
-  );
-}
 
 /* ─────────────────────────────────────────────────────────────
    5.1 Communication Philosophy & Storytelling
@@ -55,12 +27,18 @@ function SectionDivider({
 
 function CommunicationPhilosophySection() {
   return (
-    <div className="mb-20 space-y-10">
+    <div className="mx-auto mb-20 max-w-5xl space-y-10">
       <FadeUp>
-        <div className="rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
-          <p className="text-base text-forest/80 leading-relaxed mb-6">
+        <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
+          <div className="relative text-right">
+            <p className="text-base text-forest/80 leading-relaxed mb-6">
             {brandCommunicationPhilosophy.intro}
           </p>
+          {'closing' in brandCommunicationPhilosophy && brandCommunicationPhilosophy.closing && (
+            <p className="text-sm text-forest/70 leading-relaxed mb-6">
+              {brandCommunicationPhilosophy.closing}
+            </p>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-3">
             {brandCommunicationPhilosophy.coreConcepts.map((c) => (
@@ -70,12 +48,14 @@ function CommunicationPhilosophySection() {
               </div>
             ))}
           </div>
+          </div>
         </div>
       </FadeUp>
 
       {/* Brand Storytelling */}
       <FadeUp>
-        <div className="rounded-2xl border border-forest/10 bg-paper p-8">
+        <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-paper p-8">
+          <div className="relative text-right">
           <h4 className="text-lg font-bold text-forest mb-2">داستان‌گویی برند</h4>
           <p className="text-sm text-forest/75 mb-6">{brandStorytelling.intro}</p>
 
@@ -86,6 +66,10 @@ function CommunicationPhilosophySection() {
                 <p className="text-xs text-forest/80 leading-relaxed">{pillar.description}</p>
               </div>
             ))}
+          </div>
+          {'closing' in brandStorytelling && brandStorytelling.closing && (
+            <p className="mt-6 text-xs text-forest/70 leading-relaxed">{brandStorytelling.closing}</p>
+          )}
           </div>
         </div>
       </FadeUp>
@@ -99,15 +83,28 @@ function CommunicationPhilosophySection() {
 
 function BrandVoiceSection() {
   return (
-    <div id="brand-voice" className="mb-20 scroll-mt-28">
+    <div id="brand-voice" className="relative mb-20 scroll-mt-28 overflow-hidden rounded-3xl border border-forest/[0.06] bg-forest/[0.02] px-5 py-10 sm:px-8 sm:py-12">
+      <BrandPatternField
+        variant="mono"
+        surface="light"
+        mask="soft"
+        strength="soft"
+        motion="scroll"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-paper/30 via-paper/75 to-paper/90"
+      />
+
+      <div className="relative">
       <FadeUp>
-        <p className="mb-8 max-w-3xl text-base leading-relaxed text-forest/70">
+        <p className="mx-auto mb-8 max-w-3xl text-center text-base leading-relaxed text-forest/70 text-right sm:text-center">
           {brandVoice.intro}
         </p>
       </FadeUp>
 
       <FadeUp>
-        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {brandVoice.attributes.map((attr) => (
             <BrandbookCard
               key={attr.titleFa}
@@ -126,6 +123,7 @@ function BrandVoiceSection() {
           ))}
         </div>
       </FadeUp>
+      </div>
     </div>
   );
 }
@@ -233,70 +231,33 @@ function ContentRolesSection() {
       </FadeUp>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {contentPhilosophy.roles.map((role, i) => {
-          const hasGoldenRule = 'goldenRule' in role && role.goldenRule;
-          return (
-            <FadeUp key={role.titleFa} delay={i * 0.1}>
-              <div
-                className={cn(
-                  'flex flex-col gap-4 rounded-2xl border p-6 sm:p-8 h-full justify-between',
-                  'transition-all duration-300 hover:shadow-md',
-                  hasGoldenRule
-                    ? 'border-peach/40 bg-peach/[0.06]'
-                    : 'border-forest/10 bg-white/60 backdrop-blur-sm',
-                )}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-base font-bold text-forest">{role.titleFa}</h4>
-                    <span className="text-xs font-mono text-forest/40">{role.titleEn}</span>
-                  </div>
-                  <p className="text-xs text-forest/70 mb-4">{role.description}</p>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {role.topics.map((topic) => (
-                      <span
-                        key={topic}
-                        className={cn(
-                          'rounded-lg px-3 py-1.5 text-xs font-medium',
-                          hasGoldenRule
-                            ? 'bg-peach/20 text-brick'
-                            : 'bg-forest/[0.06] text-forest/70',
-                        )}
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
+        {contentPhilosophy.principles.map((principle, i) => (
+          <FadeUp key={principle.titleFa} delay={i * 0.1}>
+            <div className="flex flex-col gap-4 rounded-2xl border border-forest/10 bg-white/60 p-6 sm:p-8 h-full">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-base font-bold text-forest">{principle.titleFa}</h4>
+                  <span className="text-xs font-mono text-forest/40">{principle.titleEn}</span>
                 </div>
-
-                {hasGoldenRule && (
-                  <div className="mt-2 rounded-xl border border-brick/20 bg-paper p-4">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-brick">
-                      قانون طلایی معرفی محصول
-                    </p>
-                    <p className="text-xs leading-relaxed text-forest font-medium">
-                      {role.goldenRule}
-                    </p>
-                  </div>
-                )}
+                <p className="text-xs text-forest/70">{principle.description}</p>
               </div>
-            </FadeUp>
-          );
-        })}
+            </div>
+          </FadeUp>
+        ))}
       </div>
 
       {/* Visual Storytelling */}
       <FadeUp>
         <div className="rounded-2xl border border-forest/10 bg-forest/5 p-8">
           <h4 className="text-lg font-bold text-forest mb-2">اصول عکاسی و تصویر برند</h4>
-          <p className="text-xs text-forest/70 mb-4">{visualStorytelling.intro}</p>
+          <p className="text-xs text-forest/70 mb-6">{visualStorytelling.intro}</p>
 
-          <div className="flex flex-wrap gap-2 mb-6">
-            {visualStorytelling.attributes.map((attr) => (
-              <span key={attr} className="rounded-full bg-paper border border-forest/10 px-3 py-1 text-xs text-forest font-medium">
-                {attr}
-              </span>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+            {visualStorytelling.principles.map((principle) => (
+              <div key={principle.titleFa} className="rounded-xl bg-paper border border-forest/10 p-4">
+                <h5 className="text-sm font-bold text-forest mb-1">{principle.titleFa}</h5>
+                <p className="text-xs text-forest/70 leading-relaxed">{principle.description}</p>
+              </div>
             ))}
           </div>
 
@@ -488,22 +449,21 @@ function DigitalIdentitySection() {
 
       <FadeUp>
         <div className="rounded-2xl border border-forest/10 bg-forest/[0.03] p-6 sm:p-8">
-          <h4 className="mb-4 text-base font-medium text-forest">اصول کلی فضای دیجیتال</h4>
+          <h4 className="mb-4 text-base font-medium text-forest">اصول ارتباطات دیجیتال</h4>
+          <p className="text-sm text-forest/70 mb-4">{digitalCommunication.intro}</p>
           <div className="mb-6 grid gap-3 sm:grid-cols-2">
-            {digitalCommunication.goals.map((goal) => (
-              <div key={goal} className="flex items-center gap-2 text-sm text-forest/75">
+            {digitalCommunication.principles.map((principle) => (
+              <div key={principle} className="flex items-center gap-2 text-sm text-forest/75">
                 <span className="size-1.5 shrink-0 rounded-full bg-peach" />
-                {goal}
+                {principle}
               </div>
             ))}
           </div>
-          <div className="mb-6 flex flex-wrap gap-2 border-t border-forest/10 pt-5">
-            {digitalCommunication.socialPrinciples.map((p) => (
-              <span key={p.titleFa} className="rounded-full bg-paper px-3 py-1.5 text-xs text-forest/70">
-                {p.titleFa} — {p.note}
-              </span>
-            ))}
-          </div>
+          {'closing' in digitalCommunication && digitalCommunication.closing && (
+            <p className="mb-6 text-xs leading-relaxed text-forest/65 border-t border-forest/10 pt-5">
+              {digitalCommunication.closing}
+            </p>
+          )}
           <ul className="space-y-2 border-t border-forest/10 pt-5">
             {digitalIdentity.globalRules.map((rule) => (
               <li key={rule} className="text-xs leading-6 text-forest/65">{rule}</li>
@@ -521,65 +481,49 @@ function DigitalIdentitySection() {
 
 export default function CommunicationSystem() {
   return (
-    <section
-      id="communication-system"
-      className="relative w-full bg-paper py-20 text-forest md:py-28"
-    >
-      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
-        {/* Chapter Title */}
-        <FadeUp>
-          <div className="mb-16 flex flex-col gap-3 sm:mb-20">
-            <span className="eyebrow text-brick">فصل پنجم</span>
-            <h2 className="text-4xl font-light tracking-tightest text-forest sm:text-5xl lg:text-6xl">
-              سیستم ارتباطات برند
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-forest/60 sm:text-lg">
-              فلسفه ارتباطات، داستان‌گویی، صدا و لحن، اصول محتوا، هویت دیجیتال و عکاسی برند.
-            </p>
-            <RevealLine className="mt-2 w-12" origin="right" />
-          </div>
-        </FadeUp>
+    <section id="communication-system" className="relative w-full bg-paper text-forest">
+      <BrandbookChapterHeader
+        chapter="فصل پنجم"
+        title="سیستم ارتباطات برند"
+        subtitle="فلسفه ارتباطات، داستان‌گویی، صدا و لحن، اصول محتوا، هویت دیجیتال و عکاسی برند."
+      />
 
-        {/* 5.1 Communication Philosophy & Storytelling */}
-        <SectionDivider
+      <BrandbookContainer className="pb-20 md:pb-28">
+        <BrandbookSectionDivider
           number="۵.۱"
           title="فلسفه ارتباطات و داستان‌گویی"
           subtitle="انتقال نگاه به زندگی و روایت سه گانه گذشته، حال و آینده."
         />
         <CommunicationPhilosophySection />
 
-        {/* 5.2 Brand Voice */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۵.۲"
           title="شخصیت کلامی برند"
           subtitle="پنج ویژگی اصلی صدای برند — آرام، اصیل و متخصص."
         />
         <BrandVoiceSection />
 
-        {/* 5.3 Tone of Voice */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۵.۳"
           title="لحن برند"
           subtitle="لحن در هر موقعیت متفاوت است، اما شخصیت برند ثابت می‌ماند."
         />
         <ToneOfVoiceSection />
 
-        {/* The AI assistant is intentionally kept outside the editorial
-            chapter flow. It lives as an independent utility in the page shell. */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۵.۴"
           title="اصول محتوا و تصویر برند"
           subtitle="نقش‌های چهارگانه محتوا، قانون طلایی و اصول عکاسی."
         />
         <ContentRolesSection />
 
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۵.۵"
           title="هویت دیجیتال"
           subtitle="وب‌سایت‌ها، شبکه‌های اجتماعی رسمی و قواعد تعامل در هر کانال."
         />
         <DigitalIdentitySection />
-      </div>
+      </BrandbookContainer>
     </section>
   );
 }

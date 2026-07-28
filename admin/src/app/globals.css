@@ -62,6 +62,13 @@
   .eyebrow {
     @apply text-xs tracking-[0.3em] uppercase font-medium;
   }
+  /* Centered editorial column for narrative brandbook sections */
+  .brandbook-narrative {
+    @apply mx-auto w-full max-w-3xl text-right sm:text-center;
+  }
+  .brandbook-narrative-wide {
+    @apply mx-auto w-full max-w-4xl text-right sm:text-center;
+  }
 }
 
 /* Hide scrollbar on the horizontal-feeling rails while keeping scroll */
@@ -99,10 +106,122 @@
   mask-image: radial-gradient(circle at center, black, transparent 78%);
 }
 
+.brandbook-pattern-layer {
+  background-position: center;
+  background-repeat: repeat;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.brandbook-pattern-size-unified {
+  background-size: clamp(960px, 88vw, 1320px) auto;
+}
+
+.brandbook-pattern-size-standard,
+.brandbook-pattern-size-large,
+.brandbook-pattern-size-monumental {
+  background-size: clamp(960px, 88vw, 1320px) auto;
+}
+
+.brandbook-pattern-forest {
+  background-image: url("/brand/patterns/choobohonar-pattern-forest.jpg");
+}
+
+.brandbook-pattern-mono {
+  background-image: url("/brand/patterns/choobohonar-pattern-mono.png");
+  mix-blend-mode: multiply;
+}
+
+.brandbook-pattern-mono-light {
+  mix-blend-mode: soft-light;
+  filter: saturate(0.35) contrast(0.82);
+}
+
+.brandbook-pattern-mask-soft {
+  -webkit-mask-image: radial-gradient(
+    ellipse 82% 74% at 50% 48%,
+    black 0%,
+    rgba(0, 0, 0, 0.82) 52%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 82% 74% at 50% 48%,
+    black 0%,
+    rgba(0, 0, 0, 0.82) 52%,
+    transparent 100%
+  );
+}
+
+.brandbook-pattern-mask-right {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 2%,
+    rgba(0, 0, 0, 0.18) 34%,
+    black 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 2%,
+    rgba(0, 0, 0, 0.18) 34%,
+    black 100%
+  );
+}
+
+.brandbook-pattern-mask-left {
+  -webkit-mask-image: linear-gradient(
+    270deg,
+    transparent 2%,
+    rgba(0, 0, 0, 0.18) 34%,
+    black 100%
+  );
+  mask-image: linear-gradient(
+    270deg,
+    transparent 2%,
+    rgba(0, 0, 0, 0.18) 34%,
+    black 100%
+  );
+}
+
+.brandbook-pattern-drift {
+  animation: brandbook-pattern-drift 34s cubic-bezier(0.45, 0, 0.55, 1)
+    infinite alternate;
+}
+
+.brandbook-pattern-sheen {
+  background: linear-gradient(
+    105deg,
+    transparent 12%,
+    rgba(251, 190, 166, 0.03) 30%,
+    rgba(251, 190, 166, 0.18) 48%,
+    rgba(167, 216, 183, 0.08) 58%,
+    transparent 78%
+  );
+  filter: blur(18px);
+  mix-blend-mode: soft-light;
+}
+
+@keyframes brandbook-pattern-drift {
+  0% {
+    transform: translate3d(-1.25%, -0.75%, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(1.25%, 0.9%, 0) scale(1.065);
+  }
+}
+
 @media (max-width: 767px) {
   .brandbook-grid,
   .brandbook-grid-dark {
     background-size: 48px 48px;
+  }
+
+  .brandbook-pattern-size-unified,
+  .brandbook-pattern-size-standard,
+  .brandbook-pattern-size-large,
+  .brandbook-pattern-size-monumental,
+  .brandbook-pattern-layer {
+    background-size: 960px auto;
   }
 }
 
@@ -172,6 +291,15 @@ html.motion-enabled [data-hero-cue]:not([data-revealed="true"]) {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .brandbook-pattern-drift {
+    animation: none;
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+
+  .brandbook-pattern-sheen {
+    display: none;
   }
 }
 

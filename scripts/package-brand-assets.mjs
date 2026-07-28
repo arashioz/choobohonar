@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Packages all brandbook static assets for backend deployment.
- * Output: brandbook-assets-v1.0.0.zip + brandbook-assets-manifest.json (repo root, gitignored)
+ * Output: brandbook-assets-v1.1.0.zip + brandbook-assets-manifest.json (repo root, gitignored)
  *
  * Usage: node scripts/package-brand-assets.mjs
  */
@@ -19,11 +19,12 @@ import { join, relative, extname } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const PUBLIC_BRAND = join(ROOT, "admin/public/brand");
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const ZIP_NAME = `brandbook-assets-v${VERSION}.zip`;
 const MANIFEST_NAME = "brandbook-assets-manifest.json";
 
 const SOURCE_USAGE = {
+  "globals.css": join(ROOT, "admin/src/app/globals.css"),
   "brandbook.ts": join(ROOT, "admin/src/data/brandbook.ts"),
   "ImageryGallery.tsx": join(
     ROOT,
@@ -32,6 +33,10 @@ const SOURCE_USAGE = {
   "VisualIdentity.tsx": join(
     ROOT,
     "admin/src/components/brandbook/sections/VisualIdentity.tsx",
+  ),
+  "BrandPatternField.tsx": join(
+    ROOT,
+    "admin/src/components/brandbook/layout/BrandPatternField.tsx",
   ),
   "brandbook/page.tsx": join(ROOT, "admin/src/app/brandbook/page.tsx"),
   "ChatPanel.tsx": join(
@@ -73,6 +78,7 @@ function category(relPath) {
   if (relPath.startsWith("guideline/assets/collateral/")) return "collateral";
   if (relPath.startsWith("guideline/assets/")) return "guideline-assets";
   if (relPath.startsWith("guideline/")) return "guideline-reference";
+  if (relPath.startsWith("patterns/")) return "patterns";
   if (relPath.startsWith("downloads/")) return "downloads";
   return "root";
 }

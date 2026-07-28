@@ -17,6 +17,8 @@ import FadeUp from '@/components/motion/FadeUp';
 import Stagger from '@/components/motion/Stagger';
 import RevealLine from '@/components/motion/RevealLine';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
+import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
 import {
   IconAlertCircle,
   IconArt,
@@ -53,16 +55,6 @@ const traitIconComponents = [
 
 const dnaIcons = [IconHeritage, IconArt, IconQuality, IconLiving] as const;
 
-function Divider() {
-  return (
-    <div className="mx-auto flex items-center justify-center gap-3 py-10">
-      <span className="h-px w-12 bg-forest/10" />
-      <span className="size-1.5 rotate-45 bg-peach" />
-      <span className="h-px w-12 bg-forest/10" />
-    </div>
-  );
-}
-
 /* ================================================================== */
 /*  1. Brand DNA                                                      */
 /* ================================================================== */
@@ -78,7 +70,7 @@ function BrandDnaSection() {
   ];
 
   return (
-    <section className="py-20 md:py-28" id="brand-dna">
+    <section className="border-t border-forest/[0.06] bg-paper py-20 md:py-28" id="brand-dna">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۱</span>
@@ -202,7 +194,7 @@ function BrandDnaSection() {
 
 function BrandPillarsSection() {
   return (
-    <section className="py-20 md:py-28" id="brand-pillars">
+    <section className="border-t border-forest/[0.06] bg-forest/[0.025] py-20 md:py-28" id="brand-pillars">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۲</span>
@@ -277,7 +269,7 @@ function BrandPillarsSection() {
 
 function PositioningSection() {
   return (
-    <section className="py-20 md:py-28" id="positioning">
+    <section className="border-t border-forest/[0.06] bg-paper py-20 md:py-28" id="positioning">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۳</span>
@@ -299,8 +291,20 @@ function PositioningSection() {
         </FadeUp>
 
         <FadeUp delay={0.2}>
-          <div className="relative mt-8 overflow-hidden rounded-3xl border border-forest/10 bg-gradient-to-br from-forest via-forest-700 to-forest-900 p-8 shadow-2xl shadow-forest/20 lg:p-12">
-            <IconQuote className="mb-4 size-12 text-peach/30" />
+          <div className="relative mt-8 overflow-hidden rounded-3xl border border-forest/10 bg-forest p-8 shadow-2xl shadow-forest/20 lg:p-12">
+            <BrandPatternField
+              variant="forest"
+              surface="dark"
+              mask="left"
+              strength="quiet"
+              motion="scroll"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-forest-900/95 via-forest/90 to-forest/65"
+            />
+
+            <IconQuote className="relative z-10 mb-4 size-12 text-peach/30" />
 
             <blockquote
               dir="rtl"
@@ -309,11 +313,11 @@ function PositioningSection() {
               {positioning.statement}
             </blockquote>
 
-            <p className="mt-4 text-base font-medium text-peach" dir="rtl">
+            <p className="relative z-10 mt-4 text-base font-medium text-peach" dir="rtl">
               {positioning.closing}
             </p>
 
-            <div className="mt-8 border-t border-paper/10 pt-6" dir="rtl">
+            <div className="relative z-10 mt-8 border-t border-paper/10 pt-6" dir="rtl">
               <span className="eyebrow text-peach/70">
                 تمایز بنیادین
               </span>
@@ -352,8 +356,19 @@ function PositioningSection() {
 
 function BrandPromiseSection() {
   return (
-    <section className="py-20 md:py-28" id="brand-promise">
-      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
+    <section className="relative overflow-hidden border-t border-forest/[0.06] bg-peach/[0.12] py-20 md:py-28" id="brand-promise">
+      <BrandPatternField
+        variant="mono"
+        surface="light"
+        mask="soft"
+        strength="quiet"
+        motion="scroll"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-peach/25 via-peach/10 to-paper/60"
+      />
+      <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۴</span>
         </FadeUp>
@@ -369,7 +384,7 @@ function BrandPromiseSection() {
 
         {/* Overall promise quote */}
         <FadeUp delay={0.18}>
-          <div className="mt-14 rounded-2xl border border-brick/20 bg-peach/10 px-8 py-6" dir="rtl">
+          <div className="mt-14 rounded-2xl border border-brick/15 bg-paper/95 px-8 py-6 shadow-sm backdrop-blur-sm" dir="rtl">
             <p className="text-lg font-medium leading-relaxed text-forest">
               {brandPromise.overall}
             </p>
@@ -378,7 +393,7 @@ function BrandPromiseSection() {
 
         {/* Specific commitments */}
         <FadeUp delay={0.2}>
-          <div className="mt-6 rounded-2xl border border-forest/10 bg-paper p-6" dir="rtl">
+          <div className="mt-6 rounded-2xl border border-forest/10 bg-paper/95 p-6 shadow-sm backdrop-blur-sm" dir="rtl">
             <h4 className="text-sm font-bold text-forest mb-4">خانه چوب و هنر متعهد است که:</h4>
             <div className="grid gap-3 sm:grid-cols-2">
               {brandPromise.commitments.map((item, idx) => (
@@ -394,7 +409,7 @@ function BrandPromiseSection() {
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           {/* Emotional */}
           <FadeUp delay={0.22}>
-            <div className="relative overflow-hidden rounded-2xl bg-peach/10 p-6 lg:p-8 border border-peach/30">
+            <div className="relative overflow-hidden rounded-2xl border border-peach/20 bg-paper/95 p-6 shadow-sm backdrop-blur-sm lg:p-8">
               <div dir="rtl" className="relative z-10">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="flex size-10 items-center justify-center rounded-xl bg-peach-deep/20">
@@ -416,7 +431,7 @@ function BrandPromiseSection() {
 
           {/* Functional */}
           <FadeUp delay={0.26}>
-            <div className="relative overflow-hidden rounded-2xl bg-sage/10 p-6 lg:p-8 border border-sage/30">
+            <div className="relative overflow-hidden rounded-2xl border border-sage/25 bg-paper/95 p-6 shadow-sm backdrop-blur-sm lg:p-8">
               <div dir="rtl" className="relative z-10">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="flex size-10 items-center justify-center rounded-xl bg-sage/30">
@@ -459,7 +474,7 @@ function PersonalitySection() {
   const [hoveredTrait, setHoveredTrait] = useState<number | null>(null);
 
   return (
-    <section className="py-20 md:py-28" id="personality">
+    <section className="border-t border-forest/[0.06] bg-paper py-20 md:py-28" id="personality">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۵</span>
@@ -549,7 +564,7 @@ function PersonalitySection() {
 
 function ArchetypeSection() {
   return (
-    <section className="py-20 md:py-28" id="archetype">
+    <section className="border-t border-forest/[0.06] bg-sage/[0.08] py-20 md:py-28" id="archetype">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
           <span className="eyebrow text-brick">۲.۶</span>
@@ -647,61 +662,113 @@ function PersonasSection() {
   const personaIcons = [IconUser, IconSparkle, IconUsers];
 
   return (
-    <section className="py-20 md:py-28" id="personas">
-      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
+    <section
+      className="relative overflow-hidden border-t border-paper/10 bg-forest py-20 md:py-28"
+      id="personas"
+    >
+      <BrandPatternField
+        variant="forest"
+        surface="dark"
+        mask="right"
+        strength="soft"
+        motion="scroll"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-l from-forest/65 via-forest/92 to-forest-900"
+      />
+
+      <div className="relative mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
         <FadeUp>
-          <span className="eyebrow text-brick">۲.۷</span>
+          <span className="eyebrow text-peach/65">۲.۷</span>
         </FadeUp>
-        <FadeUp as="h2" delay={0.05} className="mt-3 font-light tracking-tightest text-balance text-forest" style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}>
+        <FadeUp
+          as="h2"
+          delay={0.05}
+          className="mt-3 max-w-3xl text-balance font-light tracking-tightest text-paper"
+          style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}
+        >
           مخاطب هدف و پرسونای مشتری
         </FadeUp>
-        <FadeUp as="p" delay={0.1} className="mt-4 max-w-2xl text-lg leading-relaxed text-forest/70">
+        <FadeUp
+          as="p"
+          delay={0.1}
+          className="mt-4 max-w-2xl text-lg leading-relaxed text-paper/60"
+        >
           {targetAudience.description}
         </FadeUp>
         <FadeUp delay={0.14}>
-          <RevealLine className="mt-2 w-12" origin="right" />
+          <RevealLine className="mt-2 w-12 bg-peach/55" origin="right" />
         </FadeUp>
 
-        {/* Target Audience Traits */}
-        <FadeUp delay={0.16}>
-          <div className="mt-8 rounded-2xl border border-forest/10 bg-paper p-6">
-            <h4 className="text-sm font-bold text-forest mb-3">مخاطبان برند چه کسانی هستند؟</h4>
-            <div className="flex flex-wrap gap-2">
-              {targetAudience.traits.map((trait, idx) => (
-                <span key={idx} className="rounded-lg bg-forest/5 px-4 py-2 text-xs font-medium text-forest/80">
-                  • {trait}
-                </span>
-              ))}
+        <FadeUp delay={0.16} variant="scale">
+          <div className="relative mt-10 overflow-hidden rounded-[2rem] bg-peach px-6 py-8 text-forest shadow-xl shadow-forest-900/25 sm:px-8 lg:px-10 lg:py-10">
+            <div className="relative grid gap-8 lg:grid-cols-12 lg:items-center">
+              <div className="lg:col-span-4">
+                <span className="eyebrow text-brick/70">Audience lens</span>
+                <h4 className="mt-3 max-w-xs text-2xl font-light leading-snug tracking-tightest text-forest">
+                  مخاطبان برند
+                  <br />
+                  چه کسانی هستند؟
+                </h4>
+              </div>
+              <Stagger
+                className="grid gap-2 sm:grid-cols-2 lg:col-span-8"
+                amount={0.45}
+                y={16}
+              >
+                {targetAudience.traits.map((trait, idx) => (
+                  <div
+                    key={trait}
+                    className="flex items-start gap-3 rounded-xl border border-forest/10 bg-paper/55 px-4 py-3.5 text-sm leading-6 text-forest/80 backdrop-blur-sm"
+                  >
+                    <span className="mt-0.5 font-mono text-[10px] text-brick/70" dir="ltr">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <span>{trait}</span>
+                  </div>
+                ))}
+              </Stagger>
             </div>
           </div>
         </FadeUp>
 
-        {/* Persona Cards */}
-        <Stagger className="mt-14 grid gap-6 md:grid-cols-3" amount={0.4}>
+        <Stagger
+          className="mt-8 grid gap-5 md:grid-cols-3"
+          amount={0.55}
+          y={32}
+        >
           {personas.map((persona, i) => {
             const PersonaIcon = personaIcons[i] ?? IconUser;
             return (
               <BrandbookCard
                 key={persona.titleFa}
                 lift="sm"
-                className="flex h-full flex-col p-6 lg:p-7 hover:shadow-lg hover:shadow-forest/5"
+                className="flex h-full flex-col border-paper/10 p-6 shadow-xl shadow-forest-900/15 lg:p-7"
               >
-                <div className="mb-6 flex items-start gap-3" dir="rtl">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-forest/5">
-                    <PersonaIcon className="size-[18px] shrink-0 text-forest" />
-                  </span>
-                  <div>
-                    <span className="text-[10px] font-mono text-forest/40 block">{persona.titleEn}</span>
-                    <h4 className="text-base font-semibold leading-snug text-forest">
-                      {persona.titleFa}
-                    </h4>
-                    {persona.ageRange && (
-                      <span className="text-xs text-brick block mt-0.5">{persona.ageRange}</span>
-                    )}
+                <div className="relative z-10 mb-7 flex items-start justify-between gap-3" dir="rtl">
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-forest text-peach">
+                      <PersonaIcon className="size-[18px] shrink-0" />
+                    </span>
+                    <div>
+                      <span className="block text-[10px] font-mono text-forest/40">
+                        {persona.titleEn}
+                      </span>
+                      <h4 className="text-base font-semibold leading-snug text-forest">
+                        {persona.titleFa}
+                      </h4>
+                      {persona.ageRange && (
+                        <span className="mt-0.5 block text-xs text-brick">{persona.ageRange}</span>
+                      )}
+                    </div>
                   </div>
+                  <span className="font-mono text-[10px] tracking-[0.16em] text-forest/25" dir="ltr">
+                    P / {String(i + 1).padStart(2, '0')}
+                  </span>
                 </div>
 
-                <div className="mb-6 flex-1" dir="rtl">
+                <div className="relative z-10 mb-6 flex-1" dir="rtl">
                   <span className="eyebrow mb-3 block text-forest/45">ویژگی‌ها</span>
                   <div className="flex flex-wrap gap-1.5">
                     {persona.traits.map((trait) => (
@@ -715,7 +782,7 @@ function PersonasSection() {
                   </div>
                 </div>
 
-                <div className="mb-5 rounded-xl bg-forest/[0.03] p-4" dir="rtl">
+                <div className="relative z-10 mb-5 rounded-xl bg-peach/20 p-4" dir="rtl">
                   <div className="mb-2 flex items-center gap-2">
                     <IconTarget className="size-4 shrink-0 text-brick" />
                     <span className="eyebrow text-brick">نیاز اصلی</span>
@@ -724,7 +791,7 @@ function PersonasSection() {
                 </div>
 
                 {persona.concerns && persona.concerns.length > 0 && (
-                  <div dir="rtl">
+                  <div className="relative z-10" dir="rtl">
                     <div className="mb-2 flex items-center gap-2">
                       <IconAlertCircle className="size-4 shrink-0 text-forest/35" />
                       <span className="eyebrow text-forest/45">دغدغه‌ها</span>
@@ -758,37 +825,18 @@ function PersonasSection() {
 export default function StrategicIdentity() {
   return (
     <article className="bg-paper text-forest" dir="rtl">
-      <div className="py-20 md:py-28">
-        <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28 text-center">
-          <FadeUp>
-            <span className="eyebrow text-brick">
-              فصل دوم
-            </span>
-          </FadeUp>
-          <FadeUp as="h2" delay={0.05} className="mt-4 font-light tracking-tightest text-balance text-forest" style={{ fontSize: 'clamp(2.25rem, 5vw, 3.75rem)' }}>
-            هویت استراتژیک برند
-          </FadeUp>
-          <FadeUp as="p" delay={0.1} className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-forest/70">
-            ساختار بنیادین برند — از DNA و ارکان تا شخصیت و کهن‌الگو
-          </FadeUp>
-          <FadeUp delay={0.14}>
-            <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-peach to-peach-deep" />
-          </FadeUp>
-        </div>
-      </div>
+      <BrandbookChapterHeader
+        chapter="فصل دوم"
+        title="هویت استراتژیک برند"
+        subtitle="ساختار بنیادین برند — از DNA و ارکان تا شخصیت و کهن‌الگو"
+      />
 
       <BrandDnaSection />
-      <Divider />
       <BrandPillarsSection />
-      <Divider />
       <PositioningSection />
-      <Divider />
       <BrandPromiseSection />
-      <Divider />
       <PersonalitySection />
-      <Divider />
       <ArchetypeSection />
-      <Divider />
       <PersonasSection />
     </article>
   );

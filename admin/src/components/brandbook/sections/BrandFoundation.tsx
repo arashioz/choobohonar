@@ -23,16 +23,13 @@ import BrandbookSubsection from '@/components/brandbook/layout/BrandbookSubsecti
 import BrandbookSectionHeader from '@/components/brandbook/layout/BrandbookSectionHeader';
 import BrandbookProse from '@/components/brandbook/layout/BrandbookProse';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
 import {
   IconCheck,
   IconChevron,
   IconColumns,
-  IconCompass,
-  IconHeart,
   IconHome,
   IconPalette,
-  IconShield,
-  IconUsers,
 } from '@/components/brandbook/icons';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -40,7 +37,6 @@ import {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const conceptIcons = [IconColumns, IconPalette, IconHome] as const;
-const purposeIcons = [IconHeart, IconUsers, IconShield, IconCompass] as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. Brand Introduction
@@ -49,6 +45,7 @@ const purposeIcons = [IconHeart, IconUsers, IconShield, IconCompass] as const;
 function BrandIntroduction() {
   return (
     <BrandbookSubsection id="brand-intro">
+        <div className="mx-auto max-w-4xl text-center">
         <FadeUp as="span" className="eyebrow text-brick mb-6 block">
           فصل اول — بنیان برند
         </FadeUp>
@@ -65,7 +62,7 @@ function BrandIntroduction() {
           {brandIntro.tagline} — <span className="text-forest/60 font-normal">{brandIntro.taglineEn}</span>
         </FadeUp>
 
-        <FadeUp as="p" delay={0.1} className="text-lg leading-relaxed text-forest/80 max-w-3xl mb-6">
+        <FadeUp as="p" delay={0.1} className="mx-auto text-lg leading-relaxed text-forest/80 max-w-3xl mb-6 text-right sm:text-center">
           {brandIntro.introText}
         </FadeUp>
 
@@ -74,24 +71,25 @@ function BrandIntroduction() {
             key={paragraph}
             as="p"
             delay={0.11 + idx * 0.02}
-            className="text-lg leading-relaxed text-forest/80 max-w-3xl mb-4"
+            className="mx-auto text-lg leading-relaxed text-forest/80 max-w-3xl mb-4 text-right sm:text-center"
           >
             {paragraph}
           </FadeUp>
         ))}
 
-        <FadeUp as="p" delay={0.14} className="text-base font-medium text-forest/70 max-w-3xl mb-6">
+        <FadeUp as="p" delay={0.14} className="mx-auto text-base font-medium text-forest/70 max-w-3xl mb-10 text-right sm:text-center">
           {brandIntro.introBridge}
         </FadeUp>
+        </div>
 
         {/* Core concept cards */}
         <FadeUp delay={0.16}>
-          <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" amount={0.45} from="right">
+          <Stagger className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3" amount={0.45} from="right">
             {brandIntro.coreConcepts.map((concept, i) => {
               const Icon = conceptIcons[i] ?? IconColumns;
               return (
-                <BrandbookCard key={concept.title} className="p-8">
-                  <Icon className="mb-5 h-8 w-8 text-forest" />
+                <BrandbookCard key={concept.title} className="p-8 text-center">
+                  <Icon className="mx-auto mb-5 h-8 w-8 text-forest" />
                   <h3 className="text-lg font-medium text-forest mb-1">
                     {concept.title}
                   </h3>
@@ -102,7 +100,7 @@ function BrandIntroduction() {
           </Stagger>
         </FadeUp>
 
-        <FadeUp as="p" delay={0.2} className="mt-10 text-lg leading-relaxed text-forest/80 max-w-3xl">
+        <FadeUp as="p" delay={0.2} className="mx-auto mt-10 max-w-3xl text-lg leading-relaxed text-forest/80 text-right sm:text-center">
           {brandIntro.introClosing}
         </FadeUp>
     </BrandbookSubsection>
@@ -156,28 +154,76 @@ function HeritageTimeline() {
           </blockquote>
         </FadeUp>
 
-        <FadeUp delay={0.08}>
-          <div className="space-y-5 rounded-2xl border border-forest/10 bg-paper p-7 text-base leading-relaxed text-forest/75 sm:p-8">
-            <h3 className="text-lg font-semibold text-forest">فرهنگ خانواده و آغاز مسیر</h3>
-            <div className="space-y-4">
-              {heritage.storyParagraphs.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
-              ))}
-            </div>
-            <div className="border-t border-forest/10 pt-5">
-              <p className="mb-3 text-xs font-semibold tracking-wide text-forest/50">
-                ارزش‌های خانوادگی
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {heritage.familyValues.map((val) => (
-                  <span
-                    key={val}
-                    className="inline-flex items-center rounded-full bg-forest/5 px-3 py-1.5 text-xs font-medium text-forest/80"
-                  >
-                    {val}
-                  </span>
-                ))}
+        <FadeUp delay={0.08} variant="scale">
+          <div className="relative overflow-hidden rounded-[2rem] border border-paper/10 bg-forest shadow-2xl shadow-forest/15">
+            <BrandPatternField
+              variant="forest"
+              surface="dark"
+              mask="right"
+              strength="soft"
+              motion="scroll"
+              sheen
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-gradient-to-l from-forest/60 via-forest/88 to-forest-900/95"
+            />
+
+            <div className="relative grid gap-10 px-6 py-9 sm:px-9 sm:py-11 lg:grid-cols-12 lg:gap-12 lg:px-12 lg:py-14">
+              <div className="flex flex-col justify-between lg:col-span-4">
+                <div>
+                  <span className="eyebrow text-peach/65">میراث زنده</span>
+                  <h3 className="mt-4 max-w-sm text-[clamp(1.75rem,3vw,2.75rem)] font-light leading-[1.25] tracking-tightest text-paper">
+                    فرهنگ خانواده
+                    <br />
+                    و آغاز مسیر
+                  </h3>
+                  <p className="mt-5 max-w-sm text-sm leading-7 text-paper/55">
+                    روایتی از پیوند اخلاق، صنعتگری و کیفیت؛ ارزش‌هایی که پیش از
+                    هر محصول، در شیوه‌ی زندگی این خانواده شکل گرفتند.
+                  </p>
+                </div>
+
+                <div className="mt-9 border-t border-paper/[0.12] pt-6">
+                  <p className="mb-3 text-[10px] font-semibold tracking-[0.18em] text-paper/40">
+                    ارزش‌های خانوادگی
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {heritage.familyValues.map((val) => (
+                      <span
+                        key={val}
+                        className="inline-flex items-center rounded-full border border-paper/10 bg-paper/[0.06] px-3 py-1.5 text-xs font-medium text-paper/75 backdrop-blur-sm"
+                      >
+                        {val}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
+
+              <Stagger
+                className="grid gap-px overflow-hidden rounded-2xl border border-paper/10 bg-paper/10 sm:grid-cols-2 lg:col-span-8"
+                selector=":scope > article"
+                amount={0.7}
+                y={20}
+              >
+                {heritage.storyParagraphs.map((paragraph, idx) => (
+                  <article
+                    key={paragraph}
+                    className="group min-h-44 bg-forest/80 p-5 backdrop-blur-sm transition-colors duration-500 ease-out-expo hover:bg-forest/[0.65] sm:p-6"
+                  >
+                    <span
+                      className="mb-5 block font-mono text-[10px] tracking-[0.18em] text-peach/55"
+                      dir="ltr"
+                    >
+                      STORY / {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <p className="text-sm leading-8 text-paper/[0.72] transition-colors duration-500 group-hover:text-paper/90">
+                      {paragraph}
+                    </p>
+                  </article>
+                ))}
+              </Stagger>
             </div>
           </div>
         </FadeUp>
@@ -236,24 +282,23 @@ function Philosophy() {
       <BrandbookSectionHeader
         eyebrow="فلسفه شکل‌گیری برند"
         title="خانه، بیش از یک فضا"
+        align="center"
       />
 
-      <BrandbookProse className="space-y-6">
-        <FadeUp as="blockquote" delay={0.05} className="text-[clamp(1.375rem,3vw,2rem)] font-light leading-relaxed text-forest">
-          «{philosophy.mainQuote}»
-        </FadeUp>
-
-        <FadeUp as="p" delay={0.08} className="text-base leading-relaxed text-forest/70">
-          {philosophy.text}
-        </FadeUp>
-
-        <FadeUp
-          as="p"
-          delay={0.1}
-          className="rounded-2xl border border-brick/15 bg-paper/70 px-6 py-5 text-lg leading-relaxed font-medium text-brick"
-        >
-          {philosophy.highlight}
-        </FadeUp>
+      <BrandbookProse align="center" className="space-y-6">
+        {philosophy.paragraphs.map((paragraph, idx) => (
+          <FadeUp
+            key={paragraph}
+            as="p"
+            delay={0.05 + idx * 0.03}
+            className={cn(
+              idx === 0 && 'text-[clamp(1.375rem,3vw,2rem)] font-light leading-relaxed text-forest text-balance',
+              idx > 0 && 'text-base leading-relaxed text-forest/70',
+            )}
+          >
+            {idx === 0 ? `«${paragraph}»` : paragraph}
+          </FadeUp>
+        ))}
       </BrandbookProse>
     </BrandbookSubsection>
   );
@@ -266,35 +311,21 @@ function Philosophy() {
 function Purpose() {
   return (
     <BrandbookSubsection id="purpose">
-      <BrandbookSectionHeader title="هدف وجودی برند" />
+      <BrandbookSectionHeader title="هدف وجودی برند" align="center" />
 
-      <BrandbookProse className="space-y-8 md:space-y-10">
-        <FadeUp as="p" delay={0.05} className="text-xl font-medium leading-relaxed text-forest/90 max-w-2xl">
+      <BrandbookProse align="center" className="space-y-8 md:space-y-10">
+        <FadeUp as="p" delay={0.05} className="text-xl font-medium leading-relaxed text-forest/90">
           {purpose.statement}
         </FadeUp>
 
-        <FadeUp as="p" delay={0.07} className="text-base leading-relaxed text-forest/60 max-w-2xl">
-          {purpose.subtitle}
-        </FadeUp>
-
-        <FadeUp delay={0.1}>
-          <div className="grid gap-5 sm:grid-cols-2 lg:max-w-3xl">
-            {purpose.concepts.map((c, i) => {
-              const Icon = purposeIcons[i] ?? IconHeart;
-              return (
-                <FadeUp key={c.title} delay={i * 0.07}>
-                  <BrandbookCard lift="sm" className="rounded-xl p-7">
-                    <Icon className="mb-4 h-6 w-6 text-forest" />
-                    <p className="text-base font-medium text-forest">{c.title}</p>
-                  </BrandbookCard>
-                </FadeUp>
-              );
-            })}
-          </div>
-        </FadeUp>
+        {purpose.paragraphs.map((paragraph, idx) => (
+          <FadeUp key={paragraph} as="p" delay={0.07 + idx * 0.02} className="text-base leading-relaxed text-forest/60">
+            {paragraph}
+          </FadeUp>
+        ))}
 
         <FadeUp delay={0.15}>
-          <div className="max-w-3xl rounded-xl bg-forest/5 border border-forest/10 p-6">
+          <div className="rounded-xl border border-forest/10 bg-forest/5 p-6 text-right sm:text-center">
             <p className="text-sm font-medium text-forest/80 leading-relaxed">
               {purpose.closingStatement}
             </p>
@@ -315,14 +346,22 @@ function Vision() {
       id="vision"
       className="relative w-full overflow-hidden bg-forest py-20 md:py-28"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-forest-900/80 via-forest to-forest-700/90" aria-hidden />
+      <BrandPatternField
+        variant="forest"
+        surface="dark"
+        mask="soft"
+        strength="quiet"
+        motion="scroll"
+        sheen
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-forest-900/80 via-forest/92 to-forest-700/90" aria-hidden />
       <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-peach/10 blur-[100px]" aria-hidden />
-      <BrandbookContainer className="relative">
+      <BrandbookContainer className="relative text-center">
         <FadeUp as="span" className="eyebrow text-peach/70 mb-6 block">
           چشم‌انداز برند
         </FadeUp>
 
-        <FadeUp as="h2" delay={0.05} className="font-light tracking-tightest text-balance text-white text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.25] mb-10 max-w-4xl">
+        <FadeUp as="h2" delay={0.05} className="mx-auto font-light tracking-tightest text-balance text-white text-[clamp(1.75rem,4vw,3.25rem)] leading-[1.25] mb-10 max-w-4xl">
           {vision.statement}
         </FadeUp>
 
@@ -332,7 +371,7 @@ function Vision() {
 
         {/* Attribute badges */}
         <FadeUp delay={0.1}>
-          <div className="flex flex-wrap gap-3">
+          <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-3">
             {vision.attributes.map((attr, i) => (
               <FadeUp
                 key={attr}
@@ -360,14 +399,14 @@ function Vision() {
 function Mission() {
   return (
     <BrandbookSubsection id="mission">
-      <BrandbookSectionHeader title="مأموریت برند" />
+      <BrandbookSectionHeader title="مأموریت برند" align="center" />
 
-      <BrandbookProse>
+      <BrandbookProse align="center">
         <FadeUp as="p" delay={0.05} className="mb-8 text-lg leading-relaxed text-forest/80 md:mb-10">
           {mission.preamble}
         </FadeUp>
 
-        <ul className="space-y-6 max-w-2xl">
+        <ul className="mx-auto w-full max-w-2xl space-y-6 text-right">
           {mission.items.map((item, i) => (
             <FadeUp key={item} as="li" delay={i * 0.07} className="flex items-start gap-4">
               <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-forest/30 bg-forest/5">
@@ -396,17 +435,17 @@ function Beliefs() {
 
   return (
     <BrandbookSubsection id="beliefs" className="bg-peach/5">
-      <BrandbookSectionHeader title="باورهای بنیادین برند" />
+      <BrandbookSectionHeader title="باورهای بنیادین برند" align="center" />
 
-      <BrandbookProse>
-        <div className="divide-y divide-forest/10">
+      <BrandbookProse align="center">
+        <div className="divide-y divide-forest/10 text-right">
           {beliefs.map((belief, i) => {
             const isOpen = openIndex === i;
             return (
-              <FadeUp key={belief.number} delay={i * 0.07} className="relative py-5 md:py-6">
-                {/* Large ghost number */}
+              <FadeUp key={belief.number} delay={i * 0.07} className="relative py-6 md:py-7">
                 <span
-                  className="pointer-events-none absolute -right-2 top-3 select-none text-7xl font-extralight leading-none text-forest/[0.04] md:text-8xl"
+                  className="pointer-events-none absolute -right-1 top-4 select-none text-6xl font-extralight leading-none text-forest/[0.035] md:text-7xl"
+                  aria-hidden
                 >
                   {belief.number}
                 </span>
@@ -415,31 +454,30 @@ function Beliefs() {
                   type="button"
                   onClick={() => toggle(i)}
                   className={cn(
-                    'group flex w-full items-center justify-between gap-4 text-right',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 focus-visible:ring-offset-2 focus-visible:ring-offset-paper rounded-lg',
+                    'group relative flex w-full items-center justify-between gap-4 text-right',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 focus-visible:ring-offset-2 focus-visible:ring-offset-paper rounded-sm',
                   )}
                   aria-expanded={isOpen}
                 >
-                  <h3 className="text-lg font-medium text-forest transition-colors duration-500 ease-out-expo group-hover:text-teal">
-                    {belief.number}. {belief.title}
+                  <h3 className="text-lg font-medium text-forest transition-colors duration-300 group-hover:text-teal">
+                    {belief.title}
                   </h3>
                   <IconChevron
                     className={cn(
-                      'h-5 w-5 shrink-0 text-forest transition-transform duration-500 ease-out-expo',
-                      isOpen && 'rotate-180',
+                      'h-4 w-4 shrink-0 text-forest/50 transition-transform duration-300',
+                      isOpen && 'rotate-180 text-forest',
                     )}
                   />
                 </button>
 
-                {/* Expandable description */}
                 <div
                   className={cn(
-                    'grid transition-all duration-500 ease-out-expo',
+                    'grid transition-all duration-300 ease-out-expo',
                     isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
                   )}
                 >
                   <div className="overflow-hidden">
-                    <p className="pt-4 text-base leading-relaxed text-forest/70 pr-6">
+                    <p className="pt-3 max-w-2xl text-base leading-relaxed text-forest/65">
                       {belief.description}
                     </p>
                   </div>
@@ -460,14 +498,14 @@ function Beliefs() {
 function Values() {
   return (
     <BrandbookSubsection id="values">
-      <BrandbookSectionHeader title="ارزش‌های برند" />
+      <BrandbookSectionHeader title="ارزش‌های برند" align="center" />
 
-        <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.5}>
+        <Stagger className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.5}>
           {values.map((v) => (
-            <BrandbookCard key={v.titleEn} lift="sm" className="p-8">
+            <BrandbookCard key={v.titleEn} lift="sm" className="p-8 text-center">
               <h3 className="text-xl font-medium text-forest mb-1">{v.titleFa}</h3>
               <p className="mb-4 text-xs font-mono text-teal">{v.titleEn}</p>
-              <div className="mb-4 h-px w-10 bg-brick/40" />
+              <div className="mx-auto mb-4 h-px w-10 bg-brick/40" />
               <p className="text-base leading-relaxed text-forest/70">
                 {v.description}
               </p>
@@ -486,9 +524,18 @@ function BrandEssence() {
   return (
     <section
       id="essence"
-      className="flex min-h-[62vh] flex-col items-center justify-center bg-forest py-20 text-center md:py-28"
+      className="relative flex min-h-[62vh] flex-col items-center justify-center overflow-hidden bg-forest py-20 text-center md:py-28"
     >
-      <BrandbookContainer className="flex flex-col items-center">
+      <BrandPatternField
+        variant="forest"
+        surface="dark"
+        mask="soft"
+        strength="present"
+        motion="scroll"
+        sheen
+      />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-forest-900/40 via-forest/68 to-forest/88" />
+      <BrandbookContainer className="relative flex flex-col items-center">
         <Parallax speed={20} className="flex w-full flex-col items-center">
           <FadeUp as="span" className="eyebrow text-peach/60 mb-8 block">
             جوهره برند

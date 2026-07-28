@@ -5,12 +5,17 @@ import {
   customerExperiencePhilosophy,
   customerJourney,
   showroomExperience,
+  designConsultationExperience,
+  deliveryExperience,
   serviceExperience,
+  projectExperience,
 } from '@/data/brandbook';
 import { cn } from '@/lib/utils';
 import FadeUp from '@/components/motion/FadeUp';
-import RevealLine from '@/components/motion/RevealLine';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
+import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
+import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
 import {
   CompassIcon,
   DiamondIcon,
@@ -18,38 +23,7 @@ import {
   LeafIcon,
 } from '@/components/brandbook/icons';
 
-const showroomIcons = [LeafIcon, DiamondIcon, CompassIcon, HeartHandIcon];
-
-/* ─────────────────────────────────────────────────────────────
-   Section Divider
-   ───────────────────────────────────────────────────────────── */
-
-function SectionDivider({
-  number,
-  title,
-  subtitle,
-}: {
-  number: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <FadeUp>
-      <div className="mb-10 flex flex-col gap-2">
-        <span className="eyebrow text-brick">{number}</span>
-        <h3 className="text-2xl font-light tracking-tightest text-forest sm:text-3xl">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="max-w-2xl text-sm leading-relaxed text-forest/60">
-            {subtitle}
-          </p>
-        )}
-        <div className="mt-3 h-px w-16 bg-forest/20" />
-      </div>
-    </FadeUp>
-  );
-}
+const showroomIcons = [LeafIcon, DiamondIcon, CompassIcon, HeartHandIcon] as const;
 
 /* ─────────────────────────────────────────────────────────────
    4.1 Customer Experience Philosophy
@@ -58,12 +32,18 @@ function SectionDivider({
 function CustomerExperiencePhilosophySection() {
   return (
     <FadeUp>
-      <div className="mb-20 space-y-8">
-        <p className="max-w-3xl text-base leading-relaxed text-forest/80">
+      <div className="mx-auto mb-20 max-w-4xl space-y-8 text-center">
+        <p className="mx-auto max-w-3xl text-base leading-relaxed text-forest/80 text-right sm:text-center">
           {customerExperiencePhilosophy.intro}
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-3">
+        {customerExperiencePhilosophy.paragraphs.map((paragraph) => (
+          <p key={paragraph} className="mx-auto max-w-3xl text-base leading-relaxed text-forest/80 text-right sm:text-center">
+            {paragraph}
+          </p>
+        ))}
+
+        <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {customerExperiencePhilosophy.principles.map((p, idx) => (
             <div key={p.titleFa} className="rounded-2xl border border-forest/10 bg-white/60 p-6 backdrop-blur-sm">
               <span className="text-xs font-bold text-brick block mb-2">اصل ۰{idx + 1}</span>
@@ -87,6 +67,7 @@ function CustomerJourneySection() {
   return (
     <FadeUp>
       <div className="mb-20">
+        <div className="mx-auto max-w-5xl">
         {/* Desktop: horizontal flow */}
         <div className="hidden md:block">
           <div className="relative">
@@ -207,6 +188,7 @@ function CustomerJourneySection() {
             );
           })}
         </div>
+        </div>
       </div>
     </FadeUp>
   );
@@ -220,14 +202,20 @@ function ShowroomSection() {
   return (
     <div className="space-y-12">
       <FadeUp>
-        <div className="rounded-2xl bg-forest/5 p-6 border border-forest/10 mb-6">
-          <p className="text-sm text-forest/80 leading-relaxed">{showroomExperience.intro}</p>
+        <div className="relative mx-auto max-w-4xl rounded-2xl border border-forest/10 bg-paper p-8 text-right">
+          <div className="relative">
+            <h4 className="text-lg font-bold text-forest mb-2">تجربه شوروم</h4>
+            <p className="text-xs text-forest/70 mb-4">{showroomExperience.intro}</p>
+            {showroomExperience.closing && (
+              <p className="text-xs text-forest/70">{showroomExperience.closing}</p>
+            )}
+          </div>
         </div>
       </FadeUp>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {showroomExperience.principles.map((principle, i) => {
-          const Icon = showroomIcons[i];
+          const Icon = showroomIcons[i] ?? LeafIcon;
           return (
             <FadeUp key={principle.titleFa} delay={i * 0.1}>
               <BrandbookCard
@@ -255,20 +243,21 @@ function ShowroomSection() {
         })}
       </div>
 
-      {/* Service Experience */}
+      {/* Additional Experience Sections */}
       <FadeUp>
-        <div className="mt-12 rounded-2xl border border-forest/10 bg-paper p-8">
-          <h4 className="text-lg font-bold text-forest mb-2">تجربه خدمات و پشتیبانی</h4>
-          <p className="text-xs text-forest/70 mb-6">{serviceExperience.intro}</p>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {serviceExperience.attributes.map((attr) => (
-              <div key={attr.titleFa} className="rounded-xl bg-forest/5 p-4 border border-forest/10">
-                <h5 className="text-sm font-bold text-forest mb-1">{attr.titleFa}</h5>
-                <p className="text-xs text-forest/65">{attr.description}</p>
-              </div>
-            ))}
-          </div>
+        <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
+          {[
+            { title: 'تجربه مشاوره طراحی', data: designConsultationExperience },
+            { title: 'تجربه تحویل و استقرار', data: deliveryExperience },
+            { title: 'تجربه خدمات پس از خرید', data: serviceExperience },
+            { title: 'تجربه پروژه‌های یکپارچه', data: projectExperience },
+          ].map(({ title, data }) => (
+            <div key={title} className="rounded-2xl border border-forest/10 bg-white/60 p-6 backdrop-blur-sm">
+              <h4 className="text-base font-bold text-forest mb-2">{title}</h4>
+              <p className="text-xs text-forest/75 mb-3">{data.intro}</p>
+              <p className="text-xs text-forest/65">{data.closing}</p>
+            </div>
+          ))}
         </div>
       </FadeUp>
     </div>
@@ -281,49 +270,35 @@ function ShowroomSection() {
 
 export default function BrandExperience() {
   return (
-    <section
-      id="brand-experience"
-      className="relative w-full bg-paper py-20 text-forest md:py-28"
-    >
-      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
-        {/* Chapter Title */}
-        <FadeUp>
-          <div className="mb-16 flex flex-col gap-3 sm:mb-20">
-            <span className="eyebrow text-brick">فصل چهارم</span>
-            <h2 className="text-4xl font-light tracking-tightest text-forest sm:text-5xl lg:text-6xl">
-              تجربه برند
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-forest/60 sm:text-lg">
-              فلسفه تجربه مشتری، مراحل سفر مشتری، اصول حضور در شوروم و تجربه خدمات.
-            </p>
-            <RevealLine className="mt-2 w-12" origin="right" />
-          </div>
-        </FadeUp>
+    <section id="brand-experience" className="relative w-full bg-paper text-forest">
+      <BrandbookChapterHeader
+        chapter="فصل چهارم"
+        title="تجربه برند"
+        subtitle="فلسفه تجربه مشتری، مراحل سفر مشتری، اصول حضور در شوروم و تجربه خدمات."
+      />
 
-        {/* 4.1 Customer Experience Philosophy */}
-        <SectionDivider
+      <BrandbookContainer className="pb-20 md:pb-28">
+        <BrandbookSectionDivider
           number="۴.۱"
           title="فلسفه تجربه مشتری"
           subtitle="اصول سه گانه تعامل با مشتری پیش از فروش، در حین مشاوره و احترام به انتخاب."
         />
         <CustomerExperiencePhilosophySection />
 
-        {/* 4.2 Customer Journey */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۴.۲"
           title="سفر مشتری"
           subtitle="پنج مرحله کلیدی در مسیر تعامل مشتری با برند."
         />
         <CustomerJourneySection />
 
-        {/* 4.3 Showroom & Service Experience */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۴.۳"
           title="تجربه شوروم و خدمات"
           subtitle="اصول حاکم بر فضای نمایشگاهی و خدمات پس از فروش خانه چوب و هنر."
         />
         <ShowroomSection />
-      </div>
+      </BrandbookContainer>
     </section>
   );
 }

@@ -12,113 +12,66 @@ import {
   productCurationPhilosophy,
   homeAsUltimateProduct,
 } from '@/data/brandbook';
-import { cn } from '@/lib/utils';
 import FadeUp from '@/components/motion/FadeUp';
-import RevealLine from '@/components/motion/RevealLine';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
+import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
+import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
+import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
 import {
   DiamondIcon,
-  EyeIcon,
-  HeartIcon,
-  InfinityIcon,
-  SettingsIcon,
-  SquareIcon,
   StarIcon,
-  TreeIcon,
 } from '@/components/brandbook/icons';
-
-/* ─────────────────────────────────────────────────────────────
-   Section Divider
-   ───────────────────────────────────────────────────────────── */
-
-function SectionDivider({
-  number,
-  title,
-  subtitle,
-}: {
-  number: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <FadeUp>
-      <div className="mb-10 flex flex-col gap-2">
-        <span className="eyebrow text-brick">{number}</span>
-        <h3 className="text-2xl font-light tracking-tightest text-forest sm:text-3xl">
-          {title}
-        </h3>
-        {subtitle && (
-          <p className="max-w-2xl text-sm leading-relaxed text-forest/60">
-            {subtitle}
-          </p>
-        )}
-        <div className="mt-3 h-px w-16 bg-forest/20" />
-      </div>
-    </FadeUp>
-  );
-}
 
 /* ─────────────────────────────────────────────────────────────
    3.1 Product Philosophy & View of Products
    ───────────────────────────────────────────────────────────── */
 
-const pillarIcons = [EyeIcon, HeartIcon, InfinityIcon];
-
 function ProductPhilosophySection() {
   return (
     <FadeUp>
-      <div className="mb-20 space-y-12">
-        <p className="max-w-3xl text-base leading-relaxed text-forest/80">
+      <div className="mx-auto mb-20 max-w-4xl space-y-12 text-center">
+        <p className="mx-auto max-w-3xl text-base leading-relaxed text-forest/80 text-right sm:text-center">
           {productPhilosophy.intro}
         </p>
 
-        {/* 3 Pillars Circles */}
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 md:flex-row md:gap-0">
-          {productPhilosophy.pillars.map((pillar, i) => {
-            const Icon = pillarIcons[i];
-            return (
-              <div
-                key={pillar}
-                className={cn(
-                  'relative flex h-48 w-48 flex-col items-center justify-center rounded-full',
-                  'border-2 border-forest/10 text-center p-4',
-                  'transition-all duration-300 hover:border-peach/40 hover:shadow-lg',
-                  i === 1 && 'z-10 md:-mx-6 bg-forest/[0.04]',
-                  i === 0 && 'bg-sage/10',
-                  i === 2 && 'bg-peach/10',
-                  'md:h-56 md:w-56',
-                )}
-              >
-                <Icon className="mb-3 text-brick" />
-                <p className="text-sm font-medium leading-snug text-forest">
-                  {pillar}
-                </p>
-              </div>
-            );
-          })}
+        {productPhilosophy.paragraphs.map((paragraph) => (
+          <p key={paragraph} className="mx-auto max-w-3xl text-base leading-relaxed text-forest/80 text-right sm:text-center">
+            {paragraph}
+          </p>
+        ))}
+
+        <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
+          {productPhilosophy.questions.map((q, idx) => (
+            <div key={q} className="flex items-center gap-3 rounded-lg bg-forest/5 p-4 text-sm text-forest/85">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-forest text-paper text-xs font-bold">{idx + 1}</span>
+              <span>{q}</span>
+            </div>
+          ))}
         </div>
 
-        <p className="max-w-3xl text-sm font-medium leading-relaxed text-brick text-center bg-peach/10 p-4 rounded-xl mx-auto">
+        <p className="mx-auto max-w-3xl text-sm font-medium leading-relaxed text-brick text-center bg-peach/10 p-4 rounded-xl">
           {productPhilosophy.closing}
         </p>
 
         {/* Our View of Products */}
-        <div className="rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-white/60 p-8 text-right backdrop-blur-sm">
+          <div className="relative">
           <h4 className="text-lg font-semibold text-forest mb-2">نگاه برند به محصول</h4>
           <p className="text-sm text-forest/75 mb-6">{ourViewOfProducts.intro}</p>
-          
-          <div className="grid gap-3 sm:grid-cols-2 mb-6">
-            {ourViewOfProducts.questions.map((q, idx) => (
-              <div key={idx} className="flex items-center gap-3 rounded-lg bg-forest/5 p-4 text-sm text-forest/85">
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-forest text-paper text-xs font-bold">{idx + 1}</span>
-                <span>{q}</span>
-              </div>
+
+          <div className="space-y-4 mb-6">
+            {ourViewOfProducts.paragraphs.map((paragraph) => (
+              <p key={paragraph} className="text-sm leading-relaxed text-forest/80">
+                {paragraph}
+              </p>
             ))}
           </div>
 
           <p className="text-xs font-medium text-forest/60 italic border-t border-forest/10 pt-4">
             {ourViewOfProducts.closing}
           </p>
+          </div>
         </div>
       </div>
     </FadeUp>
@@ -129,41 +82,23 @@ function ProductPhilosophySection() {
    3.2 Design Philosophy — Elements + Principles
    ───────────────────────────────────────────────────────────── */
 
-const elementIcons = [SquareIcon, SettingsIcon, HeartIcon, InfinityIcon];
-
 function DesignPhilosophySection() {
   return (
     <div className="mb-20">
-      <p className="max-w-3xl text-sm leading-relaxed text-forest/75 mb-8">
+      <p className="mx-auto mb-8 max-w-3xl text-center text-sm leading-relaxed text-forest/75 text-right sm:text-center">
         {designPhilosophy.intro}
       </p>
 
-      {/* 4 Elements */}
-      <FadeUp>
-        <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {designPhilosophy.elements.map((el, i) => {
-            const Icon = elementIcons[i];
-            return (
-              <BrandbookCard
-                key={el.titleEn}
-                surface="glass"
-                lift="sm"
-                className="flex flex-col items-center gap-3 p-6 text-center"
-              >
-                <Icon size={20} className="text-forest" />
-                <div>
-                  <p className="text-base font-bold text-forest">{el.titleFa}</p>
-                  <p className="text-xs font-mono text-forest/40">{el.titleEn}</p>
-                  <p className="mt-2 text-xs text-forest/65">{el.description}</p>
-                </div>
-              </BrandbookCard>
-            );
-          })}
-        </div>
-      </FadeUp>
+      <div className="mx-auto mb-10 max-w-3xl space-y-4">
+        {designPhilosophy.paragraphs.map((paragraph) => (
+          <p key={paragraph} className="max-w-3xl text-sm leading-relaxed text-forest/75">
+            {paragraph}
+          </p>
+        ))}
+      </div>
 
       {/* 4 Principles */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 sm:grid-cols-2">
         {designPhilosophy.principles.map((p, i) => (
           <FadeUp key={p.number} delay={i * 0.1}>
             <BrandbookCard
@@ -202,35 +137,15 @@ function MaterialCraftsmanshipSection() {
       {/* Material Quote */}
       <FadeUp>
         <div className="relative rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm sm:p-12">
-          <div className="absolute right-8 top-6 text-7xl font-light leading-none text-forest/[0.06] sm:text-8xl">
-            &ldquo;
-          </div>
-          <div className="absolute right-0 top-8 bottom-8 w-1 rounded-full bg-peach" />
-
-          <blockquote className="relative pr-8">
-            <p className="text-xl font-light leading-relaxed text-forest sm:text-2xl lg:text-3xl">
-              {materialPhilosophy.quote}
-            </p>
-          </blockquote>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            {materialPhilosophy.features.map((f) => (
-              <span
-                key={f}
-                className={cn(
-                  'flex items-center gap-2 rounded-full bg-forest/[0.06] px-4 py-2',
-                  'text-xs font-medium text-forest/80',
-                )}
-              >
-                <TreeIcon className="h-3.5 w-3.5" />
-                {f}
-              </span>
+          <h4 className="text-lg font-bold text-forest mb-4">نگاه برند به چوب و متریال</h4>
+          <p className="text-base font-medium text-forest mb-6">{materialPhilosophy.intro}</p>
+          <div className="space-y-4">
+            {materialPhilosophy.paragraphs.map((paragraph) => (
+              <p key={paragraph} className="text-sm leading-relaxed text-forest/80">
+                {paragraph}
+              </p>
             ))}
           </div>
-
-          <p className="mt-6 text-xs text-forest/60 italic border-t border-forest/10 pt-4">
-            {materialPhilosophy.closing}
-          </p>
         </div>
       </FadeUp>
 
@@ -239,9 +154,12 @@ function MaterialCraftsmanshipSection() {
         <div className="rounded-2xl border border-forest/10 bg-paper p-8">
           <h4 className="text-lg font-bold text-forest mb-2">فلسفه صنعتگری</h4>
           <p className="text-sm text-forest/75 mb-4">{craftsmanshipPhilosophy.intro}</p>
-          <div className="grid gap-3 sm:grid-cols-3 mb-4">
-            {craftsmanshipPhilosophy.traits.map((trait, idx) => (
-              <div key={idx} className="rounded-xl bg-forest/5 p-4 text-xs font-medium text-forest/85">
+          {craftsmanshipPhilosophy.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="text-sm text-forest/75 mb-4">{paragraph}</p>
+          ))}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+            {craftsmanshipPhilosophy.traits.map((trait) => (
+              <div key={trait} className="rounded-xl bg-forest/5 p-4 text-xs font-medium text-forest/85">
                 • {trait}
               </div>
             ))}
@@ -254,19 +172,12 @@ function MaterialCraftsmanshipSection() {
       <FadeUp>
         <div className="rounded-2xl border border-forest/10 bg-white/60 p-8 backdrop-blur-sm">
           <h4 className="text-lg font-bold text-forest mb-2">مفهوم کیفیت در برند</h4>
-          <p className="text-sm text-forest/75 mb-6">{qualityPhilosophy.intro}</p>
+          <p className="text-sm text-forest/75 mb-4">{qualityPhilosophy.intro}</p>
+          {qualityPhilosophy.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="text-sm text-forest/75 mb-6">{paragraph}</p>
+          ))}
 
-          <div className="mb-8 flex flex-wrap items-center gap-2 rounded-xl bg-forest/[0.04] p-4">
-            <span className="text-xs font-bold text-forest/50">مسیر ۷ مرحله‌ای کیفیت:</span>
-            {qualityPhilosophy.lifecycle.map((step, idx) => (
-              <span key={step} className="flex items-center gap-1.5 text-xs text-forest/80">
-                <span className="rounded bg-forest/10 px-2.5 py-1 font-medium">{step}</span>
-                {idx < qualityPhilosophy.lifecycle.length - 1 && <span className="text-forest/30">←</span>}
-              </span>
-            ))}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3 mb-6">
             {qualityPhilosophy.dimensions.map((dim) => (
               <div key={dim.titleFa} className="rounded-xl border border-forest/10 bg-paper p-5">
                 <h5 className="text-base font-bold text-forest mb-1">{dim.titleFa}</h5>
@@ -274,6 +185,10 @@ function MaterialCraftsmanshipSection() {
               </div>
             ))}
           </div>
+
+          <p className="text-xs font-medium text-forest/70 border-t border-forest/10 pt-4">
+            {qualityPhilosophy.closing}
+          </p>
         </div>
       </FadeUp>
 
@@ -282,14 +197,17 @@ function MaterialCraftsmanshipSection() {
         <div className="rounded-2xl bg-sage/10 p-8 border border-sage/30">
           <h4 className="text-lg font-bold text-forest mb-2">ماندگاری در برابر مدگرایی</h4>
           <p className="text-sm text-forest/80 mb-6">{timelessVsTrend.belief}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {timelessVsTrend.characteristics.map((char, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-xs font-medium text-forest/85">
+          <div className="grid gap-3 sm:grid-cols-2 mb-6">
+            {timelessVsTrend.characteristics.map((char) => (
+              <div key={char} className="flex items-center gap-3 text-xs font-medium text-forest/85">
                 <span className="size-2 rounded-full bg-forest" />
                 <span>{char}</span>
               </div>
             ))}
           </div>
+          {'closing' in timelessVsTrend && timelessVsTrend.closing && (
+            <p className="text-xs text-forest/70">{timelessVsTrend.closing}</p>
+          )}
         </div>
       </FadeUp>
     </div>
@@ -305,8 +223,18 @@ function PremiumCuratedSection() {
     <div className="space-y-10">
       <FadeUp>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Premium panel */}
-          <div className="flex flex-col gap-6 rounded-2xl bg-forest p-8 text-paper sm:p-10">
+      {/* Premium panel */}
+          <div className="relative flex flex-col gap-6 overflow-hidden rounded-2xl bg-forest p-8 text-paper sm:p-10">
+            <BrandPatternField
+              variant="forest"
+              surface="dark"
+              mask="right"
+              strength="soft"
+              motion="scroll"
+              sheen
+            />
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-br from-forest-900/55 via-forest/88 to-forest" />
+            <div className="relative">
             <div className="flex items-center gap-3">
               <DiamondIcon size={20} className="text-peach" />
               <h4 className="text-2xl font-light tracking-tightest">
@@ -326,9 +254,10 @@ function PremiumCuratedSection() {
             </ul>
 
             <div className="mt-auto border-t border-paper/10 pt-6">
-              <p className="text-base font-light italic leading-relaxed text-paper/75">
-                &ldquo;{premiumConcept.premium.quote}&rdquo;
+              <p className="text-base font-light leading-relaxed text-paper/75">
+                {premiumConcept.premium.closing}
               </p>
+            </div>
             </div>
           </div>
 
@@ -350,8 +279,15 @@ function PremiumCuratedSection() {
 
             {/* Visual formula breakdown */}
             <div className="mt-auto flex flex-wrap items-center gap-2 rounded-xl bg-forest/[0.04] p-5">
-              <span className="text-xs font-medium text-forest/70 w-full mb-1">فرمول خانه هماهنگ:</span>
-              <p className="text-xs font-mono font-bold text-forest">{premiumConcept.curatedLiving.elementsFormula}</p>
+              <span className="text-xs font-medium text-forest/70 w-full mb-1">عناصر Curated Living:</span>
+              <div className="flex flex-wrap gap-2">
+                {premiumConcept.curatedLiving.elements.map((element) => (
+                  <span key={element} className="rounded-full bg-paper border border-forest/10 px-3 py-1 text-xs text-forest">
+                    {element}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-forest/70 w-full">{premiumConcept.curatedLiving.closing}</p>
             </div>
           </div>
         </div>
@@ -383,14 +319,18 @@ function PremiumCuratedSection() {
             <div>
               <h4 className="text-lg font-bold text-forest mb-2">تجربه خانه به عنوان محصول نهایی</h4>
               <p className="text-sm text-forest/80 mb-6">{homeAsUltimateProduct.intro}</p>
+              {homeAsUltimateProduct.paragraphs.map((paragraph) => (
+                <p key={paragraph} className="text-sm text-forest/80 mb-6">{paragraph}</p>
+              ))}
               <div className="space-y-3">
-                <span className="text-xs font-bold text-forest/50 block">خانه باید:</span>
+                <span className="text-xs font-bold text-forest/50 block">هدف ما خلق فضاهایی است که:</span>
                 {homeAsUltimateProduct.qualities.map((q) => (
                   <div key={q} className="rounded-lg bg-paper p-3 text-xs text-forest font-medium border border-forest/10">
                     ✓ {q}
                   </div>
                 ))}
               </div>
+              <p className="mt-6 text-xs leading-relaxed text-forest/70">{homeAsUltimateProduct.closing}</p>
             </div>
           </div>
         </div>
@@ -405,57 +345,42 @@ function PremiumCuratedSection() {
 
 export default function ProductDesign() {
   return (
-    <section
-      id="product-design"
-      className="relative w-full bg-paper py-20 text-forest md:py-28"
-    >
-      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10 lg:pl-16 lg:pr-24 xl:pr-28">
-        {/* Chapter Title */}
-        <FadeUp>
-          <div className="mb-16 flex flex-col gap-3 sm:mb-20">
-            <span className="eyebrow text-brick">فصل سوم</span>
-            <h2 className="text-4xl font-light tracking-tightest text-forest sm:text-5xl lg:text-6xl">
-              فلسفه محصول و طراحی
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-forest/60 sm:text-lg">
-              رویکرد خانه چوب و هنر به محصول، متریال، صنعتگری و تجربیات ماندگار طراحی.
-            </p>
-            <RevealLine className="mt-2 w-12" origin="right" />
-          </div>
-        </FadeUp>
+    <section id="product-design" className="relative w-full bg-paper text-forest">
+      <BrandbookChapterHeader
+        chapter="فصل سوم"
+        title="فلسفه محصول و طراحی"
+        subtitle="رویکرد خانه چوب و هنر به محصول، متریال، صنعتگری و تجربیات ماندگار طراحی."
+      />
 
-        {/* 3.1 Product Philosophy */}
-        <SectionDivider
+      <BrandbookContainer className="pb-20 md:pb-28">
+        <BrandbookSectionDivider
           number="۳.۱"
           title="فلسفه محصول و نگاه برند"
           subtitle="نگاه خانه چوب و هنر به چیستی و نقش محصول در زندگی انسان."
         />
         <ProductPhilosophySection />
 
-        {/* 3.2 Design Philosophy */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۳.۲"
           title="فلسفه طراحی"
           subtitle="چهار عنصر تعادل و چهار اصل راهنمای طراحی."
         />
         <DesignPhilosophySection />
 
-        {/* 3.3 Material, Craftsmanship & Quality */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۳.۳"
           title="متریال، صنعتگری و کیفیت"
           subtitle="نگاه به چوب، ارزشمندی دست انسان و ۷ مرحله فرهنگ کیفیت."
         />
         <MaterialCraftsmanshipSection />
 
-        {/* 3.4 Premium & Curated Living */}
-        <SectionDivider
+        <BrandbookSectionDivider
           number="۳.۴"
           title="پریمیوم و زندگی کیوریت‌شده"
           subtitle="تجربه خانه جامع، انتخاب محصولات مکمل و محصول نهایی."
         />
         <PremiumCuratedSection />
-      </div>
+      </BrandbookContainer>
     </section>
   );
 }

@@ -16,8 +16,9 @@ export default function BrandbookProse({
   return (
     <div
       className={cn(
+        "mx-auto w-full",
         width === "narrow" ? "max-w-3xl" : "max-w-4xl",
-        align === "center" ? "mx-auto text-center" : "text-right",
+        align === "center" ? "text-center" : "text-right",
         className,
       )}
     >
