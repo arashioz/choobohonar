@@ -20,6 +20,17 @@ const navItems = [
     ),
   },
   {
+    label: "چوب‌نویس",
+    href: "/admin/content",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+        <path d="m5.6 5.6 2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
+        <circle cx="12" cy="12" r="3.25" />
+      </svg>
+    ),
+  },
+  {
     label: "برندبوک",
     href: "/admin/brandbook",
     icon: (
