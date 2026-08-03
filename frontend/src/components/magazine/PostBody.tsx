@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Post } from "@/data/posts/types";
 import FadeUp from "@/components/motion/FadeUp";
 
@@ -46,6 +47,25 @@ export default function PostBody({ post }: { post: Post }) {
                   {block.caption && (
                     <figcaption className="mt-3 text-sm text-forest/65">{block.caption}</figcaption>
                   )}
+                </FadeUp>
+              );
+            case "link":
+              return (
+                <FadeUp key={i} as="aside" className="border-r-2 border-brick/70 bg-forest/[0.03] px-6 py-5">
+                  <Link href={block.href} className="group inline-flex flex-col gap-1 text-forest transition-colors hover:text-brick">
+                    <span className="text-base font-medium">{block.label}</span>
+                    {block.description && <span className="text-sm leading-relaxed text-forest/65">{block.description}</span>}
+                    <span className="mt-1 text-sm text-brick">مشاهده بیشتر ←</span>
+                  </Link>
+                </FadeUp>
+              );
+            case "cta":
+              return (
+                <FadeUp key={i} as="aside" className="rounded-sm bg-forest px-7 py-8 text-paper md:px-10">
+                  <p className="text-lg font-light leading-relaxed">{block.description}</p>
+                  <Link href={block.href} className="mt-5 inline-flex border-b border-paper/50 pb-1 text-base transition-colors hover:border-paper hover:text-paper/80">
+                    {block.label} ←
+                  </Link>
                 </FadeUp>
               );
             default:

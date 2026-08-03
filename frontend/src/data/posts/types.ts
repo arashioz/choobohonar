@@ -2,7 +2,9 @@ export type PostBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading"; text: string }
   | { type: "quote"; text: string; cite?: string }
-  | { type: "image"; src: string; caption?: string };
+  | { type: "image"; src: string; caption?: string }
+  | { type: "link"; href: string; label: string; description?: string }
+  | { type: "cta"; href: string; label: string; description: string };
 
 export type FaqItem = {
   question: string;
