@@ -283,12 +283,46 @@ export function getRelatedProducts(slug: string, count = 3): Product[] {
 
 export type ShopProduct = {
   kind: "catalog";
+  id: number;
   slug: string;
   name: string;
   category: string;
   room: ProductRoom;
   shortDescription: string;
   image: string;
+  gallery: string[];
+  categories: {
+    id: number;
+    name: string;
+    slug: string;
+  }[];
+  attributes: {
+    id: number;
+    name: string;
+    taxonomy: string | null;
+    hasVariations: boolean;
+    terms: {
+      id: number;
+      name: string;
+      slug: string;
+      default: boolean;
+    }[];
+  }[];
+  prices: {
+    value: string | null;
+    regularValue: string | null;
+    saleValue: string | null;
+    minValue: string | null;
+    maxValue: string | null;
+    currencyCode: string;
+    currencySymbol: string;
+    minorUnit: number;
+  } | null;
+  averageRating: string;
+  reviewCount: number;
+  isPurchasable: boolean;
+  isInStock: boolean;
+  hasOptions: boolean;
   shopUrl: string;
 };
 
@@ -333,4 +367,12 @@ export function getRelatedCatalogProducts(slug: string, count = 3): AnyProduct[]
   if (!current) return getAllCatalogProducts().slice(0, count);
   const sameRoom = getAllCatalogProducts().filter((p) => p.slug !== slug && p.room === current.room);
   return sameRoom.slice(0, count);
+}
+
+export function getCatalogProductsByRoom(room: ProductRoom): AnyProduct[] {
+  return getAllCatalogProducts().filter((product) => product.room === room);
+}
+
+export function getShopProductsByCategorySlug(slug: string): ShopProduct[] {
+  return shopProducts.filter((product) => product.categories.some((category) => category.slug === slug));
 }

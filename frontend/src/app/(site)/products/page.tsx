@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import ProductsCatalogPage from "@/components/products/ProductsCatalogPage";
+import ProductsLanding from "@/components/commerce/ProductsLanding";
 
 export const metadata: Metadata = {
-  title: "محصولات | خانه چوب و هنر",
-  description: "مجموعه‌ای از مبلمان و دکوراتیو خانه چوب و هنر، با امکان انتخاب پرداخت چوب و استعلام قیمت اختصاصی.",
+  title: "فروشگاه محصولات | خانه چوب و هنر",
+  description: "مبلمان، کالای خواب، روشنایی و اشیای خانه؛ مجموعه کامل محصولات خانه چوب و هنر.",
 };
 
 export default function ProductsIndexPage() {
-  return (
-    <Suspense>
-      <ProductsCatalogPage />
-    </Suspense>
-  );
+  return <ProductsLanding />;
 }
