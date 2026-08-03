@@ -1,9 +1,11 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getApiBase } from "@/lib/api-base";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
@@ -11,9 +13,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (localStorage.getItem("admin_token")) {
-      window.location.href = "/admin/dashboard";
+      router.replace("/admin/dashboard");
     }
-  }, []);
+  }, [router]);
 
   async function login(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,7 +45,7 @@ export default function AdminPage() {
       }
 
       localStorage.setItem("admin_token", data.token);
-      window.location.href = "/admin/dashboard";
+      router.replace("/admin/dashboard");
     } catch {
       setError("ارتباط با API برقرار نشد.");
     } finally {
