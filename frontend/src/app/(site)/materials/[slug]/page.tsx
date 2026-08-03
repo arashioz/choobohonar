@@ -2,132 +2,88 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMaterial, materials, woodFinishes } from "@/data/materials";
-import { getProductsByFinish } from "@/data/products";
-import { toFa } from "@/lib/utils";
 import Container from "@/components/layout/Container";
+import MaterialCategoryCatalog from "@/components/materials/MaterialCategoryCatalog";
+import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
+import { getMaterial, materials } from "@/data/materials";
+import { getMaterialCommerceItems } from "@/data/material-products";
+import { toFa } from "@/lib/utils";
 
 export function generateStaticParams() {
   return materials.map((material) => ({ slug: material.id }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const material = getMaterial(params.slug);
+type PageProps = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const material = getMaterial(slug);
   if (!material) return { title: "متریال یافت نشد | خانه چوب و هنر" };
   return {
-    title: `${material.label} | متریال‌های خانه چوب و هنر`,
-    description: material.shortDescription,
+    title: `${material.label} | فروشگاه متریال خانه چوب و هنر`,
+    description: material.longDescription,
   };
 }
 
-export default function MaterialDetailPage({ params }: { params: { slug: string } }) {
-  const material = getMaterial(params.slug);
+export default async function MaterialCategoryPage({ params }: PageProps) {
+  const { slug } = await params;
+  const material = getMaterial(slug);
   if (!material) notFound();
-
-  const isWood = material.id === "wood";
+  const items = getMaterialCommerceItems(material.id);
+  const heroItem = items[0];
 
   return (
-    <section className="bg-paper pt-32 pb-24 md:pt-40 md:pb-32">
-      <Container>
-        <nav className="mb-10 flex items-center gap-2 text-sm text-forest/55">
-          <Link href="/" className="transition-colors hover:text-forest">
-            خانه
-          </Link>
-          <span>/</span>
-          <Link href="/materials" className="transition-colors hover:text-forest">
-            متریال
-          </Link>
-          <span>/</span>
-          <span className="text-forest">{material.label}</span>
-        </nav>
-
-        <div className="grid grid-cols-1 gap-12 border-b border-forest/10 pb-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-          <div>
-            <FadeUp as="p" className="eyebrow text-brick">
-              {material.eyebrow}
-            </FadeUp>
-            <FadeUp
-              as="h1"
-              delay={0.05}
-              className="mt-6 text-balance text-[clamp(2.5rem,7vw,6rem)] font-light leading-[0.95] tracking-tightest text-forest"
-            >
-              {material.label}
-            </FadeUp>
-            <FadeUp as="p" delay={0.1} className="mt-6 max-w-2xl text-lg leading-relaxed text-forest/65">
-              {material.longDescription}
-            </FadeUp>
-          </div>
-          <FadeUp delay={0.1} className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
-            <Image
-              src={material.image}
-              alt={material.label}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              className="object-cover"
-            />
-          </FadeUp>
-        </div>
-
-        <div className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-3">
-          {material.highlights.map((item, index) => (
-            <FadeUp key={item.title} delay={index * 0.08}>
-              <p className="eyebrow text-forest/45">{toFa(`0${index + 1}`)}</p>
-              <h2 className="mt-3 text-xl font-light tracking-tight text-forest">{item.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-forest/60">{item.description}</p>
-            </FadeUp>
-          ))}
-        </div>
-
-        {isWood ? (
-          <div className="mt-20">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-              <div>
-                <h2 className="text-2xl font-light tracking-tight text-forest">پرداخت چوب</h2>
-                <p className="mt-3 max-w-lg text-base text-forest/60">
-                  هر پرداخت، شخصیت متفاوتی به سازه می‌دهد. جزئیات و محصولات مرتبط را ببینید.
-                </p>
-              </div>
-            </div>
-            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {woodFinishes.map((finish, index) => {
-                const productCount = getProductsByFinish(finish.id).length;
-                return (
-                  <FadeUp key={finish.id} delay={index * 0.06}>
-                    <Link
-                      href={`/materials/wood/${finish.id}`}
-                      className="group flex items-center justify-between gap-4 border border-forest/10 bg-white/50 p-5 transition-colors hover:border-forest/20 hover:bg-forest/[0.02]"
-                    >
-                      <div>
-                        <h3 className="text-xl font-light tracking-tight text-forest">{finish.label}</h3>
-                        <p className="mt-2 text-sm text-forest/55">
-                          {toFa(productCount)} محصول با این پرداخت
-                        </p>
-                      </div>
-                      <span
-                        className="h-12 w-12 shrink-0 rounded-full border border-forest/10"
-                        style={{ backgroundColor: finish.hex }}
-                      />
-                    </Link>
-                  </FadeUp>
-                );
-              })}
-            </div>
-          </div>
+    <>
+      <section className="relative flex min-h-[78svh] items-end overflow-hidden bg-forest text-paper">
+        {heroItem ? (
+          <Image src={heroItem.applicationImage} alt={material.label} fill priority sizes="100vw" className="object-cover" />
         ) : null}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,29,19,0.28)_0%,rgba(6,29,19,0.26)_35%,rgba(6,29,19,0.92)_100%)]" />
+        <div className="commerce-grain absolute inset-0 opacity-30" aria-hidden />
+        <Container className="relative z-10 pb-12 pt-36 md:pb-16">
+          <nav className="mb-10 flex items-center gap-2 text-xs text-paper/60">
+            <Link href="/" className="hover:text-paper">خانه</Link>
+            <span>/</span>
+            <Link href="/materials" className="hover:text-paper">متریال</Link>
+            <span>/</span>
+            <span className="text-peach">{material.label}</span>
+          </nav>
 
-        <div className="mt-16 flex flex-wrap gap-6 text-sm">
-          <Link href="/materials" className="inline-flex items-center gap-2 text-forest transition-colors hover:text-brick">
-            همه متریال‌ها
-            <span>←</span>
-          </Link>
-          <Link href="/collection" className="inline-flex items-center gap-2 text-forest/55 transition-colors hover:text-forest">
-            کالکشن‌های محصول
-            <span>←</span>
-          </Link>
-        </div>
-      </Container>
-    </section>
+          <div className="grid gap-10 lg:grid-cols-[1fr_24rem] lg:items-end">
+            <div>
+              <ClipReveal>
+                <p className="eyebrow text-peach">{material.eyebrow}</p>
+              </ClipReveal>
+              <ClipReveal delay={0.06} className="mt-6">
+                <h1 className="text-[clamp(4rem,12vw,10rem)] font-extralight leading-[0.78] tracking-[-0.065em]">
+                  {material.label}
+                </h1>
+              </ClipReveal>
+            </div>
+            <FadeUp delay={0.12} className="border-r border-paper/25 pr-5">
+              <p className="text-lg leading-8 text-paper/75">{material.longDescription}</p>
+              <p className="mt-5 text-xs tracking-[0.2em] text-peach">{toFa(items.length)} MATERIAL SAMPLE</p>
+            </FadeUp>
+          </div>
+        </Container>
+      </section>
+
+      <section className="bg-[#e8ded2] py-16 md:py-20">
+        <Container>
+          <div className="grid gap-px bg-forest/10 md:grid-cols-3">
+            {material.highlights.map((highlight, index) => (
+              <FadeUp key={highlight.title} delay={index * 0.06} className="bg-[#e8ded2] p-7 md:p-9">
+                <p className="font-display text-2xl text-brick">0{toFa(index + 1)}</p>
+                <h2 className="mt-4 text-xl font-light text-forest">{highlight.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-forest/55">{highlight.description}</p>
+              </FadeUp>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <MaterialCategoryCatalog items={items} categoryLabel={material.label} />
+    </>
   );
 }
