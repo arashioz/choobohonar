@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import {
   registerGsap,
   gsap,
   prefersReducedMotion,
   revealElement,
-  revealIfInViewport,
-  scheduleRevealFailsafe,
   refreshScrollTriggers,
   scrollTriggerConfig,
   isElementHidden,
@@ -20,7 +18,7 @@ type FadeUpProps = {
   delay?: number;
   y?: number;
   duration?: number;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 };
 
 export default function FadeUp({
@@ -34,7 +32,7 @@ export default function FadeUp({
   const ref = useRef<HTMLElement>(null);
   const Tag = as as React.ElementType;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
@@ -44,14 +42,17 @@ export default function FadeUp({
     }
 
     let ctx: ReturnType<typeof gsap.context> | undefined;
-    const cancelFailsafe = scheduleRevealFailsafe(el, 1800);
+    let fallbackId = 0;
 
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && isElementHidden(el)) {
-            revealElement(el);
-          }
+          if (!entry.isIntersecting) return;
+          window.clearTimeout(fallbackId);
+          fallbackId = window.setTimeout(() => {
+            if (isElementHidden(el)) revealElement(el);
+          }, Math.max(700, (delay + duration) * 1000 + 200));
+          io.unobserve(el);
         });
       },
       { rootMargin: "0px 0px -10% 0px", threshold: 0.05 }
@@ -82,16 +83,14 @@ export default function FadeUp({
 
       requestAnimationFrame(() => {
         refreshScrollTriggers();
-        revealIfInViewport(el, 0.92);
       });
-      window.setTimeout(() => revealIfInViewport(el, 0.92), 400);
     } catch {
       revealElement(el);
     }
 
     return () => {
       ctx?.revert();
-      cancelFailsafe();
+      window.clearTimeout(fallbackId);
       io.disconnect();
     };
   }, [delay, y, duration]);

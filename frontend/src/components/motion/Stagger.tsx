@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import {
   registerGsap,
   gsap,
@@ -29,7 +29,7 @@ export default function Stagger({
 }: StaggerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     registerGsap();
@@ -42,11 +42,20 @@ export default function Stagger({
       return;
     }
 
-    const cancelFailsafe = window.setTimeout(() => {
-      items.forEach((item) => {
-        if (parseFloat(getComputedStyle(item).opacity) === 0) revealElement(item);
-      });
-    }, 1800);
+    let fallbackId = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        fallbackId = window.setTimeout(() => {
+          items.forEach((item) => {
+            if (parseFloat(getComputedStyle(item).opacity) === 0) revealElement(item);
+          });
+        }, 1200);
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
+    );
+    observer.observe(el);
 
     let ctx: ReturnType<typeof gsap.context> | undefined;
     try {
@@ -76,7 +85,8 @@ export default function Stagger({
 
     return () => {
       ctx?.revert();
-      window.clearTimeout(cancelFailsafe);
+      window.clearTimeout(fallbackId);
+      observer.disconnect();
     };
   }, [selector, amount, y]);
 

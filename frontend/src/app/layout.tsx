@@ -38,7 +38,7 @@ export default function RootLayout({
     <html lang="fa" dir="rtl" className={`${peyda.variable} ${display.variable}`}>
       <body className="font-sans antialiased">
         <noscript>
-          <style>{`.motion-reveal,.opacity-0{opacity:1 !important;transform:none !important}.hero-loader{display:none !important}`}</style>
+          <style>{`.motion-reveal{opacity:1 !important;transform:none !important}.hero-loader{display:none !important}`}</style>
         </noscript>
         {children}
       </body>
