@@ -80,6 +80,16 @@
   scrollbar-width: none;
 }
 
+/* Quiet paper texture used by the admin surfaces. Kept CSS-native so the
+   interface stays crisp on every display without loading decorative assets. */
+.dashboard-noise {
+  background-image:
+    radial-gradient(circle at 16% 18%, rgba(9, 43, 28, 0.032) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle at 78% 62%, rgba(154, 49, 16, 0.025) 0 0.65px, transparent 0.85px);
+  background-position: 0 0, 7px 9px;
+  background-size: 15px 15px, 17px 17px;
+}
+
 .brandbook-grid {
   background-image:
     linear-gradient(to right, rgba(9, 43, 28, 0.045) 1px, transparent 1px),

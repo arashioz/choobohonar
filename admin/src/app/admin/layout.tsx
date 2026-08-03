@@ -15,7 +15,7 @@ export default function AdminSectionLayout({
   return (
     <>
       {!isBrandbook && <AdminSidebar />}
-      <div className={cn(!isBrandbook && "pr-[72px]")}>{children}</div>
+      <div className={cn(!isBrandbook && "pb-24 pt-16 md:pb-0 md:pr-[248px] md:pt-0")}>{children}</div>
     </>
   );
 }
