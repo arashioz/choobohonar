@@ -1,5 +1,4 @@
 import localFont from "next/font/local";
-import { Cormorant_Garamond } from "next/font/google";
 
 // Persian display + body — Peyda (priority typeface)
 export const peyda = localFont({
@@ -18,10 +17,15 @@ export const peyda = localFont({
   display: "swap",
 });
 
-// Latin editorial serif for Latin titles / numerals (Michty swap point).
-export const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+// Latin editorial serif, self-hosted so production builds never require Google.
+export const display = localFont({
+  src: [
+    {
+      path: "../app/fonts/CormorantGaramond-Variable.woff2",
+      weight: "300 600",
+      style: "normal",
+    },
+  ],
   variable: "--font-display",
   display: "swap",
 });
