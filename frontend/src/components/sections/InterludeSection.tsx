@@ -36,11 +36,20 @@ export default function InterludeSection() {
     const animated = [lineTop, lineBottom, mark, eyebrow, accent, ...Array.from(words)].filter(
       (el): el is HTMLElement => Boolean(el)
     );
-    const failsafeId = window.setTimeout(() => {
-      animated.forEach((el) => {
-        if (isElementHidden(el)) revealElement(el);
-      });
-    }, 2500);
+    let failsafeId = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        failsafeId = window.setTimeout(() => {
+          animated.forEach((item) => {
+            if (isElementHidden(item)) revealElement(item);
+          });
+        }, 1400);
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
+    );
+    observer.observe(root);
 
     const ctx = gsap.context(() => {
       gsap.set([lineTop, lineBottom], { scaleX: 0, opacity: 1 });
@@ -73,6 +82,7 @@ export default function InterludeSection() {
     return () => {
       ctx.revert();
       window.clearTimeout(failsafeId);
+      observer.disconnect();
     };
   }, []);
 

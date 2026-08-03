@@ -31,7 +31,25 @@ export default function HeroSection() {
   const loader = useRef<HTMLDivElement>(null);
   const monogram = useRef<HTMLDivElement>(null);
   const media = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
   const [loaderHidden, setLoaderHidden] = useState(false);
+
+  useEffect(() => {
+    const heroVideo = video.current;
+    if (!heroVideo) return;
+
+    const syncPlayback = () => {
+      if (document.hidden || prefersReducedMotion()) {
+        heroVideo.pause();
+        return;
+      }
+      void heroVideo.play().catch(() => undefined);
+    };
+
+    syncPlayback();
+    document.addEventListener("visibilitychange", syncPlayback);
+    return () => document.removeEventListener("visibilitychange", syncPlayback);
+  }, []);
 
   useEffect(() => {
     const el = root.current ?? document.getElementById("top");
@@ -155,10 +173,12 @@ export default function HeroSection() {
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest">
       <div ref={media} className="absolute inset-0 will-change-transform">
         <video
+          ref={video}
           autoPlay
           muted
           loop
           playsInline
+          preload="metadata"
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover"
         >
