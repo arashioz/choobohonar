@@ -35,4 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# media assets (hosted separately — see README)
+# media assets are delivered separately and synced during deployment
+/public/images/
+/public/videos/
