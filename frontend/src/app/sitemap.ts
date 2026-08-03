@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { collections } from "@/data/collections";
-import { materials, woodFinishes } from "@/data/materials";
+import { materials } from "@/data/materials";
+import { materialCommerceItems } from "@/data/material-products";
+import { commerceCategories } from "@/data/commerce";
 import { getAllCatalogProducts } from "@/data/products";
 import { projects } from "@/data/projects";
 import { posts } from "@/data/posts";
@@ -16,6 +18,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/collection",
     "/materials",
     "/projects",
+    "/interior-architecture-services",
+    "/interior-architecture-services/order",
     "/gallery",
     "/magazine",
     "/contact",
@@ -34,6 +38,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  const productCategoryRoutes: MetadataRoute.Sitemap = commerceCategories.flatMap((category) => [
+    {
+      url: `${BASE}/products/category/${category.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    ...category.children.map((child) => ({
+      url: `${BASE}/products/category/${category.slug}/${child.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+  ]);
+
   const collectionRoutes: MetadataRoute.Sitemap = collections.map((c) => ({
     url: `${BASE}/collection/${c.slug}`,
     changeFrequency: "monthly",
@@ -46,10 +63,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  const finishRoutes: MetadataRoute.Sitemap = woodFinishes.map((f) => ({
-    url: `${BASE}/materials/wood/${f.id}`,
+  const materialItemRoutes: MetadataRoute.Sitemap = materialCommerceItems.map((item) => ({
+    url: `${BASE}/materials/${item.categoryId}/${item.slug}`,
     changeFrequency: "monthly",
-    priority: 0.5,
+    priority: 0.6,
   }));
 
   const projectRoutes: MetadataRoute.Sitemap = projects.map((pr) => ({
@@ -67,9 +84,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...staticRoutes,
     ...productRoutes,
+    ...productCategoryRoutes,
     ...collectionRoutes,
     ...materialRoutes,
-    ...finishRoutes,
+    ...materialItemRoutes,
     ...projectRoutes,
     ...postRoutes,
   ];
