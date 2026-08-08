@@ -39,13 +39,13 @@ export default function AdminHomePage() {
             فضای مدیریت برند
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-forest/55 sm:text-base">
-            برندبوک، استودیو محتوا و ابزارهای مدیریت خانه چوب و هنر.
+            فروشگاه، برندبوک، استودیو محتوا و ابزارهای مدیریت خانه چوب و هنر.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
-            href="/admin/content"
+            href="/admin/shop"
             className={cn(
               "group relative flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-forest p-7 sm:p-8",
               "transition-all duration-500 ease-out-expo hover:shadow-xl hover:shadow-forest/20",
@@ -60,16 +60,63 @@ export default function AdminHomePage() {
 
             <div className="relative flex items-start justify-between gap-4">
               <div>
-                <p className="eyebrow text-peach">Content Bot</p>
+                <p className="eyebrow text-peach">Shop</p>
                 <h2 className="mt-3 text-2xl font-light tracking-tightest text-paper">
-                  چوب‌نویس
+                  فروشگاه
                 </h2>
                 <p className="mt-3 max-w-xs text-sm leading-relaxed text-paper/60">
-                  ربات بانمک تولید خودکار مقاله، کپشن و معرفی محصول.
+                  مدیریت محصولات، ویترین و پیشنهادات فروشگاهی.
                 </p>
               </div>
 
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-peach text-forest transition-transform duration-500 ease-out-expo group-hover:-translate-x-1">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M3 9h18l-1.5 11.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5L3 9Z" />
+                  <path d="M8 9V7a4 4 0 0 1 8 0v2" />
+                </svg>
+              </span>
+            </div>
+
+            <span className="relative mt-8 inline-flex items-center gap-2 text-sm font-medium text-peach">
+              مدیریت فروشگاه
+              <span className="transition-transform duration-500 ease-out-expo group-hover:-translate-x-1">
+                ←
+              </span>
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/content"
+            className={cn(
+              "group relative flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white/70 p-7 sm:p-8",
+              "transition-all duration-500 ease-out-expo hover:border-forest/20 hover:bg-white hover:shadow-lg hover:shadow-forest/8",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+            )}
+          >
+            <div className="pointer-events-none absolute inset-0 brandbook-grid opacity-40" aria-hidden />
+
+            <div className="relative flex items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow text-brick">Content Bot</p>
+                <h2 className="mt-3 text-2xl font-light tracking-tightest text-forest">
+                  چوب‌نویس
+                </h2>
+                <p className="mt-3 max-w-xs text-sm leading-relaxed text-forest/55">
+                  ربات بانمک تولید خودکار مقاله، کپشن و معرفی محصول.
+                </p>
+              </div>
+
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-forest text-peach transition-transform duration-500 ease-out-expo group-hover:-translate-x-1">
                 <svg
                   width="18"
                   height="18"
@@ -88,7 +135,7 @@ export default function AdminHomePage() {
               </span>
             </div>
 
-            <span className="relative mt-8 inline-flex items-center gap-2 text-sm font-medium text-peach">
+            <span className="relative mt-8 inline-flex items-center gap-2 text-sm font-medium text-forest/70">
               باز کردن استودیو
               <span className="transition-transform duration-500 ease-out-expo group-hover:-translate-x-1">
                 ←
@@ -99,7 +146,7 @@ export default function AdminHomePage() {
           <Link
             href="/admin/brandbook"
             className={cn(
-              "group relative flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white/70 p-7 sm:p-8",
+              "group relative flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white/70 p-7 sm:p-8 sm:col-span-2",
               "transition-all duration-500 ease-out-expo hover:border-forest/20 hover:bg-white hover:shadow-lg hover:shadow-forest/8",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
             )}
