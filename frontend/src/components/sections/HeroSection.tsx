@@ -39,6 +39,7 @@ export default function HeroSection() {
 
     const lines = el.querySelectorAll<HTMLElement>("[data-hero-line]");
     const eyebrow = el.querySelector<HTMLElement>("[data-hero-eyebrow]");
+    const cta = el.querySelector<HTMLElement>("[data-hero-cta]");
     const cue = el.querySelector<HTMLElement>("[data-hero-cue]");
     let cancelled = false;
 
@@ -50,7 +51,7 @@ export default function HeroSection() {
     const showStatic = () => {
       if (cancelled) return;
       registerGsap();
-      gsap.set([eyebrow, cue, ...Array.from(lines)], {
+      gsap.set([eyebrow, cta, cue, ...Array.from(lines)], {
         opacity: 1,
         y: 0,
         yPercent: 0,
@@ -80,7 +81,7 @@ export default function HeroSection() {
       registerGsap();
       ctx = gsap.context(() => {
         gsap.set(lines, { yPercent: 110 });
-        gsap.set([eyebrow, cue], { opacity: 0, y: 20 });
+        gsap.set([eyebrow, cta, cue], { opacity: 0, y: 20 });
 
         const tl = gsap.timeline({
           onComplete: () => {
@@ -100,6 +101,7 @@ export default function HeroSection() {
           .fromTo(media.current, { scale: 1.18 }, { scale: 1, duration: 2.6, ease: "power2.out" }, "<")
           .to(lines, { yPercent: 0, duration: 1.1, ease: "power4.out", stagger: 0.12 }, "-=0.7")
           .to(eyebrow, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.8")
+          .to(cta, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.5")
           .to(cue, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4");
 
         const fabric = el.querySelector<SVGPathElement>("[data-hero-fabric]");
@@ -184,6 +186,15 @@ export default function HeroSection() {
             </span>
           </span>
         </h1>
+        <div data-hero-cta className="mt-8 flex flex-wrap items-center gap-3 sm:mt-10 sm:gap-4">
+          <a
+            href="/products"
+            className="inline-flex items-center gap-3 rounded-xl bg-peach px-6 py-3.5 text-sm font-medium text-forest transition-colors duration-300 hover:bg-peach-deep sm:px-7 sm:py-4"
+          >
+            فروشگاه
+            <span aria-hidden>←</span>
+          </a>
+        </div>
       </div>
 
       {/* White cloth — hidden at rest; rises from the green floor */}

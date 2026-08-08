@@ -1,8 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Project } from "@/data/projects";
 import { getProduct } from "@/data/products";
 import { getProjectProductSlugs } from "@/lib/project-images";
-import { getProductShopUrl } from "@/lib/shop";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 
@@ -16,23 +16,21 @@ export default function ProjectProducts({ project }: { project: Project }) {
     <section className="border-t border-forest/10 bg-paper py-16 md:py-20">
       <Container>
         <FadeUp as="p" className="eyebrow text-brick">
-          {"\u0645\u062d\u0635\u0648\u0644\u0627\u062a \u0627\u06cc\u0646 \u067e\u0631\u0648\u0698\u0647"}
+          محصولات این پروژه
         </FadeUp>
         <FadeUp
           as="h2"
           delay={0.05}
           className="mt-4 max-w-2xl text-balance text-[clamp(1.75rem,4vw,3rem)] font-light leading-[0.95] tracking-tightest text-forest"
         >
-          {"\u0642\u0637\u0639\u0627\u062a\u06cc \u06a9\u0647 \u062f\u0631 \u0627\u06cc\u0646 \u0641\u0636\u0627 \u0628\u0647 \u06a9\u0627\u0631 \u0631\u0641\u062a\u0647\u200c\u0627\u0646\u062f"}
+          قطعاتی که در این فضا به کار رفته‌اند
         </FadeUp>
 
         <ul className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (
             <li key={product!.slug}>
-              <a
-                href={getProductShopUrl(product!)}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/products/${product!.slug}`}
                 className="group flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-paper transition-colors hover:border-forest/25"
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-forest/5">
@@ -51,10 +49,10 @@ export default function ProjectProducts({ project }: { project: Project }) {
                     {product!.shortDescription}
                   </p>
                   <span className="mt-auto pt-4 text-xs tracking-wide text-forest/50 transition-colors group-hover:text-brick">
-                    {"\u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0628\u06cc\u0634\u062a\u0631 \u2197"}
+                    مشاهده و خرید
                   </span>
                 </div>
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

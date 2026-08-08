@@ -4,9 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import type { Product } from "@/data/products";
 import { finishes } from "@/data/products";
-import { getProductShopUrl } from "@/lib/shop";
 import { toFa, cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
+import AddToCartButton from "@/components/shop/AddToCartButton";
 
 export default function ProductHero({ product }: { product: Product }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -94,15 +94,14 @@ export default function ProductHero({ product }: { product: Product }) {
         </dl>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <Button
-            as="a"
-            href={getProductShopUrl(product)}
-            variant="primary"
-            showArrow
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            خرید از فروشگاه
+          <AddToCartButton
+            slug={product.slug}
+            name={product.name}
+            image={product.image}
+            label="افزودن به سبد خرید"
+          />
+          <Button as="a" href="/cart" variant="secondary">
+            مشاهده سبد
           </Button>
           <Button as="a" href="/contact?intent=services" variant="secondary">
             مشاوره طراحی داخلی

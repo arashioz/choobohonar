@@ -4,7 +4,7 @@ import { getShopCategoryUrl, getShopUrl } from "@/lib/shop";
 
 export type { NavChildItem, NavItem };
 
-/** Mega-menu: top-level rooms on choobohonar.com */
+/** Mega-menu: rooms filtered on the on-site catalog */
 export const productMegaMenu: NavChildItem[] = productRooms.map((room) => ({
   label: room.label,
   href: getShopCategoryUrl(room.id),
@@ -12,6 +12,7 @@ export const productMegaMenu: NavChildItem[] = productRooms.map((room) => ({
 }));
 
 export const navItems: NavItem[] = [
+  { label: "فروشگاه", href: "/products" },
   { label: "محصولات", href: getShopUrl(), children: productMegaMenu },
   { label: "کالکشن", href: "/collection" },
   { label: "متریال", href: "/materials" },

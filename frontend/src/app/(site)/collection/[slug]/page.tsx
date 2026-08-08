@@ -7,11 +7,10 @@ import {
   getCollection,
   getCollectionProducts,
 } from "@/data/collections";
-import { isShopProduct } from "@/data/products";
-import { getProductShopUrl } from "@/lib/shop";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
+import AddToCartButton from "@/components/shop/AddToCartButton";
 
 export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }));
@@ -108,7 +107,7 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
                 </Link>
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Link
                     href={`/products/${product.slug}`}
                     className="inline-flex items-center gap-2 text-sm text-brick transition-colors hover:text-forest"
@@ -116,16 +115,12 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
                     معرفی محصول
                     <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
                   </Link>
-                  {isShopProduct(product) || product.shopUrl ? (
-                    <a
-                      href={getProductShopUrl(product)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-forest/55 transition-colors hover:text-forest"
-                    >
-                      خرید
-                    </a>
-                  ) : null}
+                  <AddToCartButton
+                    slug={product.slug}
+                    name={product.name}
+                    image={product.image}
+                    label="افزودن به سبد"
+                  />
                 </div>
               </article>
             </FadeUp>

@@ -5,6 +5,7 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { submitLead } from "@/lib/leads-api";
 
 type FieldType = "text" | "tel" | "select" | "textarea";
 type Field = {
@@ -29,8 +30,7 @@ const fields: Field[] = [
   { name: "message", label: "توضیحات", type: "textarea", full: true },
 ];
 
-// فرم فعلاً غیرفعال است؛ تا اتصال بک‌اند (MongoDB از طریق /api/lead) ارسال واقعی انجام نمی‌شود.
-const FORM_ENABLED: boolean = false;
+import { FORM_ENABLED } from "@/lib/form-utils";
 
 type Values = Record<string, string>;
 type Errors = Record<string, string>;
@@ -39,6 +39,8 @@ export default function ConsultationSection() {
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const setValue = (name: string, value: string) => {
     setValues((v) => ({ ...v, [name]: value }));
@@ -56,12 +58,30 @@ export default function ConsultationSection() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO(mongo): پس از آماده‌شدن /api/lead → saveLead()، گاردِ زیر را بردار و داده‌ها را به آن POST کن.
     if (!FORM_ENABLED) return;
-    if (!validate()) return;
-    setSubmitted(true);
+    if (!validate() || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await submitLead({
+        type: "consultation",
+        source: "homepage",
+        name: values.name.trim(),
+        phone: values.phone.trim(),
+        data: {
+          interest: values.interest,
+          message: values.message?.trim() || "",
+        },
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitError("ارسال درخواست با خطا مواجه شد. کمی بعد دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -139,9 +159,12 @@ export default function ConsultationSection() {
 
                 <div className="md:col-span-2">
                   {FORM_ENABLED ? (
-                    <Button as="button" type="submit" variant="primary" showArrow>
-                      ارسال درخواست
-                    </Button>
+                    <div className="flex flex-col gap-3">
+                      <Button as="button" type="submit" variant="primary" showArrow>
+                        {submitting ? "در حال ارسال…" : "ارسال درخواست"}
+                      </Button>
+                      {submitError ? <p className="text-sm text-brick">{submitError}</p> : null}
+                    </div>
                   ) : (
                     <div className="flex flex-col gap-3">
                       <span className="pointer-events-none inline-block opacity-50" aria-disabled="true">

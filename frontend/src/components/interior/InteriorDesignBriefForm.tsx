@@ -12,12 +12,11 @@ import {
   pickMoodboardRound,
   spaceTypeOptions,
   timelineOptions,
-  type InteriorBriefPayload,
   type MoodboardImage,
 } from "@/data/interior-architecture";
 import { cn, toFa } from "@/lib/utils";
-
-const FORM_ENABLED = false;
+import { FORM_ENABLED } from "@/lib/form-utils";
+import { submitInteriorBrief } from "@/lib/leads-api";
 
 type StepId = "styles" | "round1" | "round2" | "details" | "contact" | "success";
 
@@ -76,6 +75,8 @@ export default function InteriorDesignBriefForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [round1Images, setRound1Images] = useState<MoodboardImage[]>([]);
   const [round2Images, setRound2Images] = useState<MoodboardImage[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const stepIndex = steps.findIndex((item) => item.id === step);
 
@@ -148,11 +149,11 @@ export default function InteriorDesignBriefForm() {
     setStep(order[currentIndex - 1]);
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!validateStep("contact")) return;
+    if (!validateStep("contact") || submitting) return;
 
-    const payload: InteriorBriefPayload = {
+    const payload = {
       styles: values.styles,
       moodboardRound1: values.moodboardRound1,
       moodboardRound2: values.moodboardRound2,
@@ -169,12 +170,21 @@ export default function InteriorDesignBriefForm() {
       notes: values.notes.trim() || undefined,
     };
 
-    if (FORM_ENABLED) {
-      // TODO(mongo): POST payload to /api/interior-brief when backend is ready.
-      console.info("interior brief", payload);
+    if (!FORM_ENABLED) {
+      setStep("success");
+      return;
     }
 
-    setStep("success");
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await submitInteriorBrief(payload);
+      setStep("success");
+    } catch {
+      setSubmitError("ارسال درخواست با خطا مواجه شد. کمی بعد دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -438,9 +448,12 @@ export default function InteriorDesignBriefForm() {
 
                     {step === "contact" ? (
                       FORM_ENABLED ? (
-                        <Button as="button" type="submit" variant="primary" showArrow>
-                          ثبت درخواست طراحی
-                        </Button>
+                        <div className="flex flex-col gap-3">
+                          <Button as="button" type="submit" variant="primary" showArrow>
+                            {submitting ? "در حال ارسال…" : "ثبت درخواست طراحی"}
+                          </Button>
+                          {submitError ? <p className="text-sm text-brick">{submitError}</p> : null}
+                        </div>
                       ) : (
                         <div className="flex flex-col gap-3">
                           <Button as="button" type="submit" variant="primary" showArrow>
