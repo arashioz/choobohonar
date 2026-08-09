@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { getProduct } from "@/data/products";
 import type { ProjectNarrative } from "@/data/projects";
-import { getProductShopUrl } from "@/lib/shop";
 import { cn, toFa } from "@/lib/utils";
 
 type Props = {
@@ -33,15 +33,13 @@ function ProductEntry({
       <h4 className="mt-1 text-xl font-light tracking-tight text-forest md:text-2xl">{product.name}</h4>
       <p className="mt-4 text-base leading-[1.85] text-forest/70 md:text-lg md:leading-[1.9]">{body}</p>
       {!faded && (
-        <a
-          href={getProductShopUrl(product)}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href={`/products/${product.slug}`}
           className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-forest transition-colors hover:text-brick"
         >
-          {"\u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0648\u0628 \u0648 \u0647\u0646\u0631"}
-          <span aria-hidden>{"\u2197"}</span>
-        </a>
+          مشاهده و خرید
+          <span aria-hidden>←</span>
+        </Link>
       )}
       {faded && (
         <div

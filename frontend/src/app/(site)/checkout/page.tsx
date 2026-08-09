@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import CheckoutFlow from "@/components/commerce/checkout/CheckoutFlow";
+import CheckoutPageClient from "@/components/shop/CheckoutPageClient";
 
 export const metadata: Metadata = {
-  title: "تکمیل خرید | خانه چوب و هنر",
-  description: "ثبت اطلاعات مشتری، آدرس تحویل و بازبینی نهایی سفارش خانه چوب و هنر.",
-  robots: { index: false, follow: false },
+  title: "تسویه حساب | خانه چوب و هنر",
 };
 
 export default function CheckoutPage() {
-  return <CheckoutFlow />;
+  return <CheckoutPageClient />;
 }

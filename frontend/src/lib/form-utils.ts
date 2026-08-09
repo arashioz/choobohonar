@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export const FORM_ENABLED = false;
+export const FORM_ENABLED = true;
 
 export function fieldClass(hasError: boolean) {
   return cn(

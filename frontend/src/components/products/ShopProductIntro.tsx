@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { ShopProduct } from "@/data/products";
 import Button from "@/components/ui/Button";
+import AddToCartButton from "@/components/shop/AddToCartButton";
 
 export default function ShopProductIntro({ product }: { product: ShopProduct }) {
   return (
@@ -24,13 +25,18 @@ export default function ShopProductIntro({ product }: { product: ShopProduct }) 
         <p className="mt-5 max-w-lg text-lg leading-relaxed text-forest/70">{product.shortDescription}</p>
 
         <p className="mt-6 max-w-md text-sm leading-relaxed text-forest/55">
-          این صفحه برای معرفی محصول است. برای مشاهده ابعاد، رنگ‌ها، قیمت و ثبت سفارش به فروشگاه رسمی خانه چوب و
-          هنر منتقل می‌شوید.
+          محصول را به سبد اضافه کنید و فرایند خرید آنلاین را با انتخاب موقعیت روی نقشه تکمیل کنید.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <Button as="a" href={product.shopUrl} variant="primary" showArrow target="_blank" rel="noopener noreferrer">
-            مشاهده و خرید در فروشگاه
+          <AddToCartButton
+            slug={product.slug}
+            name={product.name}
+            image={product.image}
+            label="افزودن به سبد خرید"
+          />
+          <Button as="a" href="/cart" variant="secondary">
+            مشاهده سبد
           </Button>
           <Button as="a" href="/contact/consultation" variant="secondary">
             مشاوره طراحی داخلی

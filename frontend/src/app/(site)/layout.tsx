@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import CartProvider from "@/components/commerce/cart/CartProvider";
 import ScrollProgress from "@/components/motion/ScrollProgress";
+import ShopCartDrawer from "@/components/shop/ShopCartDrawer";
 
 export default function SiteLayout({
   children,
@@ -21,6 +22,7 @@ export default function SiteLayout({
           {children}
         </main>
         <Footer />
+        <ShopCartDrawer />
       </SmoothScroll>
     </CartProvider>
   );

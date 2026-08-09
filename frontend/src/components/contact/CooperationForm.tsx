@@ -21,6 +21,7 @@ import {
   validateEmail,
   validatePhone,
 } from "@/lib/form-utils";
+import { submitLead } from "@/lib/leads-api";
 
 type FormState = {
   firstName: string;
@@ -89,6 +90,8 @@ export default function CooperationForm() {
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const stepIndex = cooperationSteps.findIndex((s) => s.id === step);
 
@@ -141,11 +144,28 @@ export default function CooperationForm() {
     if (idx > 0) setStep(order[idx - 1]);
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!validateStep("terms")) return;
+    if (!validateStep("terms") || submitting) return;
     if (!FORM_ENABLED) return;
-    setSubmitted(true);
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await submitLead({
+        type: "cooperation",
+        source: "cooperation",
+        name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
+        phone: values.mobile.trim(),
+        email: values.email.trim(),
+        data: { ...values },
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitError("ارسال درخواست با خطا مواجه شد. کمی بعد دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -245,9 +265,12 @@ export default function CooperationForm() {
               بعدی
             </Button>
           ) : FORM_ENABLED ? (
-            <Button as="button" type="submit" variant="primary" showArrow>
-              ارسال درخواست
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button as="button" type="submit" variant="primary" showArrow>
+                {submitting ? "در حال ارسال…" : "ارسال درخواست"}
+              </Button>
+              {submitError ? <p className="text-sm text-brick">{submitError}</p> : null}
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <span className="pointer-events-none inline-block opacity-50" aria-disabled="true">

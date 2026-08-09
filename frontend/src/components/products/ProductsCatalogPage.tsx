@@ -12,9 +12,9 @@ import {
 } from "@/data/product-categories";
 import { finishes, getAllCatalogProducts } from "@/data/products";
 import type { ProductRoom } from "@/data/products";
-import { getProductShopUrl } from "@/lib/shop";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
+import AddToCartButton from "@/components/shop/AddToCartButton";
 import { toFa } from "@/lib/utils";
 
 const ALL_ROOMS = "all";
@@ -74,7 +74,7 @@ export default function ProductsCatalogPage() {
             محصولات
           </FadeUp>
           <FadeUp as="p" delay={0.1} className="max-w-md text-lg text-forest/60">
-            دسته‌بندی محصولات مطابق فروشگاه خانه چوب و هنر — برای خرید به فروشگاه رسمی منتقل می‌شوید.
+            کاتالوگ محصولات خانه چوب و هنر — انتخاب کنید، به سبد اضافه کنید و خرید را در همین سایت تکمیل کنید.
           </FadeUp>
         </div>
 
@@ -192,14 +192,14 @@ export default function ProductsCatalogPage() {
                       <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
                     </span>
                   </Link>
-                  <a
-                    href={getProductShopUrl(p)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-2 text-xs tracking-wide text-forest/50 transition-colors hover:text-brick"
-                  >
-                    خرید از فروشگاه ↗
-                  </a>
+                  <div className="mt-3">
+                    <AddToCartButton
+                      slug={p.slug}
+                      name={p.name}
+                      image={p.image}
+                      label="افزودن به سبد"
+                    />
+                  </div>
                 </article>
               </FadeUp>
             ))}

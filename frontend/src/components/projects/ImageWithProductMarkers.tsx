@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import Link from "next/link";
 import { getProduct } from "@/data/products";
 import type { ProductMarker } from "@/data/projects";
-import { getProductShopUrl } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 
 function useMediaQuery(query: string) {
@@ -166,15 +166,13 @@ export default function ImageWithProductMarkers({
                 <h3 className="mt-1 text-lg font-light tracking-tight text-forest">{activeProduct.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-forest/65">{activeProduct.shortDescription}</p>
 
-                <a
-                  href={getProductShopUrl(activeProduct)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/products/${activeProduct.slug}`}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-forest px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-forest-700"
                 >
-                  {"\u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0628\u06cc\u0634\u062a\u0631"}
-                  <span aria-hidden>{"\u2197"}</span>
-                </a>
+                  مشاهده و خرید
+                  <span aria-hidden>←</span>
+                </Link>
               </div>
             </div>
           </>,

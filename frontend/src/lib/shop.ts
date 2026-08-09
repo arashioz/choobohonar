@@ -1,23 +1,16 @@
-import { productRooms } from "@/data/product-categories";
 import type { AnyProduct, ProductRoom } from "@/data/products";
 
-export const SHOP_BASE = process.env.NEXT_PUBLIC_SHOP_URL?.replace(/\/$/, "") ?? "https://choobohonar.com";
-
-/** Main WooCommerce shop on choobohonar.com */
+/** On-site product catalog (no external WooCommerce redirects). */
 export function getShopUrl(): string {
-  return `${SHOP_BASE}/shop/`;
+  return "/products";
 }
 
-/** Product-category archive for a top-level room (e.g. living → /product-category/livingroom/). */
+/** Filter catalog by room on this site. */
 export function getShopCategoryUrl(room: ProductRoom): string {
-  const config = productRooms.find((entry) => entry.id === room);
-  if (!config) return getShopUrl();
-  const path = config.shopPath ?? config.wpSlug;
-  return `${SHOP_BASE}/product-category/${path}/`;
+  return `/products?room=${encodeURIComponent(room)}`;
 }
 
-export function getProductShopUrl(product: AnyProduct): string {
-  if ("shopUrl" in product && product.shopUrl) return product.shopUrl;
-  if (SHOP_BASE) return `${SHOP_BASE}/product/${encodeURIComponent(product.slug)}/`;
+/** Product detail page on this site. */
+export function getProductShopUrl(product: AnyProduct | { slug: string }): string {
   return `/products/${product.slug}`;
 }

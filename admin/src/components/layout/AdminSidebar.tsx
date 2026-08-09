@@ -6,10 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-type IconName = "home" | "article" | "bot" | "archive" | "book" | "logout";
+type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "logout";
 
 const navItems: { label: string; description: string; href: string; icon: IconName }[] = [
   { label: "نمای کلی", description: "صفحه اصلی پنل", href: "/admin", icon: "home" },
+  { label: "فروشگاه", description: "محصولات، سفارش‌ها و فاکتورها", href: "/admin/shop", icon: "shop" },
   { label: "مقالات", description: "ایجاد، ویرایش و انتشار", href: "/admin/articles", icon: "article" },
   { label: "چوب‌نویس", description: "دستیار هوشمند محتوا", href: "/admin/content", icon: "bot" },
   { label: "مدیریت آثار", description: "محصول، پروژه و کالکشن", href: "/admin/manage", icon: "archive" },
@@ -30,6 +31,7 @@ function NavIcon({ name, size = 20 }: { name: IconName; size?: number }) {
   };
 
   if (name === "home") return <svg {...common}><path d="m3.5 10.5 8.5-7 8.5 7" /><path d="M5.5 9v11h13V9" /><path d="M9.5 20v-6h5v6" /></svg>;
+  if (name === "shop") return <svg {...common}><path d="M3 9h18l-1.5 11.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5L3 9Z" /><path d="M8 9V7a4 4 0 0 1 8 0v2" /></svg>;
   if (name === "article") return <svg {...common}><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>;
   if (name === "bot") return <svg {...common}><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M9 12h.01M15 12h.01M9 16h6M12 7V4M10 4h4"/></svg>;
   if (name === "archive") return <svg {...common}><path d="M4 7.5h16v12H4z" /><path d="M3 4h18v3.5H3z" /><path d="M9 12h6" /></svg>;
@@ -115,7 +117,7 @@ export default function AdminSidebar() {
         <button type="button" onClick={logout} disabled={loggingOut} className="flex h-9 w-9 items-center justify-center rounded-xl border border-forest/10 text-forest/50" aria-label="خروج از حساب"><NavIcon name="logout" size={18} /></button>
       </header>
 
-      <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl border border-forest/10 bg-[#f8f5f0]/95 p-1.5 shadow-xl shadow-forest/10 backdrop-blur-xl md:hidden" aria-label="منوی موبایل">
+      <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-6 rounded-2xl border border-forest/10 bg-[#f8f5f0]/95 p-1.5 shadow-xl shadow-forest/10 backdrop-blur-xl md:hidden" aria-label="منوی موبایل">
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href);
           return <Link key={item.href} href={item.href} className={cn("flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] transition-colors", active ? "bg-peach/35 text-forest" : "text-forest/35")}><NavIcon name={item.icon} size={17} /><span className="truncate">{item.label.replace(" دیجیتال", "")}</span></Link>;
