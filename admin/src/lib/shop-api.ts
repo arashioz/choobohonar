@@ -79,7 +79,8 @@ export const STATUS_LABELS: Record<ShopProductStatus, string> = {
 };
 
 async function shopFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`/api/shop${path}`, {
+  const url = `/api/shop${path}`;
+  const res = await fetch(url, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
     ...options,
@@ -87,10 +88,41 @@ async function shopFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `خطای ${res.status}`);
+    const message = formatShopApiError(text, res.status);
+    console.error("[admin/shop-api]", {
+      method: options?.method || "GET",
+      url,
+      status: res.status,
+      body: text.slice(0, 1000),
+      message,
+    });
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;
+}
+
+function formatShopApiError(text: string, status: number): string {
+  const raw = text?.trim();
+  if (!raw) return `خطای ${status}`;
+
+  try {
+    const json = JSON.parse(raw) as {
+      message?: string | string[];
+      error?: string;
+      statusCode?: number;
+    };
+    if (Array.isArray(json.message)) return json.message.join(" · ");
+    if (typeof json.message === "string" && json.message) return json.message;
+    if (json.error) return String(json.error);
+  } catch {
+    // plain text
+  }
+
+  if (status === 401) return "نشست منقضی شده — دوباره وارد شوید";
+  if (status === 403) return "دسترسی مجاز نیست";
+  if (raw.length > 280) return `خطای سرور (${status})`;
+  return raw;
 }
 
 export const shopApi = {

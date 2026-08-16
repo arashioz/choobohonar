@@ -26,6 +26,18 @@ function formatPrice(n: number) {
   return `${toFa(n.toLocaleString("en-US"))} تومان`;
 }
 
+function normalizePhone(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/[0-9]/g, (d) => d)
+    .replace(/[^\d+]/g, "");
+}
+
+function isValidIranPhone(value: string) {
+  const phone = normalizePhone(value);
+  return /^(?:\+98|0)?9\d{9}$/.test(phone) || /^0\d{10}$/.test(phone);
+}
+
 export default function CheckoutPageClient() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -43,6 +55,7 @@ export default function CheckoutPageClient() {
   const [orderNumber, setOrderNumber] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setItems(cartStore.get());
@@ -54,14 +67,40 @@ export default function CheckoutPageClient() {
   );
   const total = subtotal + SHIPPING_FEE;
 
+  function validateInfo() {
+    const next: Record<string, string> = {};
+    if (name.trim().length < 2) next.name = "نام را کامل وارد کنید";
+    if (!isValidIranPhone(phone)) next.phone = "شماره موبایل معتبر وارد کنید";
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      next.email = "ایمیل معتبر نیست";
+    }
+    if (province.trim().length < 2) next.province = "استان را وارد کنید";
+    if (city.trim().length < 2) next.city = "شهر را وارد کنید";
+    if (address.trim().length < 5) next.address = "آدرس دقیق‌تر لازم است";
+    if (postalCode.trim() && !/^\d{10}$/.test(postalCode.trim())) {
+      next.postalCode = "کد پستی باید ۱۰ رقم باشد";
+    }
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
+  function goToLocation() {
+    setError("");
+    if (!validateInfo()) {
+      setError("لطفاً فیلدهای مشخص‌شده را اصلاح کنید.");
+      return;
+    }
+    setStep("location");
+  }
+
   async function createOrderAndGoPay() {
     setError("");
-    if (!name.trim() || !phone.trim() || !address.trim() || !city.trim() || !province.trim()) {
+    if (!validateInfo()) {
       setError("اطلاعات تماس و آدرس را کامل کنید.");
       setStep("info");
       return;
     }
-    if (!point.lat || !point.lng) {
+    if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) {
       setError("موقعیت روی نقشه را مشخص کنید.");
       setStep("location");
       return;
@@ -73,7 +112,7 @@ export default function CheckoutPageClient() {
         items,
         customer: {
           name: name.trim(),
-          phone: phone.trim(),
+          phone: normalizePhone(phone.trim()),
           email: email.trim() || undefined,
         },
         shipping: {
@@ -91,7 +130,9 @@ export default function CheckoutPageClient() {
       setOrderNumber(order.orderNumber);
       setStep("pay");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "ثبت سفارش ناموفق بود");
+      const message = e instanceof Error ? e.message : "ثبت سفارش ناموفق بود";
+      setError(message);
+      console.error("[checkout] createOrder failed:", e);
     } finally {
       setBusy(false);
     }
@@ -106,9 +147,13 @@ export default function CheckoutPageClient() {
       cartStore.clear();
       setOrderNumber(order.orderNumber);
       setStep("done");
-      router.replace(`/checkout/success?order=${encodeURIComponent(order.orderNumber)}&id=${order._id}`);
+      router.replace(
+        `/checkout/success?order=${encodeURIComponent(order.orderNumber)}&id=${order._id}`,
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "پرداخت ناموفق بود");
+      const message = e instanceof Error ? e.message : "پرداخت ناموفق بود";
+      setError(message);
+      console.error("[checkout] pay failed:", e);
     } finally {
       setBusy(false);
     }
@@ -166,41 +211,102 @@ export default function CheckoutPageClient() {
         <div className="mt-10 grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-8">
             {step === "info" ? (
-              <div className="space-y-4 border border-forest/10 bg-white/70 p-6">
+              <form
+                className="space-y-4 border border-forest/10 bg-white/70 p-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  goToLocation();
+                }}
+              >
                 <h2 className="text-lg font-light text-forest">اطلاعات خریدار</h2>
-                <Field label="نام و نام خانوادگی">
-                  <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
+                <Field label="نام و نام خانوادگی" error={fieldErrors.name} required>
+                  <input
+                    name="name"
+                    autoComplete="name"
+                    required
+                    className={inputClass}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="شماره تماس">
-                    <input className={inputClass} dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <Field label="شماره موبایل" error={fieldErrors.phone} required>
+                    <input
+                      name="tel"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      required
+                      placeholder="0912..."
+                      className={inputClass}
+                      dir="ltr"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
                   </Field>
-                  <Field label="ایمیل (اختیاری)">
-                    <input className={inputClass} dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Field label="ایمیل (اختیاری)" error={fieldErrors.email}>
+                    <input
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      className={inputClass}
+                      dir="ltr"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </Field>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="استان">
-                    <input className={inputClass} value={province} onChange={(e) => setProvince(e.target.value)} />
+                  <Field label="استان" error={fieldErrors.province} required>
+                    <input
+                      name="address-level1"
+                      autoComplete="address-level1"
+                      required
+                      className={inputClass}
+                      value={province}
+                      onChange={(e) => setProvince(e.target.value)}
+                    />
                   </Field>
-                  <Field label="شهر">
-                    <input className={inputClass} value={city} onChange={(e) => setCity(e.target.value)} />
+                  <Field label="شهر" error={fieldErrors.city} required>
+                    <input
+                      name="address-level2"
+                      autoComplete="address-level2"
+                      required
+                      className={inputClass}
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                    />
                   </Field>
                 </div>
-                <Field label="آدرس دقیق">
-                  <textarea className={inputClass} rows={3} value={address} onChange={(e) => setAddress(e.target.value)} />
+                <Field label="آدرس دقیق" error={fieldErrors.address} required>
+                  <textarea
+                    name="street-address"
+                    autoComplete="street-address"
+                    required
+                    className={inputClass}
+                    rows={3}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
                 </Field>
-                <Field label="کد پستی (اختیاری)">
-                  <input className={inputClass} dir="ltr" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+                <Field label="کد پستی (اختیاری)" error={fieldErrors.postalCode}>
+                  <input
+                    name="postal-code"
+                    autoComplete="postal-code"
+                    inputMode="numeric"
+                    maxLength={10}
+                    className={inputClass}
+                    dir="ltr"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  />
                 </Field>
                 <button
-                  type="button"
-                  onClick={() => setStep("location")}
+                  type="submit"
                   className="rounded-xl bg-forest px-5 py-3 text-sm text-peach"
                 >
                   بعدی: موقعیت روی نقشه
                 </button>
-              </div>
+              </form>
             ) : null}
 
             {step === "location" ? (
@@ -210,8 +316,15 @@ export default function CheckoutPageClient() {
                   محل دقیق تحویل را روی نقشه مشخص کنید تا ارسال دقیق‌تر شود.
                 </p>
                 <LocationMapPicker value={point} onChange={setPoint} />
+                <p className="text-xs text-forest/45" dir="ltr">
+                  {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
+                </p>
                 <Field label="توضیح مسیر / پلاک (اختیاری)">
-                  <input className={inputClass} value={mapNote} onChange={(e) => setMapNote(e.target.value)} />
+                  <input
+                    className={inputClass}
+                    value={mapNote}
+                    onChange={(e) => setMapNote(e.target.value)}
+                  />
                 </Field>
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -297,11 +410,25 @@ export default function CheckoutPageClient() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  error,
+  required,
+}: {
+  label: string;
+  children: React.ReactNode;
+  error?: string;
+  required?: boolean;
+}) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs text-forest/55">{label}</span>
+      <span className="mb-1.5 block text-xs text-forest/55">
+        {label}
+        {required ? <span className="text-brick"> *</span> : null}
+      </span>
       {children}
+      {error ? <span className="mt-1 block text-xs text-brick">{error}</span> : null}
     </label>
   );
 }

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
-import Button from "@/components/ui/Button";
 import { cartStore, type CartItem, DEFAULT_UNIT_PRICE } from "@/lib/cart";
 import { toFa } from "@/lib/utils";
 
@@ -32,9 +31,13 @@ export default function CartPageClient() {
           <h1 className="mt-4 text-3xl font-light tracking-tightest text-forest">سبد شما خالی است</h1>
           <p className="mt-3 max-w-md text-forest/60">از فروشگاه محصولی انتخاب کنید و اینجا برگردید.</p>
           <div className="mt-8">
-            <Button href="/products" variant="primary" showArrow>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 rounded-xl bg-forest px-5 py-3 text-sm text-peach transition-colors hover:bg-forest-700"
+            >
               رفتن به فروشگاه
-            </Button>
+              <span aria-hidden>←</span>
+            </Link>
           </div>
         </Container>
       </section>
@@ -106,9 +109,13 @@ export default function CartPageClient() {
                 ) : null}
               </p>
               <div className="mt-6">
-                <Button href="/checkout" variant="primary" showArrow className="w-full justify-center">
+                <a
+                  href="/checkout"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-forest px-5 py-3 text-sm text-peach transition-colors hover:bg-forest-700"
+                >
                   ادامه خرید
-                </Button>
+                  <span aria-hidden>←</span>
+                </a>
               </div>
             </div>
           </aside>

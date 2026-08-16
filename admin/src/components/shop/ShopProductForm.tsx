@@ -107,6 +107,7 @@ export default function ShopProductForm({
         router.push(`/admin/shop/products/${created._id}`);
       }
     } catch (err) {
+      console.error("[admin/shop/product] save", err);
       setError(err instanceof Error ? err.message : "ذخیره ناموفق بود");
     } finally {
       setSaving(false);

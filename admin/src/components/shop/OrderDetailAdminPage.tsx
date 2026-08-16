@@ -26,6 +26,7 @@ export default function OrderDetailAdminPage() {
     try {
       setOrder(await shopApi.orders.get(params.id));
     } catch (e) {
+      console.error("[admin/shop/order] load", e);
       setError(e instanceof Error ? e.message : "خطا");
     }
   }
@@ -42,6 +43,7 @@ export default function OrderDetailAdminPage() {
     try {
       setOrder(await shopApi.orders.updateStatus(order._id, status));
     } catch (e) {
+      console.error("[admin/shop/order] status", e);
       setError(e instanceof Error ? e.message : "به‌روزرسانی ناموفق");
     } finally {
       setBusy(false);
@@ -55,6 +57,7 @@ export default function OrderDetailAdminPage() {
       await shopApi.orders.issueInvoice(order._id);
       await load();
     } catch (e) {
+      console.error("[admin/shop/order] invoice", e);
       setError(e instanceof Error ? e.message : "صدور فاکتور ناموفق");
     } finally {
       setBusy(false);

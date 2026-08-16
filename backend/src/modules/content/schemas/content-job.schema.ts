@@ -51,14 +51,25 @@ export class ContentJob {
   @Prop({ type: Object, default: {} })
   result: {
     title?: string;
-    outline?: string[];
+    slug?: string;
+    excerpt?: string;
+    category?: string;
+    author?: string;
+    readingTime?: string;
+    coverImage?: string;
     body?: string;
+    content?: unknown[];
+    outline?: string[];
     metaTitle?: string;
     metaDescription?: string;
     keywords?: string[];
+    tags?: string[];
+    internalLinks?: unknown[];
+    gallery?: unknown[];
     imagePrompt?: string;
     imageUrl?: string;
     marketingCopy?: string;
+    canonicalUrl?: string;
   };
 
   @Prop({ type: [Types.ObjectId], default: [] })

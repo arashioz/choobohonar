@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -60,23 +64,43 @@ export class ContentService {
     return job;
   }
 
+  async updateJobResult(
+    id: string,
+    result: Record<string, unknown>,
+  ): Promise<ContentJobDocument> {
+    const job = await this.getJob(id);
+    const merged = {
+      ...(job.result as Record<string, unknown>),
+      ...result,
+    };
+
+    const updated = await this.jobModel
+      .findByIdAndUpdate(id, { result: merged }, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException(`Job ${id} not found`);
+    return updated;
+  }
+
   async reviewJob(id: string, dto: ReviewJobDto): Promise<ContentJobDocument> {
     const job = await this.getJob(id);
 
     const qualityScore = dto.action === 'approved' ? 1.0 : dto.action === 'edited' ? 0.7 : 0.0;
 
     const editDiff: { field: string; before: string; after: string }[] = [];
-    let finalResult = { ...job.result };
+    let finalResult: Record<string, unknown> = {
+      ...(job.result as Record<string, unknown>),
+    };
 
     if (dto.action === 'edited' && dto.changes) {
       for (const [field, newValue] of Object.entries(dto.changes)) {
+        const before = (job.result as Record<string, unknown>)[field];
         editDiff.push({
           field,
-          before: String((job.result as Record<string, unknown>)[field] || ''),
-          after: newValue,
+          before: typeof before === 'string' ? before : JSON.stringify(before ?? ''),
+          after: typeof newValue === 'string' ? newValue : JSON.stringify(newValue ?? ''),
         });
-        (finalResult as Record<string, unknown>)[field] = newValue;
       }
+      finalResult = { ...finalResult, ...dto.changes };
     }
 
     await this.feedbackModel.create({
@@ -116,7 +140,7 @@ export class ContentService {
   async publishJob(id: string): Promise<ContentJobDocument> {
     const job = await this.getJob(id);
     if (job.status !== 'approved') {
-      throw new Error('Job must be approved before publishing');
+      throw new BadRequestException('Job must be approved before publishing');
     }
     return this.jobModel.findByIdAndUpdate(
       id,

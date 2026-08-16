@@ -177,6 +177,7 @@ export default function ShopAdminPage() {
         if (tab === "invoices") await loadInvoices();
       } catch (e) {
         if (!cancelled) {
+          console.error("[admin/shop]", tab, e);
           setError(e instanceof Error ? e.message : "خطا در دریافت داده");
         }
       } finally {
@@ -201,6 +202,7 @@ export default function ShopAdminPage() {
       );
       await loadProducts();
     } catch (e) {
+      console.error("[admin/shop] seed failed:", e);
       setError(e instanceof Error ? e.message : "خطا در سینک کاتالوگ");
     } finally {
       setBusy(false);

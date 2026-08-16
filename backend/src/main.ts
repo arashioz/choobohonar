@@ -24,7 +24,14 @@ async function bootstrap() {
   // note: multer handles multipart uploads, but adjusting body parser sizes can help some edge-cases
   app.useStaticAssets('uploads', { prefix: '/uploads' });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+      forbidUnknownValues: false,
+    }),
+  );
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3001;

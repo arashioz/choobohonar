@@ -8,7 +8,8 @@ export class ReviewJobDto {
   @IsString()
   reason?: string;
 
+  /** Nested ContentJobResult fields from the admin editor */
   @IsOptional()
   @IsObject()
-  changes?: Record<string, string>;
+  changes?: Record<string, unknown>;
 }

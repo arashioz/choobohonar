@@ -1,0 +1,389 @@
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import {
+  ShopProduct,
+  ShopProductDocument,
+} from './schemas/shop-product.schema';
+import {
+  CreateShopProductDto,
+  UpdateShopProductDto,
+} from './dto/shop-product.dto';
+
+type CatalogSeedRow = {
+  slug: string;
+  name: string;
+  category: string;
+  room: string;
+  shortDescription?: string;
+  image?: string;
+  shopUrl?: string;
+};
+
+@Injectable()
+export class ShopService {
+  constructor(
+    @InjectModel(ShopProduct.name)
+    private productModel: Model<ShopProductDocument>,
+  ) {}
+
+  async list(query: {
+    q?: string;
+    room?: string;
+    category?: string;
+    status?: string;
+    featured?: string;
+    suggested?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(1000, Math.max(1, Number(query.limit) || 24));
+    const filter: Record<string, unknown> = {};
+
+    if (query.room) filter.room = query.room;
+    if (query.category) filter.category = query.category;
+    if (query.status) filter.status = query.status;
+    if (query.featured === 'true') filter.featured = true;
+    if (query.featured === 'false') filter.featured = false;
+    if (query.suggested === 'true') filter.suggested = true;
+    if (query.suggested === 'false') filter.suggested = false;
+
+    if (query.q?.trim()) {
+      filter.$or = [
+        { name: { $regex: query.q.trim(), $options: 'i' } },
+        { slug: { $regex: query.q.trim(), $options: 'i' } },
+        { category: { $regex: query.q.trim(), $options: 'i' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .sort({ featured: -1, suggested: -1, sortOrder: 1, updatedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.productModel.countDocuments(filter),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  async get(id: string) {
+    const product = await this.productModel.findById(id).exec();
+    if (!product) throw new NotFoundException('محصول پیدا نشد');
+    return product;
+  }
+
+  async getBySlug(slug: string) {
+    const product = await this.productModel.findOne({ slug }).exec();
+    if (!product) throw new NotFoundException('محصول پیدا نشد');
+    return product;
+  }
+
+  async create(dto: CreateShopProductDto) {
+    const exists = await this.productModel.exists({ slug: dto.slug });
+    if (exists) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
+
+    return this.productModel.create({
+      ...dto,
+      shortDescription: dto.shortDescription ?? '',
+      longDescription: dto.longDescription ?? '',
+      image: dto.image ?? '',
+      gallery: dto.gallery ?? [],
+      finishes: dto.finishes ?? [],
+      status: dto.status ?? 'published',
+      featured: dto.featured ?? false,
+      suggested: dto.suggested ?? false,
+      stockQty: dto.stockQty ?? 0,
+      trackInventory: dto.trackInventory ?? false,
+      specs: dto.specs ?? [],
+      highlights: dto.highlights ?? [],
+      sortOrder: dto.sortOrder ?? 0,
+      source: 'admin',
+    });
+  }
+
+  async update(id: string, dto: UpdateShopProductDto) {
+    if (dto.slug) {
+      const clash = await this.productModel.exists({
+        slug: dto.slug,
+        _id: { $ne: id },
+      });
+      if (clash) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
+    }
+
+    const updated = await this.productModel
+      .findByIdAndUpdate(id, { $set: dto }, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException('محصول پیدا نشد');
+    return updated;
+  }
+
+  async remove(id: string) {
+    const deleted = await this.productModel.findByIdAndDelete(id).exec();
+    if (!deleted) throw new NotFoundException('محصول پیدا نشد');
+    return { ok: true };
+  }
+
+  async stats() {
+    const [
+      total,
+      published,
+      draft,
+      archived,
+      featured,
+      suggested,
+      missingImage,
+      missingShopUrl,
+      byRoom,
+    ] = await Promise.all([
+      this.productModel.countDocuments(),
+      this.productModel.countDocuments({ status: 'published' }),
+      this.productModel.countDocuments({ status: 'draft' }),
+      this.productModel.countDocuments({ status: 'archived' }),
+      this.productModel.countDocuments({ featured: true }),
+      this.productModel.countDocuments({ suggested: true }),
+      this.productModel.countDocuments({
+        $or: [{ image: '' }, { image: { $exists: false } }],
+      }),
+      this.productModel.countDocuments({
+        $or: [{ shopUrl: '' }, { shopUrl: { $exists: false } }],
+      }),
+      this.productModel.aggregate([
+        { $group: { _id: '$room', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+    ]);
+
+    return {
+      total,
+      published,
+      draft,
+      archived,
+      featured,
+      suggested,
+      missingImage,
+      missingShopUrl,
+      byRoom: byRoom.map((r) => ({ room: r._id, count: r.count })),
+    };
+  }
+
+  async suggestions() {
+    const [noImage, noUrl, drafts, lowStock, unfeaturedLiving] =
+      await Promise.all([
+        this.productModel
+          .find({ $or: [{ image: '' }, { image: { $exists: false } }] })
+          .select('name slug room category image')
+          .limit(12)
+          .lean(),
+        this.productModel
+          .find({ $or: [{ shopUrl: '' }, { shopUrl: { $exists: false } }] })
+          .select('name slug room category shopUrl')
+          .limit(12)
+          .lean(),
+        this.productModel
+          .find({ status: 'draft' })
+          .select('name slug room category status updatedAt')
+          .sort({ updatedAt: -1 })
+          .limit(12)
+          .lean(),
+        this.productModel
+          .find({ trackInventory: true, stockQty: { $lte: 3 } })
+          .select('name slug stockQty trackInventory')
+          .limit(12)
+          .lean(),
+        this.productModel
+          .find({ room: 'living', featured: false, status: 'published' })
+          .select('name slug room category image')
+          .limit(8)
+          .lean(),
+      ]);
+
+    const items: {
+      id: string;
+      title: string;
+      description: string;
+      severity: 'high' | 'medium' | 'low';
+      actionHref?: string;
+      products: unknown[];
+    }[] = [];
+
+    if (noImage.length) {
+      items.push({
+        id: 'missing-image',
+        title: 'محصولات بدون تصویر',
+        description: 'برای نمایش بهتر در فروشگاه، تصویر اصلی را اضافه کنید.',
+        severity: 'high',
+        actionHref: '/admin/shop?filter=missingImage',
+        products: noImage,
+      });
+    }
+
+    if (noUrl.length) {
+      items.push({
+        id: 'missing-shop-url',
+        title: 'فاقد لینک فروشگاه',
+        description: 'لینک خرید یا صفحه محصول خارجی ثبت نشده است.',
+        severity: 'medium',
+        actionHref: '/admin/shop?filter=missingShopUrl',
+        products: noUrl,
+      });
+    }
+
+    if (drafts.length) {
+      items.push({
+        id: 'drafts',
+        title: 'پیش‌نویس‌های منتظر انتشار',
+        description: 'این محصولات هنوز منتشر نشده‌اند.',
+        severity: 'medium',
+        actionHref: '/admin/shop?status=draft',
+        products: drafts,
+      });
+    }
+
+    if (lowStock.length) {
+      items.push({
+        id: 'low-stock',
+        title: 'موجودی کم',
+        description: 'موجودی ۳ عدد یا کمتر — موجودی را بررسی کنید.',
+        severity: 'high',
+        actionHref: '/admin/shop?filter=lowStock',
+        products: lowStock,
+      });
+    }
+
+    if (unfeaturedLiving.length) {
+      items.push({
+        id: 'feature-living',
+        title: 'پیشنهاد ویترین نشیمن',
+        description:
+          'چند محصول نشیمن منتشرشده هنوز در ویترین منتخب نیستند؛ می‌توانید Featured کنید.',
+        severity: 'low',
+        actionHref: '/admin/shop?room=living',
+        products: unfeaturedLiving,
+      });
+    }
+
+    const marked = await this.productModel
+      .find({ suggested: true })
+      .select('name slug room category suggestionNote image')
+      .limit(16)
+      .lean();
+
+    if (marked.length) {
+      items.unshift({
+        id: 'manual-suggestions',
+        title: 'پیشنهادات علامت‌گذاری‌شده',
+        description: 'محصولاتی که در پنل به‌عنوان پیشنهاد فروشگاهی علامت خورده‌اند.',
+        severity: 'medium',
+        actionHref: '/admin/shop?suggested=true',
+        products: marked,
+      });
+    }
+
+    return { items, count: items.length };
+  }
+
+  async seedFromCatalog(force = false) {
+    const count = await this.productModel.countDocuments();
+    if (count > 0 && !force) {
+      return {
+        ok: true,
+        skipped: true,
+        message: 'دیتابیس محصول خالی نیست؛ برای بازنویسی force=true بفرستید.',
+        total: count,
+      };
+    }
+
+    if (force) {
+      await this.productModel.deleteMany({ source: 'catalog' });
+    }
+
+    const filePath = join(
+      process.cwd(),
+      'src/modules/shop/data/shop-catalog.json',
+    );
+    const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
+
+    const docs = rows.map((row, index) => ({
+      slug: row.slug,
+      name: row.name,
+      category: row.category,
+      room: row.room as
+        | 'living'
+        | 'bedroom'
+        | 'bedding'
+        | 'dining'
+        | 'decor'
+        | 'carpet'
+        | 'lighting'
+        | 'dishes',
+      shortDescription: row.shortDescription || '',
+      longDescription: '',
+      image: row.image || '',
+      gallery: row.image ? [row.image] : [],
+      shopUrl: row.shopUrl,
+      finishes: [] as string[],
+      status: 'published' as const,
+      featured: false,
+      suggested: false,
+      stockQty: 0,
+      trackInventory: false,
+      specs: [] as { label: string; value: string }[],
+      highlights: [] as { title: string; description: string }[],
+      sortOrder: index,
+      source: 'catalog',
+    }));
+
+    // bulkWrite upsert by slug
+    const ops = docs.map((doc) => ({
+      updateOne: {
+        filter: { slug: doc.slug },
+        update: { $set: doc },
+        upsert: true,
+      },
+    }));
+
+    const result = await this.productModel.bulkWrite(ops as never);
+    const total = await this.productModel.countDocuments();
+
+    return {
+      ok: true,
+      upserted: result.upsertedCount,
+      modified: result.modifiedCount,
+      total,
+    };
+  }
+
+  async categories() {
+    const rows = await this.productModel.aggregate([
+      {
+        $group: {
+          _id: { category: '$category', room: '$room' },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+    return rows.map((r) => ({
+      category: r._id.category as string,
+      room: r._id.room as string,
+      count: r.count as number,
+    }));
+  }
+}

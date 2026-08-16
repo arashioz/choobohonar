@@ -8,6 +8,8 @@ import { AiModule } from './modules/ai/ai.module';
 import { ContentQueueModule } from './modules/content-queue/content-queue.module';
 import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { LeadsModule } from './modules/leads/leads.module';
+import { ShopModule } from './modules/shop/shop.module';
 
 @Module({
   imports: [
@@ -36,8 +38,9 @@ import { AdminModule } from './modules/admin/admin.module';
     ContentModule,
     ContentQueueModule,
     WebsocketsModule,
-    // Admin module for uploads and simple auth
     AdminModule,
+    LeadsModule,
+    ShopModule,
   ],
 })
 export class AppModule {}

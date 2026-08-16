@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common
 import { ContentService } from './content.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { ReviewJobDto } from './dto/review-job.dto';
+import { UpdateJobDto } from './dto/update-job.dto';
 
 @Controller('content')
 export class ContentController {
@@ -20,6 +21,11 @@ export class ContentController {
   @Get('jobs/:id')
   getJob(@Param('id') id: string) {
     return this.contentService.getJob(id);
+  }
+
+  @Patch('jobs/:id')
+  updateJob(@Param('id') id: string, @Body() dto: UpdateJobDto) {
+    return this.contentService.updateJobResult(id, dto.result);
   }
 
   @Patch('jobs/:id/review')

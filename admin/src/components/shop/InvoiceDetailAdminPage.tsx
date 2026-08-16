@@ -19,7 +19,10 @@ export default function InvoiceDetailAdminPage() {
     shopApi.invoices
       .get(params.id)
       .then(setInvoice)
-      .catch((e) => setError(e instanceof Error ? e.message : "خطا"));
+      .catch((e) => {
+        console.error("[admin/shop/invoice] load", e);
+        setError(e instanceof Error ? e.message : "خطا");
+      });
   }, [params.id]);
 
   if (error) return <div className="flex min-h-screen items-center justify-center bg-paper text-brick">{error}</div>;

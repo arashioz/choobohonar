@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cartStore, type CartItem } from "@/lib/cart";
 import { cn, toFa } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ function formatPrice(n: number) {
 
 export default function ShopCartDrawer() {
   const pathname = usePathname();
+  const router = useRouter();
   const visible = isShopRoute(pathname);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
@@ -236,18 +237,22 @@ export default function ShopCartDrawer() {
                 >
                   مشاهده سبد
                 </Link>
-                <Link
-                  href="/checkout"
-                  onClick={() => setOpen(false)}
+                <button
+                  type="button"
+                  disabled={!items.length}
+                  onClick={() => {
+                    setOpen(false);
+                    router.push("/checkout");
+                  }}
                   className={cn(
                     "inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs transition-colors",
                     items.length
                       ? "bg-forest text-paper hover:bg-forest-700"
-                      : "pointer-events-none bg-forest/20 text-forest/40",
+                      : "cursor-not-allowed bg-forest/20 text-forest/40",
                   )}
                 >
                   ادامه خرید
-                </Link>
+                </button>
               </div>
             </footer>
           </aside>
