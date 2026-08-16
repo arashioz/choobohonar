@@ -91,49 +91,51 @@ export default function ApproachSection() {
   }, []);
 
   return (
-    <section id="approach" ref={root} className="relative h-[100svh] overflow-hidden bg-forest text-paper">
-      {/* Background layer — one photo per step under the same dominant forest-green wash. */}
-      <div className="absolute inset-0">
-        {steps.map((step) => (
-          <div key={step.n} data-approach-bg className="absolute inset-0 will-change-[transform,opacity]">
-            <Image src={step.image} alt="" fill sizes="100vw" className="object-cover" priority={step.n === 1} />
-            <div className="absolute inset-0 bg-forest/80" />
-            <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/75" />
-          </div>
-        ))}
-      </div>
-
-      {/* Content layer — static eyebrow + a vertical conveyor of step copy. */}
-      <div className="relative z-10 mx-auto flex h-full max-w-container flex-col px-6 pt-28 md:px-10 lg:px-16">
-        <p className="eyebrow shrink-0 text-peach">رویکرد ما</p>
-
-        <div className="relative mt-10 flex-1 overflow-hidden md:mt-14">
+    <div id="approach">
+      <section ref={root} className="relative h-[100svh] overflow-hidden bg-forest text-paper">
+        {/* Background layer — one photo per step under the same dominant forest-green wash. */}
+        <div className="absolute inset-0">
           {steps.map((step) => (
-            <div
-              key={step.n}
-              data-approach-text
-              className="absolute inset-0 flex flex-col justify-center pb-[6vh] will-change-[transform,opacity]"
-            >
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8 lg:gap-10">
-                <span className="font-sans text-[clamp(4rem,12vw,11rem)] font-light leading-[0.8] text-peach">
-                  {toFa(step.n)}
-                </span>
-                <div className="max-w-xl border-r-0 md:border-r md:border-peach/25 md:pr-8 lg:pr-10">
-                  <h3 className="text-balance text-[clamp(2rem,5vw,4rem)] font-light leading-[1.05] tracking-tightest">
-                    {step.title}
-                  </h3>
-                  <p className="mt-4 text-lg leading-relaxed text-paper/80">{step.body}</p>
-                </div>
-              </div>
+            <div key={step.n} data-approach-bg className="absolute inset-0 will-change-[transform,opacity]">
+              <Image src={step.image} alt="" fill sizes="100vw" className="object-cover" priority={step.n === 1} />
+              <div className="absolute inset-0 bg-forest/80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/75" />
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Creative, on-brand touch: a peach progress rail that fills as you scroll the steps. */}
-      <div className="absolute inset-x-0 bottom-0 z-20 h-px bg-paper/15">
-        <div data-approach-progress className="h-full origin-right scale-x-0 bg-peach" />
-      </div>
-    </section>
+        {/* Content layer — static eyebrow + a vertical conveyor of step copy. */}
+        <div className="relative z-10 mx-auto flex h-full max-w-container flex-col px-6 pt-28 md:px-10 lg:px-16">
+          <p className="eyebrow shrink-0 text-peach">رویکرد ما</p>
+
+          <div className="relative mt-10 flex-1 overflow-hidden md:mt-14">
+            {steps.map((step) => (
+              <div
+                key={step.n}
+                data-approach-text
+                className="absolute inset-0 flex flex-col justify-center pb-[6vh] will-change-[transform,opacity]"
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8 lg:gap-10">
+                  <span className="font-sans text-[clamp(4rem,12vw,11rem)] font-light leading-[0.8] text-peach">
+                    {toFa(step.n)}
+                  </span>
+                  <div className="max-w-xl border-r-0 md:border-r md:border-peach/25 md:pr-8 lg:pr-10">
+                    <h3 className="text-balance text-[clamp(2rem,5vw,4rem)] font-light leading-[1.05] tracking-tightest">
+                      {step.title}
+                    </h3>
+                    <p className="mt-4 text-lg leading-relaxed text-paper/80">{step.body}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Creative, on-brand touch: a peach progress rail that fills as you scroll the steps. */}
+        <div className="absolute inset-x-0 bottom-0 z-20 h-px bg-paper/15">
+          <div data-approach-progress className="h-full origin-right scale-x-0 bg-peach" />
+        </div>
+      </section>
+    </div>
   );
 }

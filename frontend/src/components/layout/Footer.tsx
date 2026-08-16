@@ -3,6 +3,7 @@ import Link from "next/link";
 import { brand, homeSectionLinks, navItems, productMegaMenu } from "@/data/nav";
 import { brandAssets } from "@/lib/brand-assets";
 import Stagger from "@/components/motion/Stagger";
+import BrandMark from "@/components/brand/BrandMark";
 
 export default function Footer() {
   const currentYear = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
@@ -16,15 +17,10 @@ export default function Footer() {
       <div className="relative mx-auto flex w-full max-w-container flex-1 flex-col justify-center px-6 py-20 md:px-10 md:py-24 lg:px-16">
         <Stagger className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8" selector="[data-footer-column]" amount={0.55} y={28}>
           <div data-footer-column className="lg:col-span-4">
-            <div className="relative h-10 w-[180px]">
-              <Image src={brandAssets.wordmarkFa.white} alt={brand.nameFa} fill className="object-contain object-right" />
-            </div>
-            <p className="mt-5 max-w-sm text-lg font-light leading-relaxed text-paper/85 md:text-xl">
-              {brand.sloganSubFa}
+            <BrandMark invert size="footer" />
+            <p className="mt-11 max-w-sm text-lg font-light leading-relaxed text-paper/85 md:text-xl">
+              {brand.sloganFa}
             </p>
-            <div className="relative mt-5 h-7 w-[160px] opacity-90">
-              <Image src={brandAssets.sloganFa} alt={brand.sloganFa} fill className="object-contain object-right" />
-            </div>
           </div>
 
           <div data-footer-column className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-5">
@@ -86,7 +82,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/contact" className="transition-colors hover:text-peach focus-visible:text-peach">
-                  انتخاب نوع درخواست
+                  تماس با ما
                 </Link>
               </li>
               <li>

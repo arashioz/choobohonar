@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import ContactHub from "@/components/contact/ContactHub";
 
 export const metadata: Metadata = {
-  title: "ارتباط با ما | خانه چوب و هنر",
+  title: "تماس با ما | خانه چوب و هنر",
   description:
-    "درخواست همکاری، نمایندگی فروش یا مشاوره تخصصی — مسیر مناسب خود را در بخش ارتباط با ما انتخاب کنید.",
+    "فرم تماس خانه چوب و هنر برای سفارش، مشاوره معماری داخلی، ارسال محصول و خدمات پس از فروش؛ یا درخواست همکاری و نمایندگی.",
 };
 
 export default function ContactPage() {

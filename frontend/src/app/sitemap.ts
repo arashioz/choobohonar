@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/interior-architecture-services/order",
     "/gallery",
     "/magazine",
+    "/stores",
     "/contact",
     "/contact/cooperation",
     "/contact/representation",

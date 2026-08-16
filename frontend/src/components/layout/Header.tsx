@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { brand, homeSectionLinks, navItems } from "@/data/nav";
-import { brandAssets } from "@/lib/brand-assets";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
 import { cn, toFa } from "@/lib/utils";
 import { useCart } from "@/components/commerce/cart/CartProvider";
+import BrandMark from "@/components/brand/BrandMark";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -25,7 +24,8 @@ export default function Header() {
     pathname === "/products" ||
     pathname.startsWith("/products/category/") ||
     pathname === "/materials" ||
-    pathname.startsWith("/materials/");
+    pathname.startsWith("/materials/") ||
+    pathname === "/stores";
 
   useEffect(() => {
     let frame = 0;
@@ -137,61 +137,10 @@ export default function Header() {
         <div className="mx-auto grid w-full max-w-container grid-cols-[1fr_auto] items-center gap-3 px-5 sm:gap-4 sm:px-6 md:px-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-6 lg:px-16">
           <Link
             href={homeHref}
-            className="col-start-1 row-start-1 flex shrink-0 items-center gap-2.5 justify-self-start sm:gap-3"
+            className="col-start-1 row-start-1 flex shrink-0 items-center justify-self-start"
             aria-label={brand.nameFa}
           >
-            <span className="relative block h-9 w-8 sm:h-10 sm:w-9">
-              <Image
-                src={brandAssets.monogram.white}
-                alt=""
-                fill
-                priority
-                aria-hidden
-                className={cn(
-                  "object-contain object-center transition-opacity duration-300",
-                  onSolid ? "opacity-0" : "opacity-100"
-                )}
-              />
-              <Image
-                src={brandAssets.monogram.black}
-                alt=""
-                fill
-                aria-hidden
-                className={cn(
-                  "object-contain object-center transition-opacity duration-300",
-                  onSolid ? "opacity-100" : "opacity-0"
-                )}
-              />
-            </span>
-            <span className="relative block h-9 w-[5.75rem] shrink-0 sm:h-10 sm:w-[6.5rem]">
-              {/* Native img — SVG wordmark must keep 260:110 aspect; Next/Image squashes the two-line FA lockup. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={brandAssets.wordmarkFa.white}
-                alt=""
-                aria-hidden
-                width={260}
-                height={110}
-                decoding="async"
-                className={cn(
-                  "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
-                  onSolid ? "opacity-0" : "opacity-100"
-                )}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={brandAssets.wordmarkFa.black}
-                alt=""
-                aria-hidden
-                width={260}
-                height={110}
-                decoding="async"
-                className={cn(
-                  "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
-                  onSolid ? "opacity-100" : "opacity-0"
-                )}
-              />
-            </span>
+            <BrandMark adaptive solid={onSolid} size="header" priority />
           </Link>
 
           <nav
@@ -294,6 +243,27 @@ export default function Header() {
                   open && "-translate-y-[7px] -rotate-45"
                 )}
               />
+            </button>
+
+            <button
+              type="button"
+              disabled
+              aria-label="حساب کاربری به‌زودی"
+              title="حساب کاربری به‌زودی"
+              className={cn(
+                "flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full opacity-45",
+                onSolid ? "text-forest" : "text-paper",
+              )}
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-[1.35rem] w-[1.35rem]">
+                <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.4" />
+                <path
+                  d="M5.75 18.25c.9-2.7 3-4.25 6.25-4.25s5.35 1.55 6.25 4.25"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
 
             <Link

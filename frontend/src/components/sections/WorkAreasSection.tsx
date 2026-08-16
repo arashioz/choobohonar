@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { workAreas } from "@/data/workAreas";
+import Link from "next/link";
+import { commerceCategories } from "@/data/commerce";
 import { toFa, cn } from "@/lib/utils";
 
 export default function WorkAreasSection() {
@@ -11,9 +12,9 @@ export default function WorkAreasSection() {
   return (
     <section id="work-areas" className="relative min-h-screen overflow-hidden bg-forest text-paper">
       <div className="absolute inset-0">
-        {workAreas.map((area, i) => (
+        {commerceCategories.map((area, i) => (
           <div
-            key={area.id}
+            key={area.slug}
             aria-hidden={i !== active}
             className={cn(
               "absolute inset-0 transition-[opacity,transform] duration-[1400ms] ease-out-expo motion-reduce:transform-none",
@@ -28,18 +29,16 @@ export default function WorkAreasSection() {
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-container flex-col justify-center px-6 py-28 md:px-10 lg:px-16">
-        <p className="eyebrow text-peach">حوزه‌های کاری</p>
+        <p className="eyebrow text-peach">گروه‌های کالایی</p>
 
         <ul className="mt-10 flex flex-col">
-          {workAreas.map((area, i) => (
-            <li key={area.id} className="border-b border-paper/15">
-              <button
-                type="button"
+          {commerceCategories.map((area, i) => (
+            <li key={area.slug} className="border-b border-paper/15">
+              <Link
+                href={`/products/category/${area.slug}`}
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
-                onClick={() => setActive(i)}
-                aria-pressed={i === active}
-                aria-controls={`work-area-${area.id}`}
+                aria-describedby={`work-area-${area.slug}`}
                 className="group relative flex w-full items-start justify-between gap-6 py-5 text-right md:items-center md:py-7"
               >
                 <span
@@ -63,7 +62,7 @@ export default function WorkAreasSection() {
                       {area.label}
                     </span>
                     <span
-                      id={`work-area-${area.id}`}
+                      id={`work-area-${area.slug}`}
                       className={cn(
                         "grid text-sm leading-7 text-paper/65 transition-[grid-template-rows,opacity] duration-500 ease-out-expo md:hidden",
                         i === active ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
@@ -76,7 +75,7 @@ export default function WorkAreasSection() {
                 <span className={cn("hidden max-w-xs text-sm leading-7 text-paper/60 transition-[opacity,transform] duration-500 md:block", i === active ? "translate-x-0 opacity-100" : "translate-x-3 opacity-0")}>
                   {area.description}
                 </span>
-              </button>
+              </Link>
             </li>
           ))}
         </ul>

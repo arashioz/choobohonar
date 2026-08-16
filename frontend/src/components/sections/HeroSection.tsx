@@ -57,9 +57,9 @@ export default function HeroSection() {
     if (!el) return;
 
     const lines = el.querySelectorAll<HTMLElement>("[data-hero-line]");
-    const eyebrow = el.querySelector<HTMLElement>("[data-hero-eyebrow]");
     const cta = el.querySelector<HTMLElement>("[data-hero-cta]");
     const cue = el.querySelector<HTMLElement>("[data-hero-cue]");
+    const intro = [cta, cue].filter((node): node is HTMLElement => Boolean(node));
     let cancelled = false;
 
     const hideLoader = () => {
@@ -70,7 +70,7 @@ export default function HeroSection() {
     const showStatic = () => {
       if (cancelled) return;
       registerGsap();
-      gsap.set([eyebrow, cta, cue, ...Array.from(lines)], {
+      gsap.set([cta, cue, ...Array.from(lines)], {
         opacity: 1,
         y: 0,
         yPercent: 0,
@@ -100,7 +100,7 @@ export default function HeroSection() {
       registerGsap();
       ctx = gsap.context(() => {
         gsap.set(lines, { yPercent: 110 });
-        gsap.set([eyebrow, cta, cue], { opacity: 0, y: 20 });
+        gsap.set(intro, { opacity: 0, y: 20 });
 
         const tl = gsap.timeline({
           onComplete: () => {
@@ -119,7 +119,6 @@ export default function HeroSection() {
           .to(loader.current, { yPercent: -100, duration: 1.1, ease: "power4.inOut" }, "-=0.1")
           .fromTo(media.current, { scale: 1.18 }, { scale: 1, duration: 2.6, ease: "power2.out" }, "<")
           .to(lines, { yPercent: 0, duration: 1.1, ease: "power4.out", stagger: 0.12 }, "-=0.7")
-          .to(eyebrow, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.8")
           .to(cta, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.5")
           .to(cue, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4");
 
@@ -192,18 +191,10 @@ export default function HeroSection() {
       </div>
 
       <div className="relative z-10 mx-auto flex h-full min-h-0 max-w-container flex-col justify-end px-5 pb-[max(4.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-20 md:px-10 md:pb-24 lg:px-16">
-        <p data-hero-eyebrow className="eyebrow mb-3 text-peach sm:mb-4">
-          خانه چوب و هنر — میراثی نیم‌قرنی
-        </p>
         <h1 className="max-w-4xl text-balance text-[clamp(1.75rem,4.5vw,5rem)] font-light leading-[1.1] tracking-tightest text-paper">
           <span className="block overflow-hidden py-[0.04em]">
             <span data-hero-line className="block will-change-transform">
-              فرم،
-            </span>
-          </span>
-          <span className="block overflow-hidden py-[0.04em]">
-            <span data-hero-line className="block will-change-transform">
-              از <span className="text-peach">احساس</span> پیروی می‌کند
+              سبک دلخواه من
             </span>
           </span>
         </h1>

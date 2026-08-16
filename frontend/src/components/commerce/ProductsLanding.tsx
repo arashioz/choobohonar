@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
-import ImmersiveMaterialsBanner from "@/components/commerce/ImmersiveMaterialsBanner";
 import ProductStoriesRail from "@/components/commerce/ProductStoriesRail";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
@@ -20,7 +19,7 @@ export default function ProductsLanding() {
 
   return (
     <>
-      <section className="relative flex min-h-[94svh] items-end overflow-hidden bg-forest text-paper">
+      <section className="relative flex min-h-svh items-end overflow-hidden bg-forest text-paper">
         {heroProduct?.image ? (
           <Image
             src={heroProduct.image}
@@ -167,8 +166,6 @@ export default function ProductsLanding() {
           <ProductStoriesRail stories={stories} />
         </Container>
       </section>
-
-      <ImmersiveMaterialsBanner />
     </>
   );
 }

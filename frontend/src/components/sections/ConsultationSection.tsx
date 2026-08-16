@@ -5,6 +5,8 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { consultationSubjects } from "@/data/contact-forms";
+import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitLead } from "@/lib/leads-api";
 
 type FieldType = "text" | "tel" | "select" | "textarea";
@@ -22,15 +24,13 @@ const fields: Field[] = [
   { name: "phone", label: "شماره تماس", type: "tel", required: true },
   {
     name: "interest",
-    label: "حوزه مورد علاقه",
+    label: "موضوع درخواست",
     type: "select",
     required: true,
-    options: ["مبلمان نشیمن", "سرویس خواب", "دکوراتیو", "میز غذاخوری", "طراحی داخلی"],
+    options: [...consultationSubjects],
   },
   { name: "message", label: "توضیحات", type: "textarea", full: true },
 ];
-
-import { FORM_ENABLED } from "@/lib/form-utils";
 
 type Values = Record<string, string>;
 type Errors = Record<string, string>;

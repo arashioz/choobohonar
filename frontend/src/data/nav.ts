@@ -13,17 +13,17 @@ export const productMegaMenu: NavChildItem[] = commerceCategories.map((category)
 export const navItems: NavItem[] = [
   { label: "محصولات", href: "/products", children: productMegaMenu },
   { label: "کالکشن", href: "/collection" },
-  { label: "متریال", href: "/materials" },
   { label: "پروژه‌ها", href: "/projects" },
   { label: "معماری داخلی", href: "/interior-architecture-services" },
   { label: "گالری", href: "/gallery" },
   { label: "مجله", href: "/magazine" },
+  { label: "فروشگاه‌ها", href: "/stores" },
   { label: "ارتباط با ما", href: "/contact" },
 ];
 
 export const homeSectionLinks: NavChildItem[] = [
   { label: "پروژه‌های منتخب", href: "/#projects" },
-  { label: "حوزه‌های کاری", href: "/#work-areas" },
+  { label: "گروه‌های کالایی", href: "/#work-areas" },
   { label: "رویکرد ما", href: "/#approach" },
   { label: "فرم مشاوره", href: "/#consultation" },
 ];
