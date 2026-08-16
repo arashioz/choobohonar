@@ -24,6 +24,7 @@ import BrandbookSectionHeader from '@/components/brandbook/layout/BrandbookSecti
 import BrandbookProse from '@/components/brandbook/layout/BrandbookProse';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
 import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
+import { useBrandbookPrint } from '@/components/brandbook/BrandbookPrintContext';
 import {
   IconCheck,
   IconChevron,
@@ -428,6 +429,7 @@ function Mission() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function Beliefs() {
+  const isPrint = useBrandbookPrint();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggle = (i: number) =>
@@ -440,7 +442,7 @@ function Beliefs() {
       <BrandbookProse align="center">
         <div className="divide-y divide-forest/10 text-right">
           {beliefs.map((belief, i) => {
-            const isOpen = openIndex === i;
+            const isOpen = isPrint || openIndex === i;
             return (
               <FadeUp key={belief.number} delay={i * 0.07} className="relative py-6 md:py-7">
                 <span
@@ -456,6 +458,7 @@ function Beliefs() {
                   className={cn(
                     'group relative flex w-full items-center justify-between gap-4 text-right',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 focus-visible:ring-offset-2 focus-visible:ring-offset-paper rounded-sm',
+                    isPrint && 'pointer-events-none',
                   )}
                   aria-expanded={isOpen}
                 >
@@ -521,10 +524,15 @@ function Values() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function BrandEssence() {
+  const isPrint = useBrandbookPrint();
+
   return (
     <section
       id="essence"
-      className="relative flex min-h-[62vh] flex-col items-center justify-center overflow-hidden bg-forest py-20 text-center md:py-28"
+      className={cn(
+        "relative flex flex-col items-center justify-center overflow-hidden bg-forest py-20 text-center md:py-28",
+        !isPrint && "min-h-[62vh]",
+      )}
     >
       <BrandPatternField
         variant="forest"

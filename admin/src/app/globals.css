@@ -351,3 +351,185 @@ html.motion-enabled [data-hero-cue]:not([data-revealed="true"]) {
     transform: none;
   }
 }
+
+/* Brandbook PDF / print export */
+[data-brandbook-print="true"],
+[data-brandbook-print="true"] main {
+  overflow: visible;
+  height: auto;
+  min-height: 0;
+}
+
+[data-brandbook-print="true"] .brandbook-print-document {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  height: auto;
+  min-height: 0;
+}
+
+[data-brandbook-print="true"] .overflow-hidden {
+  overflow: visible !important;
+}
+
+[data-brandbook-print="true"] [data-pattern-motion] {
+  overflow: hidden !important;
+}
+
+[data-brandbook-print="true"] .will-change-transform {
+  transform: none !important;
+  will-change: auto !important;
+}
+
+[data-brandbook-print="true"] .grid-rows-\[0fr\] {
+  grid-template-rows: 1fr !important;
+  opacity: 1 !important;
+}
+
+[data-brandbook-print="true"] nextjs-portal,
+[data-brandbook-print="true"] [data-nextjs-toast],
+[data-brandbook-print="true"] [data-next-badge-root],
+[data-brandbook-print="true"] .fixed {
+  display: none !important;
+}
+
+[data-brandbook-print="true"] .motion-reveal,
+[data-brandbook-print="true"] [data-hero-line],
+[data-brandbook-print="true"] [data-hero-soft],
+[data-brandbook-print="true"] [data-hero-logo],
+[data-brandbook-print="true"] [data-hero-cue] {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+
+[data-brandbook-print="true"] .brandbook-pattern-layer,
+[data-brandbook-print="true"] .brandbook-pattern-size-unified,
+[data-brandbook-print="true"] .brandbook-pattern-size-standard,
+[data-brandbook-print="true"] .brandbook-pattern-size-large,
+[data-brandbook-print="true"] .brandbook-pattern-size-monumental {
+  background-size: 240px auto !important;
+  background-repeat: repeat !important;
+  background-position: 0 0 !important;
+  transform: none !important;
+  will-change: auto !important;
+  inset: 0 !important;
+}
+
+[data-brandbook-print="true"] .brandbook-pattern-sheen {
+  display: none !important;
+}
+
+[data-brandbook-print="true"] #essence {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+[data-brandbook-print="true"] .min-h-screen,
+[data-brandbook-print="true"] .min-h-\[62vh\],
+[data-brandbook-print="true"] .min-h-\[70vh\],
+[data-brandbook-print="true"] .min-h-\[100dvh\],
+[data-brandbook-print="true"] .h-\[82dvh\],
+[data-brandbook-print="true"] .h-\[76dvh\] {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.brandbook-print-document img,
+.brandbook-print-document picture,
+.brandbook-print-document svg {
+  max-width: 100%;
+  height: auto;
+}
+
+@media print {
+  .no-print,
+  [data-chat-panel] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    background: #f4efe8 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .brandbook-print-document {
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .motion-reveal,
+  [data-hero-line],
+  [data-hero-soft],
+  [data-hero-logo],
+  [data-hero-cue] {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+
+  /* Unified — complete A4 flow, no forced chapter breaks */
+  [data-print-mode="unified"] .brandbook-print-cover {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  [data-print-mode="unified"] .brandbook-chapter,
+  [data-print-mode="unified"] .brandbook-print-footer {
+    break-before: auto !important;
+    page-break-before: auto !important;
+  }
+
+  [data-print-mode="unified"] .brandbook-card,
+  [data-print-mode="unified"] .brandbook-subsection,
+  [data-print-mode="unified"] figure,
+  [data-print-mode="unified"] table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Continuous — one long scroll, no forced page cuts */
+  [data-print-mode="continuous"] .brandbook-print-cover,
+  [data-print-mode="continuous"] .brandbook-chapter,
+  [data-print-mode="continuous"] .brandbook-print-footer,
+  [data-print-mode="continuous"] section {
+    break-before: auto !important;
+    page-break-before: auto !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+    break-inside: auto !important;
+  }
+
+  [data-print-mode="continuous"] .brandbook-chapter + .brandbook-chapter,
+  [data-print-mode="continuous"] section + section {
+    margin-top: 0;
+  }
+
+  /* Sections — each brandbook chapter starts on a new page */
+  [data-print-mode="sections"] .brandbook-print-cover {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  [data-print-mode="sections"] .brandbook-chapter {
+    break-before: page;
+    page-break-before: always;
+    break-inside: avoid-page;
+  }
+
+  [data-print-mode="sections"] .brandbook-chapter:first-of-type {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  [data-print-mode="sections"] .brandbook-print-footer {
+    break-before: page;
+    page-break-before: always;
+  }
+}

@@ -6,14 +6,7 @@ import BrandbookHeroMotion from "@/components/motion/BrandbookHeroMotion";
 import RevealLine from "@/components/motion/RevealLine";
 import BrandbookNavigation from "@/components/brandbook/layout/BrandbookNavigation";
 import { brandbookNavItems } from "@/data/brandbook-nav";
-import BrandFoundation from "@/components/brandbook/sections/BrandFoundation";
-import StrategicIdentity from "@/components/brandbook/sections/StrategicIdentity";
-import ProductDesign from "@/components/brandbook/sections/ProductDesign";
-import BrandExperience from "@/components/brandbook/sections/BrandExperience";
-import CommunicationSystem from "@/components/brandbook/sections/CommunicationSystem";
-import VisualIdentity from "@/components/brandbook/sections/VisualIdentity";
-import ImageryGallery from "@/components/brandbook/sections/ImageryGallery";
-import CultureFuture from "@/components/brandbook/sections/CultureFuture";
+import BrandbookSections from "@/components/brandbook/BrandbookSections";
 import { scrollToTarget } from "@/lib/lenis-control";
 
 const navItems = brandbookNavItems;
@@ -149,41 +142,7 @@ export default function BrandbookPage() {
         </div>
       </BrandbookHeroMotion>
 
-      <RevealLine className="mx-auto max-w-[1600px]" />
-
-      <section id="foundation" className="scroll-mt-8">
-        <BrandFoundation />
-      </section>
-
-      <RevealLine className="mx-auto max-w-[1600px] opacity-60" />
-
-      <section id="strategy" className="scroll-mt-8">
-        <StrategicIdentity />
-      </section>
-
-      <RevealLine className="mx-auto max-w-[1600px] opacity-60" />
-
-      <section id="product" className="scroll-mt-8">
-        <ProductDesign />
-      </section>
-
-      <section id="experience" className="scroll-mt-8">
-        <BrandExperience />
-      </section>
-
-      <section id="communication" className="scroll-mt-8">
-        <CommunicationSystem />
-      </section>
-
-      <section id="visual" className="scroll-mt-8">
-        <VisualIdentity />
-      </section>
-
-      <ImageryGallery />
-
-      <section id="culture" className="scroll-mt-8">
-        <CultureFuture />
-      </section>
+      <BrandbookSections />
     </div>
   );
 }

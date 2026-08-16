@@ -16,6 +16,7 @@ import {
   brandCollateral,
 } from "@/data/brandbook";
 import BrandbookCard from "@/components/brandbook/layout/BrandbookCard";
+import { useBrandbookPrint } from "@/components/brandbook/BrandbookPrintContext";
 import { cn } from "@/lib/utils";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
@@ -181,11 +182,40 @@ function SectionHeading({
 }
 
 function LogoStage() {
+  const isPrint = useBrandbookPrint();
   const [activeId, setActiveId] = useState("fa");
   const [backgroundId, setBackgroundId] = useState("paper");
   const active = logoAssets.find((item) => item.id === activeId) ?? logoAssets[0];
   const background =
     stageBackgrounds.find((item) => item.id === backgroundId) ?? stageBackgrounds[0];
+
+  if (isPrint) {
+    return (
+      <div className="mb-16 grid gap-6 sm:grid-cols-2">
+        {logoAssets.map((item) => (
+          <div
+            key={item.id}
+            className="overflow-visible rounded-[1.35rem] border border-forest/10 bg-paper p-6"
+          >
+            <p className="mb-4 text-sm font-medium text-forest">{item.titleFa}</p>
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-md">
+              <Image
+                src={item.black}
+                alt={item.titleFa}
+                fill
+                unoptimized
+                sizes="320px"
+                className="object-contain"
+              />
+            </div>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-forest/35" dir="ltr">
+              {item.titleEn}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="mb-16">
