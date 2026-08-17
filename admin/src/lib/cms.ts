@@ -33,16 +33,34 @@ export const resourceToKind = {
 export type ResourcePath = keyof typeof resourceToKind;
 
 export async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/cms/${path.replace(/^\//, "")}`, {
+  const response = await fetch(`/api/admin/cms/${path.replace(/^\//, "")}`, {
     ...init,
+    credentials: "include",
     headers: {
       ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       ...init?.headers,
     },
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error((data as { message?: string }).message || "خطا در ارتباط با سرور");
+  if (!response.ok) {
+    const message =
+      (data as { message?: string | string[] }).message;
+    throw new Error(
+      Array.isArray(message)
+        ? message.join(" · ")
+        : message || `خطا در ارتباط با سرور (${response.status})`,
+    );
+  }
   return data as T;
+}
+
+/** Normalize list responses so UI never gets a non-array `items`. */
+export function cmsListItems(result: unknown): CmsEntry[] {
+  if (Array.isArray(result)) return result as CmsEntry[];
+  if (result && typeof result === "object" && Array.isArray((result as { items?: unknown }).items)) {
+    return (result as { items: CmsEntry[] }).items;
+  }
+  return [];
 }
 
 export function formatMoney(value: unknown) {

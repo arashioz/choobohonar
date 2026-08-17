@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { cmsRequest, type CmsEntry } from "@/lib/cms";
+import { cmsListItems, cmsRequest, type CmsEntry } from "@/lib/cms";
 
 const sections = [
   { kind: "product", path: "products", label: "محصولات", description: "قیمت، موجودی، تصاویر و مشخصات فنی", code: "PR" },
@@ -13,7 +13,17 @@ const sections = [
 
 export default function ManageOverview() {
   const [counts, setCounts] = useState<Record<string, { total: number; draft: number; published: number }>>({});
-  useEffect(() => { Promise.all(sections.map(async (section) => { const result = await cmsRequest<{ items: CmsEntry[]; total: number }>(section.kind); return [section.kind, { total: result.total, draft: result.items.filter((item) => item.status === "draft").length, published: result.items.filter((item) => item.status === "published").length }] as const; })).then((items) => setCounts(Object.fromEntries(items))).catch(() => undefined); }, []);
+  useEffect(() => {
+    Promise.all(sections.map(async (section) => {
+      const result = await cmsRequest<{ items: CmsEntry[]; total: number }>(section.kind);
+      const items = cmsListItems(result);
+      return [section.kind, {
+        total: typeof result.total === "number" ? result.total : items.length,
+        draft: items.filter((item) => item.status === "draft").length,
+        published: items.filter((item) => item.status === "published").length,
+      }] as const;
+    })).then((items) => setCounts(Object.fromEntries(items))).catch(() => undefined);
+  }, []);
 
   return <main className="min-h-screen bg-[#f6f3ee]"><div className="mx-auto max-w-[1380px] px-5 py-7 sm:px-8 md:py-9 lg:px-10">
     <header className="border-b border-forest/10 pb-7"><div className="mb-3 flex items-center gap-2 text-[10px] text-forest/35"><Link href="/admin" className="hover:text-forest">نمای کلی</Link><span>/</span><span>مدیریت آثار</span></div><p className="text-[10px] font-medium tracking-[0.18em] text-brick" dir="ltr">CATALOG & SHOWCASE</p><h1 className="mt-2 text-2xl font-medium tracking-tightest text-forest sm:text-3xl">مدیریت آثار</h1><p className="mt-2 max-w-2xl text-xs leading-6 text-forest/45">داده‌های محصول، متریال و روایت‌های پروژه و کالکشن را از این مرکز مدیریت کنید.</p></header>

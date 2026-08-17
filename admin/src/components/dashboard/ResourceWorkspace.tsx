@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { cmsRequest, formatMoney, resourceToKind, type CmsEntry, type CmsStatus, type ResourcePath } from "@/lib/cms";
+import { cmsListItems, cmsRequest, formatMoney, resourceToKind, type CmsEntry, type CmsStatus, type ResourcePath } from "@/lib/cms";
 
 const copy: Record<ResourcePath, { title: string; singular: string; eyebrow: string; description: string; categoryKey: string; categoryLabel: string }> = {
   products: { title: "محصولات", singular: "محصول", eyebrow: "PRODUCT CATALOG", description: "قیمت، موجودی، تصاویر، مشخصات فنی و وضعیت انتشار محصولات.", categoryKey: "category", categoryLabel: "دسته‌بندی" },
@@ -31,9 +31,10 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
       if (query.trim()) params.set("q", query.trim());
       if (filter !== "all") params.set("status", filter);
       const result = await cmsRequest<{ items: CmsEntry[] }>(`${apiKind}?${params}`);
-      setItems(result.items);
+      setItems(cmsListItems(result));
     } catch (err) {
       setError(err instanceof Error ? err.message : "دریافت اطلاعات انجام نشد");
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,13 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
     return () => window.clearTimeout(timeout);
   }, [load]);
 
-  const counts = useMemo(() => ({ published: items.filter((item) => item.status === "published").length, draft: items.filter((item) => item.status === "draft").length }), [items]);
+  const counts = useMemo(() => {
+    const list = Array.isArray(items) ? items : [];
+    return {
+      published: list.filter((item) => item.status === "published").length,
+      draft: list.filter((item) => item.status === "draft").length,
+    };
+  }, [items]);
 
   async function togglePublish(item: CmsEntry) {
     try {

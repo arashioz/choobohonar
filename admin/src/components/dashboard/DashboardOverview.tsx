@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { cmsRequest, type CmsEntry } from "@/lib/cms";
+import { cmsListItems, cmsRequest, type CmsEntry } from "@/lib/cms";
 
 type Summary = Record<"article" | "product" | "material" | "project" | "collection", { total: number; published: number; draft: number; items: CmsEntry[] }>;
 const empty = { total: 0, published: 0, draft: 0, items: [] };
@@ -14,7 +14,13 @@ export default function DashboardOverview() {
   useEffect(() => {
     Promise.all((["article", "product", "material", "project", "collection"] as const).map(async (kind) => {
       const result = await cmsRequest<{ items: CmsEntry[]; total: number }>(kind);
-      return [kind, { total: result.total, published: result.items.filter((item) => item.status === "published").length, draft: result.items.filter((item) => item.status === "draft").length, items: result.items }] as const;
+      const items = cmsListItems(result);
+      return [kind, {
+        total: typeof result.total === "number" ? result.total : items.length,
+        published: items.filter((item) => item.status === "published").length,
+        draft: items.filter((item) => item.status === "draft").length,
+        items,
+      }] as const;
     })).then((entries) => setSummary(Object.fromEntries(entries) as Summary)).catch(() => undefined).finally(() => setLoading(false));
   }, []);
 

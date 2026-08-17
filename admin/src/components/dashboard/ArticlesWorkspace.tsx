@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { cmsRequest, type CmsEntry, type CmsStatus } from "@/lib/cms";
+import { cmsListItems, cmsRequest, type CmsEntry, type CmsStatus } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
 const statusCopy: Record<CmsStatus, string> = { draft: "پیش‌نویس", published: "منتشرشده", archived: "بایگانی" };
@@ -17,13 +17,23 @@ export default function ArticlesWorkspace() {
   const load = useCallback(async () => {
     setLoading(true); setError("");
     const params = new URLSearchParams(); if (query.trim()) params.set("q", query.trim()); if (status !== "all") params.set("status", status);
-    try { const result = await cmsRequest<{ items: CmsEntry[] }>(`article?${params}`); setItems(result.items); }
-    catch (err) { setError(err instanceof Error ? err.message : "دریافت مقالات انجام نشد"); }
+    try {
+      const result = await cmsRequest<{ items: CmsEntry[] }>(`article?${params}`);
+      setItems(cmsListItems(result));
+    }
+    catch (err) { setError(err instanceof Error ? err.message : "دریافت مقالات انجام نشد"); setItems([]); }
     finally { setLoading(false); }
   }, [query, status]);
 
   useEffect(() => { const timeout = window.setTimeout(load, 250); return () => window.clearTimeout(timeout); }, [load]);
-  const stats = useMemo(() => ({ published: items.filter((item) => item.status === "published").length, draft: items.filter((item) => item.status === "draft").length, words: items.reduce((sum, item) => sum + (item.content || "").split(/\s+/).filter(Boolean).length, 0) }), [items]);
+  const stats = useMemo(() => {
+    const list = Array.isArray(items) ? items : [];
+    return {
+      published: list.filter((item) => item.status === "published").length,
+      draft: list.filter((item) => item.status === "draft").length,
+      words: list.reduce((sum, item) => sum + (item.content || "").split(/\s+/).filter(Boolean).length, 0),
+    };
+  }, [items]);
 
   async function publish(item: CmsEntry) { try { await cmsRequest(`article/${item._id}/publish`, { method: "POST" }); await load(); } catch (err) { setError(err instanceof Error ? err.message : "انتشار انجام نشد"); } }
 
