@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import FadeUp from '@/components/motion/FadeUp';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
+import { useBrandbookPrint } from '@/components/brandbook/BrandbookPrintContext';
 import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
 import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
 import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
@@ -62,7 +63,28 @@ function CustomerExperiencePhilosophySection() {
    ───────────────────────────────────────────────────────────── */
 
 function CustomerJourneySection() {
+  const isPrint = useBrandbookPrint();
   const [activeStep, setActiveStep] = useState(0);
+
+  if (isPrint) {
+    return (
+      <div className="mb-20 space-y-4">
+        {customerJourney.map((step) => (
+          <BrandbookCard key={step.step} className="p-6 text-right">
+            <div className="mb-2 flex items-baseline justify-between gap-3">
+              <h4 className="text-base font-semibold text-forest">
+                {step.step}. {step.titleFa}
+              </h4>
+              <span className="text-[10px] uppercase tracking-[0.12em] text-forest/35" dir="ltr">
+                {step.titleEn}
+              </span>
+            </div>
+            <p className="text-sm leading-7 text-forest/75">{step.goal}</p>
+          </BrandbookCard>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <FadeUp>

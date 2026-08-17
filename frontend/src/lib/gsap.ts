@@ -89,24 +89,6 @@ export function isElementHidden(el: HTMLElement): boolean {
   return parseFloat(getComputedStyle(el).opacity) === 0;
 }
 
-/** If the element is already in (or near) the viewport, reveal immediately. */
-export function revealIfInViewport(el: HTMLElement, threshold = 0.9): boolean {
-  const rect = el.getBoundingClientRect();
-  const vh = window.innerHeight || document.documentElement.clientHeight;
-  if (rect.top < vh * threshold && rect.bottom > 0) {
-    revealElement(el);
-    return true;
-  }
-  return false;
-}
-
-export function scheduleRevealFailsafe(el: HTMLElement, delayMs = 2500): () => void {
-  const id = window.setTimeout(() => {
-    if (isElementHidden(el)) revealElement(el);
-  }, delayMs);
-  return () => window.clearTimeout(id);
-}
-
 export function refreshScrollTriggers() {
   if (typeof window === "undefined") return;
   registerGsap();

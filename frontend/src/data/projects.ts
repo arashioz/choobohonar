@@ -376,9 +376,9 @@ export const projects: Project[] = [
 ];
 
 export const diversityImages = [
-  { image: aknoon[6], caption: "اقامتگاه آکنون — نشیمن" },
-  { image: shenaj[67], caption: "ویلای شناج — پذیرایی" },
-  { image: armon[24], caption: "هتل آرمون — لابی" },
+  { image: aknoon[6], caption: "اقامتگاه آکنون" },
+  { image: shenaj[67], caption: "ویلای شناج" },
+  { image: armon[24], caption: "هتل آرمون" },
 ];
 
 export function getProject(slug: string): Project | undefined {

@@ -38,6 +38,51 @@ export const interiorIntro = {
   body: "گام اول یک چیدمان موفق، درک نیازهاست و ما در خانه چوب و هنر آماده گفت‌وگو با شما هستیم. با شنیدن انتظار شما از فضایی که در اختیار دارید و حال‌وهوایی که دوست دارید تداعی کند، طراحی پروژه در مسیری که ویژه‌ی شماست آغاز می‌شود.",
 };
 
+export type InteriorCustomizationPiece = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+  href: string;
+};
+
+/** Seed gallery until dedicated customization photography arrives. */
+export const interiorCustomizationPieces: InteriorCustomizationPiece[] = [
+  {
+    id: "custom-living",
+    eyebrow: "نشیمن",
+    title: "مبلمان سفارشی نشیمن",
+    description: "کاناپه، میز و کنسول با ابعاد پلان و روکش هماهنگ با معماری خانه.",
+    image: "/images/projects/aknoon-residence/04.jpg",
+    href: "/projects/aknoon-residence",
+  },
+  {
+    id: "custom-dining",
+    eyebrow: "غذاخوری",
+    title: "میز و صندلی پروژه‌ای",
+    description: "غذاخوری با تناسب فضای ویلا و جزئیات چوب هم‌خانواده با بقیه فضا.",
+    image: "/images/projects/shenaj-villa/68.jpg",
+    href: "/projects/shenaj-villa",
+  },
+  {
+    id: "custom-hospitality",
+    eyebrow: "هتل و اقامت",
+    title: "لابی و فضاهای عمومی",
+    description: "ساخت سفارشی برای لابی و سوئیت؛ دوام بالا با زبان بصری برند فضا.",
+    image: "/images/projects/armon-hotel/01.jpg",
+    href: "/projects/armon-hotel",
+  },
+  {
+    id: "custom-bedroom",
+    eyebrow: "اتاق خواب",
+    title: "سرویس خواب سفارشی",
+    description: "تخت و پاتختی با مقیاس اتاق و پرداخت هماهنگ با پالت پروژه.",
+    image: "/images/projects/araz-suite/12.jpg",
+    href: "/projects/araz-suite",
+  },
+];
+
 export const interiorBenefits: InteriorBenefit[] = [
   {
     title: "تنوع، کیفیت و نوآوری",

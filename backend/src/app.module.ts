@@ -10,6 +10,7 @@ import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { ShopModule } from './modules/shop/shop.module';
+import { CmsModule } from './modules/cms/cms.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ShopModule } from './modules/shop/shop.module';
     AdminModule,
     LeadsModule,
     ShopModule,
+    CmsModule,
   ],
 })
 export class AppModule {}

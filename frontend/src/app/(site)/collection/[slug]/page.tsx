@@ -16,8 +16,11 @@ export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const collection = getCollection(params.slug);
+type PageProps = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const collection = getCollection(slug);
   if (!collection) return { title: "کالکشن یافت نشد | خانه چوب و هنر" };
   return {
     title: `${collection.name} | خانه چوب و هنر`,
@@ -25,8 +28,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function CollectionDetailPage({ params }: { params: { slug: string } }) {
-  const collection = getCollection(params.slug);
+export default async function CollectionDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  const collection = getCollection(slug);
   if (!collection) notFound();
   const matchingProducts = getCollectionProducts(collection.slug);
 

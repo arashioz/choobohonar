@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
+import { contactInquirySubjects } from "@/data/contact-forms";
 import { cn } from "@/lib/utils";
 import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitLead } from "@/lib/leads-api";
@@ -10,25 +11,34 @@ import { submitLead } from "@/lib/leads-api";
 type FieldType = "text" | "tel" | "select" | "textarea";
 type Field = { name: string; label: string; type: FieldType; required?: boolean; options?: string[]; full?: boolean };
 
-const inquiryOptions = ["استعلام قیمت", "مشاوره خرید", "خدمات معماری داخلی", "بازدید شوروم", "همکاری با نمایندگی"];
 const fields: Field[] = [
   { name: "name", label: "نام و نام خانوادگی", type: "text", required: true },
   { name: "phone", label: "شماره تماس", type: "tel", required: true },
-  { name: "interest", label: "نوع درخواست", type: "select", required: true, options: inquiryOptions },
+  {
+    name: "interest",
+    label: "موضوع درخواست",
+    type: "select",
+    required: true,
+    options: [...contactInquirySubjects],
+  },
   { name: "message", label: "توضیحات", type: "textarea", full: true },
 ];
 
 type Values = Record<string, string>;
 type Errors = Record<string, string>;
 
+function interestFromIntent(intent: string | null) {
+  if (intent === "quote") return "ثبت سفارش";
+  if (intent === "services") return "خدمات مشاوره معماری داخلی";
+  return "";
+}
+
 export default function ContactLeadForm() {
   const searchParams = useSearchParams();
-  const defaultInterest = useMemo(() => {
-    const intent = searchParams.get("intent");
-    if (intent === "quote") return "استعلام قیمت";
-    if (intent === "services") return "خدمات معماری داخلی";
-    return "";
-  }, [searchParams]);
+  const defaultInterest = useMemo(
+    () => interestFromIntent(searchParams.get("intent")),
+    [searchParams],
+  );
 
   const [values, setValues] = useState<Values>({ interest: defaultInterest });
   const [errors, setErrors] = useState<Errors>({});
@@ -80,7 +90,7 @@ export default function ContactLeadForm() {
 
   if (submitted) {
     return (
-      <div className="flex min-h-[24rem] flex-col items-start justify-center">
+      <div className="flex min-h-[18rem] flex-col items-start justify-center border border-forest/10 bg-forest/[0.02] px-6 py-10 md:px-10">
         <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-forest text-2xl text-peach">✓</div>
         <h2 className="text-3xl font-light tracking-tightest text-forest">درخواست شما ثبت شد</h2>
         <p className="mt-3 max-w-lg text-forest/70">سپاس از اعتماد شما. کارشناسان خانه چوب و هنر به‌زودی برای ادامه‌ی هماهنگی با شما تماس می‌گیرند.</p>
@@ -89,25 +99,41 @@ export default function ContactLeadForm() {
   }
 
   return (
-    <>
+    <div className="border border-forest/10 bg-forest/[0.02] px-6 py-10 md:px-10 md:py-12">
       <div className="max-w-xl">
         <p className="eyebrow text-brick">فرم تماس</p>
-        <h2 className="mt-4 text-3xl font-light tracking-tightest text-forest md:text-4xl">نوع درخواست خود را مشخص کنید.</h2>
-        <p className="mt-4 text-forest/70">نوع درخواست‌تان را انتخاب کنید و توضیح کوتاهی بنویسید؛ کارشناسان خانه چوب و هنر در کوتاه‌ترین زمان با شما تماس می‌گیرند.</p>
+        <h2 className="mt-4 text-3xl font-light tracking-tightest text-forest md:text-4xl">پیام خود را بفرستید</h2>
+        <p className="mt-4 text-forest/70">
+          نام، تلفن و موضوع درخواست را بنویسید؛ کارشناسان خانه چوب و هنر در کوتاه‌ترین زمان با شما تماس می‌گیرند.
+        </p>
       </div>
       <form onSubmit={onSubmit} noValidate className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
         {fields.map((field) => (
           <div key={field.name} className={cn("flex flex-col", field.full && "md:col-span-2")}>
-            <label htmlFor={field.name} className="mb-2 text-sm text-forest/70">{field.label}{field.required ? <span className="text-brick"> *</span> : null}</label>
+            <label htmlFor={field.name} className="mb-2 text-sm text-forest/70">
+              {field.label}
+              {field.required ? <span className="text-brick"> *</span> : null}
+            </label>
             {field.type === "textarea" ? (
               <textarea id={field.name} rows={5} value={values[field.name] ?? ""} onChange={(e) => setValue(field.name, e.target.value)} className={fieldClass(Boolean(errors[field.name]))} />
             ) : field.type === "select" ? (
               <select id={field.name} value={values[field.name] ?? ""} onChange={(e) => setValue(field.name, e.target.value)} className={fieldClass(Boolean(errors[field.name]))}>
                 <option value="">انتخاب کنید</option>
-                {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+                {field.options?.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </select>
             ) : (
-              <input id={field.name} type={field.type} dir={field.type === "tel" ? "ltr" : "rtl"} value={values[field.name] ?? ""} onChange={(e) => setValue(field.name, e.target.value)} className={cn(fieldClass(Boolean(errors[field.name])), field.type === "tel" && "text-right")} />
+              <input
+                id={field.name}
+                type={field.type}
+                dir={field.type === "tel" ? "ltr" : "rtl"}
+                value={values[field.name] ?? ""}
+                onChange={(e) => setValue(field.name, e.target.value)}
+                className={cn(fieldClass(Boolean(errors[field.name])), field.type === "tel" && "text-right")}
+              />
             )}
             {errors[field.name] ? <span className="mt-1.5 text-xs text-brick">{errors[field.name]}</span> : null}
           </div>
@@ -123,17 +149,22 @@ export default function ContactLeadForm() {
           ) : (
             <div className="flex flex-col gap-3">
               <span className="pointer-events-none inline-block opacity-50" aria-disabled="true">
-                <Button as="button" type="submit" variant="primary" showArrow>ارسال درخواست</Button>
+                <Button as="button" type="submit" variant="primary" showArrow>
+                  ارسال درخواست
+                </Button>
               </span>
               <p className="text-sm text-forest/60">ارسال فرم موقتاً غیرفعال است و به‌زودی فعال می‌شود.</p>
             </div>
           )}
         </div>
       </form>
-    </>
+    </div>
   );
 }
 
 function fieldClass(hasError: boolean) {
-  return cn("w-full border-b bg-transparent py-3 text-forest placeholder:text-forest/55 transition-colors focus:outline-none", hasError ? "border-brick" : "border-forest/25 focus:border-forest");
+  return cn(
+    "w-full border-b bg-transparent py-3 text-forest placeholder:text-forest/55 transition-colors focus:outline-none",
+    hasError ? "border-brick" : "border-forest/25 focus:border-forest",
+  );
 }

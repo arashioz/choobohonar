@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import FormField from "@/components/contact/shared/FormField";
 import FormChipGroup from "@/components/contact/shared/FormChipGroup";
 import FormSuccess from "@/components/contact/shared/FormSuccess";
-import { consultationTypes } from "@/data/contact-forms";
+import { consultationSubjects } from "@/data/contact-forms";
 import {
   FORM_ENABLED,
   required,
@@ -48,7 +48,7 @@ export default function ConsultationForm() {
     if (!required(values.name)) next.name = "نام الزامی است";
     if (!validatePhone(values.phone)) next.phone = "شماره تماس معتبر نیست";
     if (values.email && !validateEmail(values.email)) next.email = "ایمیل معتبر نیست";
-    if (!values.type) next.type = "نوع مشاوره را انتخاب کنید";
+    if (!values.type) next.type = "موضوع درخواست را انتخاب کنید";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -68,6 +68,7 @@ export default function ConsultationForm() {
         phone: values.phone.trim(),
         email: values.email.trim() || undefined,
         data: {
+          interest: values.type,
           consultationType: values.type,
           message: values.message.trim(),
         },
@@ -98,12 +99,12 @@ export default function ConsultationForm() {
       </div>
 
       <FormChipGroup
-        label="نوع مشاوره"
+        label="موضوع درخواست"
         name="type"
         required
         value={values.type}
         onChange={(v) => setField("type", v)}
-        options={[...consultationTypes]}
+        options={[...consultationSubjects]}
         error={errors.type}
         columns={3}
       />

@@ -19,6 +19,7 @@ import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapt
 import BrandbookContainer from '@/components/brandbook/layout/BrandbookContainer';
 import BrandbookSectionDivider from '@/components/brandbook/layout/BrandbookSectionDivider';
 import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
+import { useBrandbookPrint } from '@/components/brandbook/BrandbookPrintContext';
 import { MessageIcon } from '@/components/brandbook/icons';
 
 /* ─────────────────────────────────────────────────────────────
@@ -133,6 +134,7 @@ function BrandVoiceSection() {
    ───────────────────────────────────────────────────────────── */
 
 function ToneOfVoiceSection() {
+  const isPrint = useBrandbookPrint();
   const [activeTone, setActiveTone] = useState(0);
   const contexts = toneOfVoice.contexts;
 
@@ -144,7 +146,7 @@ function ToneOfVoiceSection() {
         </p>
       </FadeUp>
 
-      <div className="mb-8 hidden gap-4 lg:grid lg:grid-cols-2">
+      <div className={cn("mb-8 grid gap-4 lg:grid-cols-2", !isPrint && "hidden lg:grid")}>
         {contexts.map((item, i) => (
           <FadeUp key={item.context} delay={i * 0.06}>
             <BrandbookCard
@@ -175,6 +177,7 @@ function ToneOfVoiceSection() {
         ))}
       </div>
 
+      {!isPrint ? (
       <FadeUp className="lg:hidden">
         <div className="mb-6 flex flex-wrap gap-2">
           {contexts.map((t, i) => (
@@ -215,6 +218,7 @@ function ToneOfVoiceSection() {
           </blockquote>
         </div>
       </FadeUp>
+      ) : null}
     </div>
   );
 }
@@ -275,6 +279,7 @@ function ContentRolesSection() {
    ───────────────────────────────────────────────────────────── */
 
 function DigitalIdentitySection() {
+  const isPrint = useBrandbookPrint();
   const [activeChannel, setActiveChannel] = useState(0);
   const channel = digitalIdentity.channels[activeChannel];
 
@@ -377,6 +382,56 @@ function DigitalIdentitySection() {
           </p>
         </FadeUp>
 
+        {isPrint ? (
+          <div className="space-y-4">
+            {digitalIdentity.channels.map((item) => (
+              <BrandbookCard key={item.id} lift="none" className="overflow-visible">
+                <div className="border-b border-forest/[0.07] p-6 sm:p-8">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <h5 className="text-xl font-medium text-forest">{item.platformFa}</h5>
+                      <p className="mt-1 text-xs text-forest/45" dir="ltr">{item.handle}</p>
+                    </div>
+                    <span className="rounded-full bg-peach/20 px-3 py-1 text-xs font-medium text-brick">
+                      لحن: {item.tone}
+                    </span>
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-forest/65">{item.interaction.replyStyle}</p>
+                </div>
+                <div className="grid gap-0 lg:grid-cols-3">
+                  <div className="border-b border-forest/[0.07] p-6 lg:border-b-0 lg:border-l">
+                    <p className="eyebrow mb-3 text-forest/45">نوع محتوا</p>
+                    <ul className="space-y-2">
+                      {item.contentTypes.map((row) => (
+                        <li key={row} className="flex items-start gap-2 text-xs leading-6 text-forest/70">
+                          <span className="mt-2 size-1 shrink-0 rounded-full bg-teal/70" />
+                          {row}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="border-b border-forest/[0.07] p-6 lg:border-b-0 lg:border-l">
+                    <p className="eyebrow mb-3 text-sage">انجام دهید</p>
+                    <ul className="space-y-2">
+                      {item.interaction.do.map((row) => (
+                        <li key={row} className="text-xs leading-6 text-forest/70">{row}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="p-6">
+                    <p className="eyebrow mb-3 text-brick">اجتناب کنید</p>
+                    <ul className="space-y-2">
+                      {item.interaction.dont.map((row) => (
+                        <li key={row} className="text-xs leading-6 text-forest/70">{row}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </BrandbookCard>
+            ))}
+          </div>
+        ) : (
+          <>
         <FadeUp>
           <div className="mb-5 flex flex-wrap gap-2">
             {digitalIdentity.channels.map((item, i) => (
@@ -445,6 +500,8 @@ function DigitalIdentitySection() {
             </div>
           </BrandbookCard>
         </FadeUp>
+          </>
+        )}
       </div>
 
       <FadeUp>

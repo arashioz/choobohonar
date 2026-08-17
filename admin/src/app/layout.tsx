@@ -3,8 +3,11 @@ import { peyda, display } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "برندبوک | خانه چوب و هنر",
-  description: "برندبوک دیجیتال خانه چوب و هنر",
+  title: {
+    default: "پنل مدیریت | خانه چوب و هنر",
+    template: "%s | خانه چوب و هنر",
+  },
+  description: "فضای مدیریت برند، محتوا و آثار خانه چوب و هنر",
 };
 
 export default function RootLayout({

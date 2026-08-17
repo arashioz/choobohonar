@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useBrandbookPrint } from "@/components/brandbook/BrandbookPrintContext";
 import {
   gsap,
   prefersReducedMotion,
@@ -26,6 +27,7 @@ export default function StagedTextReveal({
   taglineEn,
   className,
 }: StagedTextRevealProps) {
+  const isPrint = useBrandbookPrint();
   const rootRef = useRef<HTMLDivElement>(null);
   const linesRef = useRef<(HTMLParagraphElement | null)[]>([]);
   const signatureRef = useRef<HTMLDivElement>(null);
@@ -34,7 +36,7 @@ export default function StagedTextReveal({
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || prefersReducedMotion()) return;
+    if (!root || isPrint || prefersReducedMotion()) return;
 
     registerGsap();
 
@@ -92,12 +94,12 @@ export default function StagedTextReveal({
     requestAnimationFrame(() => refreshScrollTriggers());
 
     return () => ctx.revert();
-  }, [lines.length]);
+  }, [isPrint, lines.length]);
 
-  if (prefersReducedMotion()) {
+  if (isPrint || prefersReducedMotion()) {
     return (
       <div className={cn("w-full bg-forest", className)}>
-        <div className="mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center px-6 py-20 text-center sm:px-10 lg:py-24">
+        <div className="mx-auto flex max-w-3xl flex-col items-center justify-center px-6 py-16 text-center sm:px-10 sm:py-20">
           <div className="flex flex-col gap-6">
             {lines.map((line) => (
               <p

@@ -93,12 +93,30 @@ export const skillLevels = ["خیلی ضعیف", "ضعیف", "متوسط", "خو
 
 export const cooperationTypes = ["تمام وقت", "پاره وقت", "ساعتی", "شیفتی"] as const;
 
-export const consultationTypes = [
-  "مشاوره چیدمان",
+/** Homepage + /contact/consultation — صورتجلسه موارد ۶ و ۷ */
+export const consultationSubjects = [
   "معماری داخلی",
-  "انتخاب و خرید محصول",
-  "بازدید شوروم",
-  "استعلام قیمت",
+  "طراحی محصول",
+  "چیدمان",
+  "بازسازی",
+  "خانگی",
+  "اداری",
+  "تجاری",
+  "هتل",
+  "موارد دیگر",
+] as const;
+
+/** @deprecated use consultationSubjects */
+export const consultationTypes = consultationSubjects;
+
+/** Contact hub general form — صورتجلسه مورد ۲۰ */
+export const contactInquirySubjects = [
+  "اجرای پروژه‌های دکوراسیون (منزل، هتل، فروشگاه)",
+  "خدمات مشاوره معماری داخلی",
+  "ارسال و تحویل محصول",
+  "خدمات پس از فروش",
+  "ثبت سفارش",
+  "سایر موارد",
 ] as const;
 
 export const ownershipTypes = ["مالک", "استیجاری"] as const;

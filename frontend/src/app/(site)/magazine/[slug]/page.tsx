@@ -14,8 +14,11 @@ export function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const post = getPost(params.slug);
+type PageProps = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPost(slug);
   if (!post) return { title: "مقاله یافت نشد | خانه چوب و هنر" };
   return {
     title: `${post.title} | مجله خانه چوب و هنر`,
@@ -30,8 +33,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function PostPage({ params }: { params: { slug: string } }) {
-  const post = getPost(params.slug);
+export default async function PostPage({ params }: PageProps) {
+  const { slug } = await params;
+  const post = getPost(slug);
   if (!post) notFound();
 
   const related = getRelatedPosts(post.slug, 3);

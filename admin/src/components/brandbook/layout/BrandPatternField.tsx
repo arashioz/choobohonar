@@ -9,6 +9,7 @@ import {
   scrollTriggerConfig,
 } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+import { useBrandbookPrint } from "@/components/brandbook/BrandbookPrintContext";
 
 type PatternVariant = "forest" | "mono";
 type PatternMask = "none" | "soft" | "right" | "left";
@@ -63,6 +64,9 @@ export default function BrandPatternField({
   sheen = false,
   className,
 }: BrandPatternFieldProps) {
+  const isPrint = useBrandbookPrint();
+  const resolvedMotion = isPrint ? "none" : motion;
+  const resolvedSheen = isPrint ? false : sheen;
   const rootRef = useRef<HTMLDivElement>(null);
   const motionRef = useRef<HTMLDivElement>(null);
   const sheenRef = useRef<HTMLDivElement>(null);
@@ -74,14 +78,14 @@ export default function BrandPatternField({
     if (
       !root ||
       !motionLayer ||
-      motion === "none" ||
+      resolvedMotion === "none" ||
       prefersReducedMotion()
     ) {
       return;
     }
 
     registerGsap();
-    const direction = motion === "counter" ? -1 : 1;
+    const direction = resolvedMotion === "counter" ? -1 : 1;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         motionLayer,
@@ -104,7 +108,7 @@ export default function BrandPatternField({
         },
       );
 
-      if (sheen && sheenLayer) {
+      if (resolvedSheen && sheenLayer) {
         gsap.fromTo(
           sheenLayer,
           {
@@ -128,13 +132,13 @@ export default function BrandPatternField({
 
     requestAnimationFrame(() => refreshScrollTriggers());
     return () => ctx.revert();
-  }, [motion, sheen, surface]);
+  }, [resolvedMotion, resolvedSheen, surface]);
 
   return (
     <div
       ref={rootRef}
       aria-hidden
-      data-pattern-motion={motion}
+      data-pattern-motion={resolvedMotion}
       data-pattern-surface={surface}
       className={cn(
         "pointer-events-none absolute inset-0 overflow-hidden",
@@ -143,7 +147,13 @@ export default function BrandPatternField({
         className,
       )}
     >
-      <div ref={motionRef} className="absolute -inset-[8%] will-change-transform">
+      <div
+        ref={motionRef}
+        className={cn(
+          "absolute",
+          isPrint ? "inset-0" : "-inset-[8%] will-change-transform",
+        )}
+      >
         <div
           className={cn(
             "brandbook-pattern-layer brandbook-pattern-size-unified absolute -inset-[4%]",
@@ -153,7 +163,7 @@ export default function BrandPatternField({
         />
       </div>
 
-      {sheen && motion !== "none" && (
+      {resolvedSheen && resolvedMotion !== "none" && (
         <div
           ref={sheenRef}
           className="brandbook-pattern-sheen absolute -inset-y-[20%] -left-1/3 w-2/3 will-change-transform"

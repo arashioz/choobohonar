@@ -56,6 +56,31 @@ function decodeSlug(slug) {
   }
 }
 
+function stripHtml(value = "") {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#8211;/g, "–")
+    .replace(/&#8212;/g, "—")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizePrice(prices) {
+  if (!prices) return null;
+  return {
+    value: prices.price ?? null,
+    regularValue: prices.regular_price ?? null,
+    saleValue: prices.sale_price ?? null,
+    minValue: prices.price_range?.min_amount ?? prices.price ?? null,
+    maxValue: prices.price_range?.max_amount ?? prices.price ?? null,
+    currencyCode: prices.currency_code ?? "IRT",
+    currencySymbol: prices.currency_symbol ?? "تومان",
+    minorUnit: prices.currency_minor_unit ?? 0,
+  };
+}
+
 async function fetchPage(page) {
   const res = await fetch(`${API}?per_page=100&page=${page}`);
   if (!res.ok) throw new Error(`API page ${page} failed: ${res.status}`);
@@ -75,12 +100,40 @@ async function main() {
   }
 
   const catalog = all.map((p) => ({
+    id: p.id,
     slug: decodeSlug(p.slug),
     name: p.name.replace(/\s+/g, " ").trim(),
     category: getCategoryLabel(p.categories ?? []),
     room: mapRoom(p.categories ?? []),
-    shortDescription: "مشاهده جزئیات، ابعاد و خرید در فروشگاه خانه چوب و هنر.",
+    shortDescription:
+      stripHtml(p.short_description) ||
+      stripHtml(p.description).slice(0, 220) ||
+      "مشاهده جزئیات، ابعاد و انتخاب‌های این محصول از خانه چوب و هنر.",
     image: p.images?.[0]?.src ?? "",
+    gallery: (p.images ?? []).map((image) => image.src).filter(Boolean),
+    categories: (p.categories ?? []).map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: decodeSlug(category.slug),
+    })),
+    attributes: (p.attributes ?? []).map((attribute) => ({
+      id: attribute.id,
+      name: attribute.name,
+      taxonomy: attribute.taxonomy,
+      hasVariations: attribute.has_variations,
+      terms: (attribute.terms ?? []).map((term) => ({
+        id: term.id,
+        name: term.name,
+        slug: decodeSlug(term.slug),
+        default: Boolean(term.default),
+      })),
+    })),
+    prices: normalizePrice(p.prices),
+    averageRating: p.average_rating ?? "0",
+    reviewCount: p.review_count ?? 0,
+    isPurchasable: Boolean(p.is_purchasable),
+    isInStock: Boolean(p.is_in_stock),
+    hasOptions: Boolean(p.has_options),
     shopUrl: p.permalink,
   }));
 

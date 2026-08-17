@@ -1,31 +1,29 @@
 import type { NavChildItem, NavItem } from "@/data/nav-types";
-import { productRooms } from "@/data/product-categories";
-import { getShopCategoryUrl, getShopUrl } from "@/lib/shop";
+import { commerceCategories } from "@/data/commerce";
 
 export type { NavChildItem, NavItem };
 
-/** Mega-menu: rooms filtered on the on-site catalog */
-export const productMegaMenu: NavChildItem[] = productRooms.map((room) => ({
-  label: room.label,
-  href: getShopCategoryUrl(room.id),
-  description: room.description,
+/** Mega-menu: internal storefront routes aligned with the live catalog taxonomy. */
+export const productMegaMenu: NavChildItem[] = commerceCategories.map((category) => ({
+  label: category.label,
+  href: `/products/category/${category.slug}`,
+  description: category.description,
 }));
 
 export const navItems: NavItem[] = [
-  { label: "فروشگاه", href: "/products" },
-  { label: "محصولات", href: getShopUrl(), children: productMegaMenu },
+  { label: "محصولات", href: "/products", children: productMegaMenu },
   { label: "کالکشن", href: "/collection" },
-  { label: "متریال", href: "/materials" },
   { label: "پروژه‌ها", href: "/projects" },
   { label: "معماری داخلی", href: "/interior-architecture-services" },
   { label: "گالری", href: "/gallery" },
   { label: "مجله", href: "/magazine" },
+  { label: "فروشگاه‌ها", href: "/stores" },
   { label: "ارتباط با ما", href: "/contact" },
 ];
 
 export const homeSectionLinks: NavChildItem[] = [
   { label: "پروژه‌های منتخب", href: "/#projects" },
-  { label: "حوزه‌های کاری", href: "/#work-areas" },
+  { label: "گروه‌های کالایی", href: "/#work-areas" },
   { label: "رویکرد ما", href: "/#approach" },
   { label: "فرم مشاوره", href: "/#consultation" },
 ];

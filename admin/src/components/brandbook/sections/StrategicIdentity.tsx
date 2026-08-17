@@ -19,6 +19,7 @@ import RevealLine from '@/components/motion/RevealLine';
 import BrandbookCard from '@/components/brandbook/layout/BrandbookCard';
 import BrandbookChapterHeader from '@/components/brandbook/layout/BrandbookChapterHeader';
 import BrandPatternField from '@/components/brandbook/layout/BrandPatternField';
+import { useBrandbookPrint } from '@/components/brandbook/BrandbookPrintContext';
 import {
   IconAlertCircle,
   IconArt,
@@ -60,6 +61,7 @@ const dnaIcons = [IconHeritage, IconArt, IconQuality, IconLiving] as const;
 /* ================================================================== */
 
 function BrandDnaSection() {
+  const isPrint = useBrandbookPrint();
   const [activeIdx, setActiveIdx] = useState<number | null>(0);
 
   const orbitPositions = [
@@ -86,6 +88,27 @@ function BrandDnaSection() {
         </FadeUp>
 
         <FadeUp delay={0.2}>
+          {isPrint ? (
+            <div className="mt-12 grid gap-4 sm:grid-cols-2">
+              {brandDna.elements.map((el, i) => {
+                const DnaIcon = dnaIcons[i];
+                return (
+                  <BrandbookCard key={el.titleEn} className="p-6 text-right">
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="flex size-9 items-center justify-center rounded-lg bg-forest text-peach">
+                        <DnaIcon className="size-4 shrink-0" />
+                      </span>
+                      <div>
+                        <p className="text-base font-semibold text-forest">{el.titleFa}</p>
+                        <p className="text-xs text-forest/45">{el.titleEn}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-8 text-forest/80">{el.description}</p>
+                  </BrandbookCard>
+                );
+              })}
+            </div>
+          ) : (
           <div className="relative mx-auto mt-20 max-w-3xl">
             <div className="relative mx-auto aspect-square w-full max-w-md">
               <div className="absolute inset-[12%] rounded-full border border-dashed border-forest/15" aria-hidden />
@@ -164,6 +187,7 @@ function BrandDnaSection() {
               )}
             </div>
           </div>
+          )}
         </FadeUp>
 
         {/* Formula & Summary */}

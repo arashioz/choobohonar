@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import InteriorBenefitsSection from "@/components/interior/InteriorBenefitsSection";
 import InteriorConsultationCta from "@/components/interior/InteriorConsultationCta";
+import InteriorCustomizationBand from "@/components/interior/InteriorCustomizationBand";
 import InteriorHero from "@/components/interior/InteriorHero";
 import InteriorIntroSection from "@/components/interior/InteriorIntroSection";
 import InteriorProcessSection from "@/components/interior/InteriorProcessSection";
@@ -19,6 +20,7 @@ export default function InteriorArchitectureServicesPage() {
       <InteriorIntroSection />
       <InteriorBenefitsSection />
       <InteriorProcessSection />
+      <InteriorCustomizationBand />
       <InteriorProjectsBand />
       <InteriorConsultationCta />
     </>

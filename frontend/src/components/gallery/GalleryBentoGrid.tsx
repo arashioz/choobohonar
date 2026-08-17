@@ -38,7 +38,7 @@ export default function GalleryBentoGrid({ items, onOpen }: Props) {
           <button
             type="button"
             onClick={() => onOpen(item)}
-            className="group relative block h-full min-h-[13rem] w-full overflow-hidden bg-forest/5 text-right"
+            className="group relative block h-full min-h-[13rem] w-full overflow-hidden bg-forest/5 text-right focus-visible:outline-none"
           >
             <Image
               src={item.src}
@@ -49,7 +49,7 @@ export default function GalleryBentoGrid({ items, onOpen }: Props) {
                   ? "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
                   : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               }
-              className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]"
+              className="media-hover object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-forest/70 via-forest/15 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-95" />
             <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
@@ -62,7 +62,7 @@ export default function GalleryBentoGrid({ items, onOpen }: Props) {
             </div>
             <span
               aria-hidden
-              className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center border border-paper/25 bg-forest/25 text-sm text-paper opacity-0 backdrop-blur-sm transition-all duration-300 ease-out-expo group-hover:opacity-100"
+              className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center border border-paper/25 bg-forest/25 text-sm text-paper opacity-0 backdrop-blur-sm transition-[opacity,transform] duration-300 ease-out-expo group-hover:opacity-100 group-focus-visible:scale-110 group-focus-visible:opacity-100"
             >
               +
             </span>

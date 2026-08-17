@@ -1,0 +1,291 @@
+export type MaterialCommerceMode = "direct" | "quote" | "sample";
+
+export type MaterialCommerceItem = {
+  slug: string;
+  categoryId: "wood" | "fabric" | "veneer" | "metal";
+  name: string;
+  code: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  accent: string;
+  applicationImage: string;
+  priceLabel: string;
+  unit: string;
+  commerceMode: MaterialCommerceMode;
+  specs: { label: string; value: string }[];
+  uses: string[];
+  care: string;
+};
+
+const applicationImages = {
+  living: "https://choobohonar.com/wp-content/uploads/2026/01/مبل-چدار-خانه-چوب-و-هنر-1.jpg",
+  alder: "https://choobohonar.com/wp-content/uploads/2023/06/کاناپه-سه-نفره-آلدر-خانه-چوب-و-هنر-2-1.jpg",
+  bedroom: "https://choobohonar.com/wp-content/uploads/2023/07/تخت-خواب-آکومه-خانه-چوب-و-هنر-1.jpg",
+  dining: "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+  lighting: "https://choobohonar.com/wp-content/uploads/2026/07/آباژور-گالن-1.jpg",
+  carpet: "https://choobohonar.com/wp-content/uploads/2025/07/فرش-زاب-کرم-1.jpg",
+};
+
+export const materialCommerceItems: MaterialCommerceItem[] = [
+  {
+    slug: "american-walnut",
+    categoryId: "wood",
+    name: "گردوی آمریکایی",
+    code: "WD-01",
+    subtitle: "رگه‌های عمیق، قهوه‌ای گرم",
+    description: "چوبی اصیل با کنتراست طبیعی بالا که برای قطعات شاخص و سطوحی با حضور بصری قوی انتخاب می‌شود.",
+    color: "#5A3830",
+    accent: "#9A6A51",
+    applicationImage: applicationImages.living,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "متر مربع / قطعه",
+    commerceMode: "sample",
+    specs: [
+      { label: "سختی", value: "متوسط رو به بالا" },
+      { label: "پرداخت", value: "روغن طبیعی یا پلی‌اورتان مات" },
+      { label: "منشأ", value: "آمریکای شمالی" },
+    ],
+    uses: ["صفحه میز", "بدنه مبلمان", "روکش دکوراتیو"],
+    care: "با دستمال نرم و کمی مرطوب پاک شود؛ از تماس طولانی با آب و شوینده‌های قوی دور بماند.",
+  },
+  {
+    slug: "natural-oak",
+    categoryId: "wood",
+    name: "بلوط نچرال",
+    code: "WD-02",
+    subtitle: "روشن، آرام و معماری‌محور",
+    description: "رگه‌های خوانا و رنگ روشن بلوط، انتخابی منعطف برای فضاهای معاصر و ترکیب با پارچه‌های خنثی است.",
+    color: "#C8A77A",
+    accent: "#E2CDAA",
+    applicationImage: applicationImages.dining,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "متر مربع / قطعه",
+    commerceMode: "sample",
+    specs: [
+      { label: "سختی", value: "بالا" },
+      { label: "پرداخت", value: "مات طبیعی" },
+      { label: "تن رنگ", value: "کرم تا عسلی روشن" },
+    ],
+    uses: ["میز غذاخوری", "کنسول", "پنل دیواری"],
+    care: "برای حفظ تن روشن، در برابر تابش مستقیم طولانی خورشید محافظت شود.",
+  },
+  {
+    slug: "smoked-beech",
+    categoryId: "wood",
+    name: "راش دودی",
+    code: "WD-03",
+    subtitle: "یکدست، مقاوم و عمیق",
+    description: "بافت منظم راش با پرداخت دودی، سطحی متعادل برای سازه‌های روزمره و مبلمان پرکاربرد می‌سازد.",
+    color: "#6E5445",
+    accent: "#A48A78",
+    applicationImage: applicationImages.bedroom,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "متر مربع / قطعه",
+    commerceMode: "quote",
+    specs: [
+      { label: "سختی", value: "بالا" },
+      { label: "پرداخت", value: "پوشش پایه‌آب" },
+      { label: "پایداری", value: "مناسب سازه" },
+    ],
+    uses: ["اسکلت تخت", "پایه صندلی", "کلاف مبلمان"],
+    care: "گردگیری منظم و بازبینی دوره‌ای سطح برای حفظ پوشش توصیه می‌شود.",
+  },
+  {
+    slug: "boucle-sand",
+    categoryId: "fabric",
+    name: "بوکله شنی",
+    code: "FB-11",
+    subtitle: "لمس حجیم با رنگ خنثی",
+    description: "پارچه‌ای با بافت حلقه‌ای نرم که حجم و گرما را بدون شلوغی رنگی به مبلمان اضافه می‌کند.",
+    color: "#D4C7B2",
+    accent: "#F0E8DC",
+    applicationImage: applicationImages.alder,
+    priceLabel: "از ۲٬۸۰۰٬۰۰۰ تومان",
+    unit: "متر طول",
+    commerceMode: "direct",
+    specs: [
+      { label: "عرض", value: "۱۴۰ سانتی‌متر" },
+      { label: "مقاومت سایش", value: "+۴۰٬۰۰۰ دور" },
+      { label: "ترکیب", value: "پلی‌استر و پنبه" },
+    ],
+    uses: ["کاناپه", "مبل تک", "کوسن"],
+    care: "جاروبرقی با برس نرم و لکه‌گیری موضعی با شوینده خنثی.",
+  },
+  {
+    slug: "velvet-brick",
+    categoryId: "fabric",
+    name: "مخمل آجری",
+    code: "FB-12",
+    subtitle: "رنگ عمیق با انعکاس نرم",
+    description: "مخمل مات با خواب کوتاه و رنگ آجری کنترل‌شده برای قطعات accent و نشیمن‌های رسمی.",
+    color: "#9A4A33",
+    accent: "#C97A5B",
+    applicationImage: applicationImages.living,
+    priceLabel: "از ۳٬۴۵۰٬۰۰۰ تومان",
+    unit: "متر طول",
+    commerceMode: "direct",
+    specs: [
+      { label: "عرض", value: "۱۴۰ سانتی‌متر" },
+      { label: "مقاومت سایش", value: "+۵۰٬۰۰۰ دور" },
+      { label: "ویژگی", value: "لکه‌گریز" },
+    ],
+    uses: ["مبل تک", "پاف", "هدبورد"],
+    care: "در جهت خواب پارچه برس زده شود و از بخارشوی مستقیم استفاده نشود.",
+  },
+  {
+    slug: "linen-sage",
+    categoryId: "fabric",
+    name: "لینن سبز مریم‌گلی",
+    code: "FB-13",
+    subtitle: "تن طبیعی و تنفس‌پذیر",
+    description: "بافت لینن با سبز خاموش برای فضاهای روشن، آرام و نزدیک به طبیعت.",
+    color: "#8FA58F",
+    accent: "#CBD8C6",
+    applicationImage: applicationImages.carpet,
+    priceLabel: "از ۳٬۱۰۰٬۰۰۰ تومان",
+    unit: "متر طول",
+    commerceMode: "sample",
+    specs: [
+      { label: "عرض", value: "۱۴۰ سانتی‌متر" },
+      { label: "ترکیب", value: "لینن و ویسکوز" },
+      { label: "عبور نور", value: "متوسط" },
+    ],
+    uses: ["کوسن", "پرده", "مبلمان سبک"],
+    care: "خشکشویی تخصصی برای حفظ فرم و رنگ پیشنهاد می‌شود.",
+  },
+  {
+    slug: "walnut-veneer",
+    categoryId: "veneer",
+    name: "روکش گردو",
+    code: "VN-21",
+    subtitle: "رگه پیوسته برای سطوح وسیع",
+    description: "ورق روکش طبیعی گردو برای ایجاد سطح یکپارچه و کنترل‌شده روی پنل‌های مهندسی‌شده.",
+    color: "#604437",
+    accent: "#A98268",
+    applicationImage: applicationImages.bedroom,
+    priceLabel: "استعلام موجودی",
+    unit: "ورق",
+    commerceMode: "quote",
+    specs: [
+      { label: "ضخامت", value: "۰٫۶ میلی‌متر" },
+      { label: "برش", value: "تاجی و خطی" },
+      { label: "گرید", value: "A/B" },
+    ],
+    uses: ["درب کمد", "صفحه کنسول", "پنل دکوراتیو"],
+    care: "پیش از اجرا در محیط پروژه هم‌دما شود و پس از چسباندن با پوشش مناسب محافظت گردد.",
+  },
+  {
+    slug: "oak-veneer",
+    categoryId: "veneer",
+    name: "روکش بلوط",
+    code: "VN-22",
+    subtitle: "خطوط روشن و منظم",
+    description: "روکش بلوط برای طراحی‌هایی که نیاز به بافت طبیعی روشن و تکرارپذیری بالا دارند.",
+    color: "#B99668",
+    accent: "#E0C9A5",
+    applicationImage: applicationImages.dining,
+    priceLabel: "استعلام موجودی",
+    unit: "ورق",
+    commerceMode: "sample",
+    specs: [
+      { label: "ضخامت", value: "۰٫۶ میلی‌متر" },
+      { label: "برش", value: "ربع‌بری" },
+      { label: "گرید", value: "A" },
+    ],
+    uses: ["میز", "کتابخانه", "کابینت سفارشی"],
+    care: "در بسته‌بندی تخت و دور از رطوبت نگهداری شود.",
+  },
+  {
+    slug: "ash-veneer",
+    categoryId: "veneer",
+    name: "روکش زبان‌گنجشک",
+    code: "VN-23",
+    subtitle: "بافت گرافیکی و سبک",
+    description: "رگه‌های کشیده و گرافیکی برای سطوح معاصر و ترکیب‌های مینیمال.",
+    color: "#D0B991",
+    accent: "#EFE1C6",
+    applicationImage: applicationImages.living,
+    priceLabel: "استعلام موجودی",
+    unit: "ورق",
+    commerceMode: "quote",
+    specs: [
+      { label: "ضخامت", value: "۰٫۶ میلی‌متر" },
+      { label: "برش", value: "خطی" },
+      { label: "تن رنگ", value: "کرم روشن" },
+    ],
+    uses: ["پنل دیوار", "مبلمان مینیمال", "درب"],
+    care: "برای جلوگیری از تغییر رنگ، پیش از اجرا از نور مستقیم محافظت شود.",
+  },
+  {
+    slug: "brushed-brass",
+    categoryId: "metal",
+    name: "برنج برس‌خورده",
+    code: "MT-31",
+    subtitle: "درخشش گرم و کنترل‌شده",
+    description: "سطح فلزی مات با جهت برس مشخص برای جزئیات ظریف، دستگیره و پایه‌های accent.",
+    color: "#A98348",
+    accent: "#D7B875",
+    applicationImage: applicationImages.lighting,
+    priceLabel: "قیمت بر اساس ابعاد",
+    unit: "قطعه سفارشی",
+    commerceMode: "quote",
+    specs: [
+      { label: "پرداخت", value: "برس‌خورده مات" },
+      { label: "پوشش", value: "لاک محافظ" },
+      { label: "کاربرد", value: "فضای داخلی" },
+    ],
+    uses: ["دستگیره", "پایه", "فریم روشنایی"],
+    care: "با دستمال خشک پاک شود؛ از پولیش زبر و مواد اسیدی استفاده نشود.",
+  },
+  {
+    slug: "charcoal-steel",
+    categoryId: "metal",
+    name: "فولاد ذغالی",
+    code: "MT-32",
+    subtitle: "سازه‌ای، مات و دقیق",
+    description: "فولاد با پوشش پودری ذغالی برای ایجاد خطوط ظریف اما مقاوم در سازه مبلمان.",
+    color: "#343735",
+    accent: "#686D69",
+    applicationImage: applicationImages.living,
+    priceLabel: "قیمت بر اساس ابعاد",
+    unit: "قطعه سفارشی",
+    commerceMode: "quote",
+    specs: [
+      { label: "پرداخت", value: "پودری الکترواستاتیک" },
+      { label: "بافت", value: "مات ریز" },
+      { label: "مقاومت", value: "ضدخش" },
+    ],
+    uses: ["پایه میز", "فریم کنسول", "اتصالات"],
+    care: "با دستمال مرطوب پاک و بلافاصله خشک شود.",
+  },
+  {
+    slug: "aged-bronze",
+    categoryId: "metal",
+    name: "برنز پتینه",
+    code: "MT-33",
+    subtitle: "عمق تاریخی برای جزئیات",
+    description: "پتینه‌ای چندلایه با تغییرات کنترل‌شده رنگ برای قطعاتی که باید حس زمان و ساخت دست را منتقل کنند.",
+    color: "#6F5842",
+    accent: "#A78A64",
+    applicationImage: applicationImages.lighting,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "قطعه سفارشی",
+    commerceMode: "sample",
+    specs: [
+      { label: "پرداخت", value: "پتینه دستی" },
+      { label: "پوشش", value: "واکس محافظ" },
+      { label: "یکنواختی", value: "دارای تغییر طبیعی" },
+    ],
+    uses: ["یراق", "فریم آینه", "چراغ دکوراتیو"],
+    care: "برای حفظ پتینه از مواد براق‌کننده فلز استفاده نشود.",
+  },
+];
+
+export function getMaterialCommerceItems(categoryId: string) {
+  return materialCommerceItems.filter((item) => item.categoryId === categoryId);
+}
+
+export function getMaterialCommerceItem(categoryId: string, slug: string) {
+  return materialCommerceItems.find((item) => item.categoryId === categoryId && item.slug === slug);
+}

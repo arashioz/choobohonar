@@ -13,13 +13,16 @@ import ProjectProducts from "@/components/projects/ProjectProducts";
 import RelatedProjects from "@/components/projects/RelatedProjects";
 
 export function generateStaticParams() { return projects.map((p) => ({ slug: p.slug })); }
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const project = getProject(params.slug);
+type PageProps = { params: Promise<{ slug: string }> };
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const project = getProject(slug);
   if (!project) return { title: "پروژه یافت نشد | خانه چوب و هنر" };
   return { title: `${project.title} | خانه چوب و هنر`, description: project.summary, openGraph: { title: `${project.title} | خانه چوب و هنر`, description: project.summary, images: [project.image], type: "website", locale: "fa_IR" } };
 }
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = getProject(params.slug);
+export default async function ProjectPage({ params }: PageProps) {
+  const { slug } = await params;
+  const project = getProject(slug);
   if (!project) notFound();
   const related = getRelatedProjects(project.slug, 3);
   return (

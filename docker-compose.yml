@@ -73,9 +73,8 @@ services:
       - ./admin:/app
       - /app/node_modules
     ports:
-      # Run the admin on host port 3003 (container still serves 3000).
-      # 3002 was previously taken on this machine; using 3003 avoids port conflicts.
-      - '3003:3000'
+      # Admin Next listens on 3003 inside the container (`next dev -p 3003`).
+      - '3003:3003'
     depends_on:
       - backend
       - redis

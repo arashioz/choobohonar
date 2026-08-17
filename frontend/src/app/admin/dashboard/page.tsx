@@ -1,25 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const BRANDBOOK_URL =
   process.env.NEXT_PUBLIC_BRANDBOOK_URL || "/admin/brandbook";
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem("admin_token")) {
-      window.location.href = "/admin";
+      router.replace("/admin");
       return;
     }
     setReady(true);
-  }, []);
+  }, [router]);
 
   function logout() {
     localStorage.removeItem("admin_token");
-    window.location.href = "/admin";
+    router.replace("/admin");
   }
 
   if (!ready) {
