@@ -15,9 +15,7 @@ import * as jwt from 'jsonwebtoken';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
-import multer from 'multer';
 import type { File as MulterFile } from 'multer';
-import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
 // Note: we use multer via the FileInterceptor; multer's diskStorage
@@ -66,7 +64,7 @@ export class AdminController {
       // Some multer builds/interop may not expose diskStorage in a predictable
       // way at import-time. Passing `dest` is a simpler, robust option that
       // tells multer to store files on disk under the given folder.
-      dest: './uploads',
+      dest: join(process.cwd(), 'uploads'),
 
       limits: {
         fileSize: 200 * 1024 * 1024,
@@ -100,18 +98,16 @@ export class AdminController {
         .json({ message: 'No file uploaded' });
     }
 
-    const publicHost = process.env.PUBLIC_HOST || req.get('host');
-    const protocol =
-      process.env.FORCE_HTTPS === 'true' ? 'https' : req.protocol;
-
-    const url = `${protocol}://${publicHost}/uploads/${file.filename}`;
+    // A relative URL works through both the development proxy and production
+    // nginx, unlike an internal Docker hostname such as backend:3001.
+    const url = `/uploads/${file.filename}`;
 
     // If a "target" was provided, persist the mapping so the admin dashboard
     // can show which site slots have an uploaded asset.
     const target = (req as any).body?.target;
     if (target) {
       try {
-        const mapPath = join(process.cwd(), 'backend', 'uploads', 'map.json');
+        const mapPath = join(process.cwd(), 'uploads', 'map.json');
         let map: Record<string, { filename: string; url: string }> = {};
         try {
           const raw = await fs.readFile(mapPath, 'utf-8');
@@ -137,7 +133,7 @@ export class AdminController {
 
   @Get('assets')
   async listAssets(@Res() res: Response) {
-    const uploadsDir = join(process.cwd(), 'backend', 'uploads');
+    const uploadsDir = join(process.cwd(), 'uploads');
     try {
       const files = await fs.readdir(uploadsDir);
       return res.status(HttpStatus.OK).json({ files });
@@ -158,7 +154,7 @@ export class AdminController {
       'product-placeholder',
     ];
 
-    const mapPath = join(process.cwd(), 'backend', 'uploads', 'map.json');
+    const mapPath = join(process.cwd(), 'uploads', 'map.json');
     let map: Record<string, { filename: string; url: string }> = {};
     try {
       const raw = await fs.readFile(mapPath, 'utf-8');

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -22,7 +23,9 @@ async function bootstrap() {
   // Serve uploaded files
   // ensure larger payloads are allowed by the Nest/Express body parser
   // note: multer handles multipart uploads, but adjusting body parser sizes can help some edge-cases
-  app.useStaticAssets('uploads', { prefix: '/uploads' });
+  // Always resolve this from the running backend directory.  Using a relative
+  // path here made uploads depend on how the process was started.
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
   app.useGlobalPipes(
     new ValidationPipe({

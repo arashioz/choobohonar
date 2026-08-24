@@ -16,11 +16,15 @@ const nextConfig: NextConfig = {
       process.env.API_URL ||
       "http://localhost:3001/api";
 
+    const uploadOrigin = api.replace(/\/api\/?$/, "");
     return [
       {
         source: "/api/:path*",
         destination: `${api.replace(/\/$/, "")}/:path*`,
       },
+      // Uploaded media is returned as /uploads/<file>; make that URL work
+      // while the admin is running on its own development port as well.
+      { source: "/uploads/:path*", destination: `${uploadOrigin}/uploads/:path*` },
     ];
   },
 };
