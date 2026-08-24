@@ -32,7 +32,6 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: /api
-        NEXT_PUBLIC_BRANDBOOK_URL: http://95.38.165.133:3003/admin/brandbook
     restart: unless-stopped
     environment:
       NEXT_TELEMETRY_DISABLED: '1'

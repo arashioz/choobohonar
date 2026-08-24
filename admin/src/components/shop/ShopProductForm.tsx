@@ -23,6 +23,7 @@ type FormState = {
   longDescription: string;
   image: string;
   gallery: string[];
+  finishes: string;
   shopUrl: string;
   status: ShopProductStatus;
   featured: boolean;
@@ -30,8 +31,14 @@ type FormState = {
   suggestionNote: string;
   series: string;
   price: string;
+  compareAtPrice: string;
   stockQty: string;
   trackInventory: boolean;
+  width: string;
+  depth: string;
+  height: string;
+  specs: { label: string; value: string }[];
+  highlights: { title: string; description: string }[];
 };
 
 function fromProduct(p?: ShopProduct): FormState {
@@ -44,15 +51,22 @@ function fromProduct(p?: ShopProduct): FormState {
     longDescription: p?.longDescription || "",
     image: p?.image || "",
     gallery: p?.gallery?.length ? p.gallery : (p?.image ? [p.image] : []),
+    finishes: p?.finishes?.join("، ") || "",
     shopUrl: p?.shopUrl || "",
     status: p?.status || "published",
     featured: p?.featured || false,
     suggested: p?.suggested || false,
     suggestionNote: p?.suggestionNote || "",
     series: p?.series || "",
-    price: p?.price != null ? String(p.price) : "",
+    price: p?.price != null ? formatPrice(String(p.price)) : "",
+    compareAtPrice: p?.compareAtPrice != null ? formatPrice(String(p.compareAtPrice)) : "",
     stockQty: p?.stockQty != null ? String(p.stockQty) : "0",
     trackInventory: p?.trackInventory || false,
+    width: p?.dimensions?.width != null ? String(p.dimensions.width) : "",
+    depth: p?.dimensions?.depth != null ? String(p.dimensions.depth) : "",
+    height: p?.dimensions?.height != null ? String(p.dimensions.height) : "",
+    specs: p?.specs || [],
+    highlights: p?.highlights || [],
   };
 }
 
@@ -90,14 +104,19 @@ export default function ShopProductForm({
       image: form.gallery[0] || form.image.trim(),
       gallery: form.gallery.length ? form.gallery : (form.image.trim() ? [form.image.trim()] : []),
       shopUrl: form.shopUrl.trim() || undefined,
+      finishes: form.finishes.split(/[،,]/).map((item) => item.trim()).filter(Boolean),
       status: form.status,
       featured: form.featured,
       suggested: form.suggested,
       suggestionNote: form.suggestionNote.trim() || undefined,
       series: form.series.trim() || undefined,
-      price: form.price ? Number(form.price) : undefined,
+      price: form.price ? parsePrice(form.price) : undefined,
+      compareAtPrice: form.compareAtPrice ? parsePrice(form.compareAtPrice) : undefined,
       stockQty: form.stockQty ? Number(form.stockQty) : 0,
       trackInventory: form.trackInventory,
+      dimensions: compactDimensions(form),
+      specs: form.specs.filter((item) => item.label.trim() && item.value.trim()),
+      highlights: form.highlights.filter((item) => item.title.trim() && item.description.trim()),
     };
 
     try {
@@ -286,10 +305,15 @@ export default function ShopProductForm({
               <input
                 className={fieldClass}
                 dir="ltr"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={form.price}
-                onChange={(e) => set("price", e.target.value)}
+                onChange={(e) => set("price", formatPrice(e.target.value))}
+                placeholder="48,500,000"
               />
+            </Field>
+            <Field label="قیمت قبل از تخفیف (تومان)">
+              <input className={fieldClass} dir="ltr" type="text" inputMode="numeric" value={form.compareAtPrice} onChange={(e) => set("compareAtPrice", formatPrice(e.target.value))} placeholder="52,000,000" />
             </Field>
             <Field label="موجودی">
               <input
@@ -301,6 +325,15 @@ export default function ShopProductForm({
               />
             </Field>
           </div>
+
+          <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-4">
+            <div><h2 className="text-sm font-medium text-forest">جزئیات محصول</h2><p className="mt-1 text-[10px] text-forest/40">فینیش، متریال و ابعاد برای نمایش دقیق‌تر در صفحه محصول.</p></div>
+            <Field label="متریال، رنگ و فینیش"><input className={fieldClass} value={form.finishes} onChange={(e) => set("finishes", e.target.value)} placeholder="چوب گردو، روغن مات، پارچه کرم" /><span className="mt-1 block text-[9px] text-forest/35">هر مورد را با ویرگول جدا کنید.</span></Field>
+            <div className="grid gap-4 sm:grid-cols-3"><Field label="عرض (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.width} onChange={(e) => set("width", e.target.value)} /></Field><Field label="عمق (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.depth} onChange={(e) => set("depth", e.target.value)} /></Field><Field label="ارتفاع (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.height} onChange={(e) => set("height", e.target.value)} /></Field></div>
+          </section>
+
+          <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs)} left="عنوان مشخصه" right="مقدار" />
+          <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights)} left="عنوان" right="توضیح کوتاه" />
 
           <ProductMediaGallery images={form.gallery} uploading={uploading} onUpload={uploadImages} onChange={setGallery} />
 
@@ -369,6 +402,16 @@ export default function ShopProductForm({
       </main>
     </div>
   );
+}
+
+function parsePrice(value: string) { return Number(value.replace(/[^0-9]/g, "")); }
+function formatPrice(value: string) { const digits = value.replace(/[^0-9]/g, ""); return digits ? Number(digits).toLocaleString("en-US") : ""; }
+function compactDimensions(form: FormState) { const dimensions = { width: Number(form.width) || undefined, depth: Number(form.depth) || undefined, height: Number(form.height) || undefined }; return Object.values(dimensions).some(Boolean) ? dimensions : undefined; }
+
+function ProductDetailsEditor({ label, description, rows, onChange, left, right }: { label: string; description: string; rows: { label?: string; value?: string; title?: string; description?: string }[]; onChange: (rows: any[]) => void; left: string; right: string }) {
+  const isHighlight = rows.some((row) => "title" in row) || label.includes("نقاط");
+  const normalized = rows.length ? rows : [isHighlight ? { title: "", description: "" } : { label: "", value: "" }];
+  return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
 }
 
 function ProductMediaGallery({ images, uploading, onUpload, onChange }: { images: string[]; uploading: boolean; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onChange: (images: string[]) => void }) {

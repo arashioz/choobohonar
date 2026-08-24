@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cmsListItems, cmsRequest, type CmsEntry } from "@/lib/cms";
+import { shopApi } from "@/lib/shop-api";
 
 const sections = [
   { kind: "product", path: "products", label: "محصولات", description: "قیمت، موجودی، تصاویر و مشخصات فنی", code: "PR" },
@@ -15,6 +16,10 @@ export default function ManageOverview() {
   const [counts, setCounts] = useState<Record<string, { total: number; draft: number; published: number }>>({});
   useEffect(() => {
     Promise.all(sections.map(async (section) => {
+      if (section.kind === "product") {
+        const stats = await shopApi.stats();
+        return [section.kind, { total: stats.total, draft: stats.draft, published: stats.published }] as const;
+      }
       const result = await cmsRequest<{ items: CmsEntry[]; total: number }>(section.kind);
       const items = cmsListItems(result);
       return [section.kind, {

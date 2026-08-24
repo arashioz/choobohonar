@@ -74,17 +74,15 @@ function groupByRoomAndCategory(products: ShopProduct[]): ProductGroup[] {
   });
 }
 
-export default function ShopAdminPage() {
+export default function ShopAdminPage({ productsOnly = false }: { productsOnly?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const roomParam = searchParams.get("room");
-  const tab: Tab = isTab(tabParam)
-    ? tabParam
-    : roomParam
-      ? "products"
-      : "orders";
+  const requestedTab: Tab = isTab(tabParam) ? tabParam : roomParam ? "products" : "orders";
+  // Products have one canonical workspace: مدیریت آثار ← محصولات.
+  const tab: Tab = productsOnly ? "products" : requestedTab === "products" ? "orders" : requestedTab;
   const activeRoom = isRoom(roomParam) ? roomParam : "";
 
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -212,7 +210,6 @@ export default function ShopAdminPage() {
   const tabs: { id: Tab; label: string }[] = [
     { id: "orders", label: "سفارشات آنلاین" },
     { id: "invoices", label: "فاکتورها" },
-    { id: "products", label: "محصولات" },
   ];
 
   return (
@@ -225,8 +222,8 @@ export default function ShopAdminPage() {
       <header className="relative z-10 border-b border-forest/8 bg-paper/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <div>
-            <p className="eyebrow text-brick">Shop</p>
-            <h1 className="mt-1 text-2xl font-light text-forest">فروشگاه</h1>
+            <p className="eyebrow text-brick">{productsOnly ? "PRODUCT CATALOG" : "Shop"}</p>
+            <h1 className="mt-1 text-2xl font-light text-forest">{productsOnly ? "مدیریت محصولات" : "فروشگاه"}</h1>
           </div>
           {tab === "products" ? (
             <div className="flex flex-wrap gap-2">
@@ -239,7 +236,7 @@ export default function ShopAdminPage() {
                 سینک کاتالوگ
               </button>
               <Link
-                href="/admin/shop/new"
+                href="/admin/manage/products/new"
                 className="rounded-xl bg-forest px-3 py-2 text-xs text-peach"
               >
                 محصول جدید
@@ -250,7 +247,7 @@ export default function ShopAdminPage() {
       </header>
 
       <main className="relative z-10 mx-auto max-w-6xl space-y-6 px-5 py-8 sm:px-8">
-        <div className="flex flex-wrap gap-2">
+        {!productsOnly && <div className="flex flex-wrap gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -265,7 +262,7 @@ export default function ShopAdminPage() {
               {t.label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {message ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -620,7 +617,7 @@ export default function ShopAdminPage() {
                                       </td>
                                       <td className="px-4 py-3">
                                         <Link
-                                          href={`/admin/shop/products/${p._id}`}
+                                          href={`/admin/manage/products/${p._id}`}
                                           className="text-forest hover:underline"
                                         >
                                           ویرایش
@@ -656,7 +653,7 @@ export default function ShopAdminPage() {
                       </p>
                       {g.actionHref ? (
                         <Link
-                          href={g.actionHref}
+                          href={productsOnly ? g.actionHref.replace("/admin/shop", "/admin/manage/products") : g.actionHref}
                           className="mt-3 inline-block text-xs text-brick hover:underline"
                         >
                           مشاهده

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ResourceWorkspace from "@/components/dashboard/ResourceWorkspace";
+import ShopAdminPage from "@/components/shop/ShopAdminPage";
+import { Suspense } from "react";
 import type { ResourcePath } from "@/lib/cms";
 
 const kinds: ResourcePath[] = ["products", "materials", "projects", "collections"];
@@ -18,5 +20,6 @@ export async function generateMetadata({ params }: { params: Promise<{ kind: str
 export default async function ManagementSectionPage({ params }: { params: Promise<{ kind: string }> }) {
   const { kind } = await params;
   if (!kinds.includes(kind as ResourcePath)) notFound();
+  if (kind === "products") return <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-paper text-sm text-forest/50">در حال بارگذاری محصولات…</div>}><ShopAdminPage productsOnly /></Suspense>;
   return <ResourceWorkspace kind={kind as ResourcePath} />;
 }

@@ -11,6 +11,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { ShopModule } from './modules/shop/shop.module';
 import { CmsModule } from './modules/cms/cms.module';
+import { SettingsModule } from './modules/settings/settings.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { CmsModule } from './modules/cms/cms.module';
     LeadsModule,
     ShopModule,
     CmsModule,
+    SettingsModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}

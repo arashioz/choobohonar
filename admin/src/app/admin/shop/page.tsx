@@ -4,7 +4,7 @@ import ShopAdminPage from "@/components/shop/ShopAdminPage";
 
 export const metadata: Metadata = {
   title: "فروشگاه | پنل مدیریت",
-  description: "سفارشات آنلاین، فاکتورها و محصولات فروشگاه",
+  description: "سفارشات آنلاین و فاکتورهای فروشگاه",
 };
 
 export default function AdminShopPage() {

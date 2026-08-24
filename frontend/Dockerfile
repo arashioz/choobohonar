@@ -11,9 +11,6 @@ COPY . .
 # Browser calls same-origin /api (nginx proxies to backend). Never bake localhost.
 ARG NEXT_PUBLIC_API_URL=/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_BRANDBOOK_URL=/brandbook
-ENV NEXT_PUBLIC_BRANDBOOK_URL=$NEXT_PUBLIC_BRANDBOOK_URL
-
 RUN npm run build
 
 FROM node:20-alpine

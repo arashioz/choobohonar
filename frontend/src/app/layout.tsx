@@ -7,9 +7,12 @@ export const viewport: Viewport = {
 };
 import { peyda, display } from "@/lib/fonts";
 import { brand } from "@/data/nav";
+import { getApiBase } from "@/lib/api-base";
 import "./globals.css";
 
-export const metadata: Metadata = {
+export const dynamic = "force-dynamic";
+
+const baseMetadata: Metadata = {
   title: `${brand.nameFa} | ${brand.sloganFa}`,
   description:
     "خانه چوب و هنر — برند ممتاز مبلمان و دکوراسیون با میراثی نیم‌قرنی در ساخت چوب. مبلمان، سرویس خواب، دکوراتیو و خدمات معماری داخلی.",
@@ -30,6 +33,15 @@ export const metadata: Metadata = {
     images: ["/images/aknoon-04.jpg"],
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const response = await fetch(`${getApiBase()}/settings/public`, { cache: "no-store" });
+    const settings = response.ok ? await response.json() as { googleSearchConsoleVerification?: string } : null;
+    const token = settings?.googleSearchConsoleVerification?.trim();
+    return token ? { ...baseMetadata, verification: { google: token } } : baseMetadata;
+  } catch { return baseMetadata; }
+}
 
 export default function RootLayout({
   children,
