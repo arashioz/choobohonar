@@ -1,17 +1,40 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { posts, postCategories, CATEGORY_DESCRIPTIONS } from "@/data/posts";
+import { useEffect, useMemo, useState } from "react";
+import { posts, CATEGORY_DESCRIPTIONS } from "@/data/posts";
+import type { Post } from "@/data/posts";
 import { cn } from "@/lib/utils";
 import FadeUp from "@/components/motion/FadeUp";
 import PostCard from "@/components/magazine/PostCard";
 
 export default function MagazineList() {
   const [active, setActive] = useState("همه");
+  const [cmsPosts, setCmsPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    fetch("/api/cms/article", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : [])
+      .then((items: unknown) => {
+        if (!Array.isArray(items)) return;
+        setCmsPosts(items.map((item: any) => ({
+          slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
+          category: String(item.data?.category || "مقالات آموزشی") as Post["category"], author: String(item.data?.author || "تحریریه چوب و هنر"),
+          date: item.publishedAt ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(item.publishedAt)) : "تازه منتشر شده",
+          readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""),
+          content: [], tags: Array.isArray(item.tags) ? item.tags : [], metaDescription: item.seo?.description,
+        })));
+      }).catch(() => undefined);
+  }, []);
+
+  const allPosts = useMemo(() => {
+    const serverSlugs = new Set(cmsPosts.map((post) => post.slug));
+    return [...cmsPosts, ...posts.filter((post) => !serverSlugs.has(post.slug))];
+  }, [cmsPosts]);
+  const postCategories = useMemo(() => ["همه", ...Array.from(new Set(allPosts.map((post) => post.category)))], [allPosts]);
 
   const filtered = useMemo(
-    () => (active === "همه" ? posts : posts.filter((p) => p.category === active)),
-    [active],
+    () => (active === "همه" ? allPosts : allPosts.filter((p) => p.category === active)),
+    [active, allPosts],
   );
 
   const categoryDescription =
@@ -22,7 +45,7 @@ export default function MagazineList() {
       <FadeUp className="mt-14 flex flex-wrap gap-3 md:mt-20">
         {postCategories.map((cat) => {
           const selected = cat === active;
-          const count = cat === "همه" ? posts.length : posts.filter((p) => p.category === cat).length;
+          const count = cat === "همه" ? allPosts.length : allPosts.filter((p) => p.category === cat).length;
           return (
             <button
               key={cat}
