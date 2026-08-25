@@ -82,8 +82,8 @@ export default function HeroSection() {
       hideLoader();
     };
 
-    const failsafe = window.setTimeout(showStatic, 2200);
-    const hardFailsafe = window.setTimeout(showStatic, 5000);
+    const failsafe = window.setTimeout(showStatic, 1400);
+    const hardFailsafe = window.setTimeout(showStatic, 3200);
 
     if (prefersReducedMotion()) {
       showStatic();
@@ -113,14 +113,14 @@ export default function HeroSection() {
         tl.fromTo(
           monogram.current,
           { opacity: 0, scale: 0.85 },
-          { opacity: 1, scale: 1, duration: 0.9, ease: "power3.out" }
+          { opacity: 1, scale: 1, duration: 0.65, ease: "power3.out" }
         )
-          .to(monogram.current, { opacity: 0, duration: 0.5, ease: "power2.in" }, "+=0.4")
-          .to(loader.current, { yPercent: -100, duration: 1.1, ease: "power4.inOut" }, "-=0.1")
-          .fromTo(media.current, { scale: 1.18 }, { scale: 1, duration: 2.6, ease: "power2.out" }, "<")
-          .to(lines, { yPercent: 0, duration: 1.1, ease: "power4.out", stagger: 0.12 }, "-=0.7")
-          .to(cta, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.5")
-          .to(cue, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4");
+          .to(monogram.current, { opacity: 0, duration: 0.32, ease: "power2.in" }, "+=0.22")
+          .to(loader.current, { yPercent: -100, duration: 0.78, ease: "power4.inOut" }, "-=0.06")
+          .fromTo(media.current, { scale: 1.12 }, { scale: 1, duration: 1.55, ease: "power2.out" }, "<")
+          .to(lines, { yPercent: 0, duration: 0.75, ease: "power4.out", stagger: 0.08 }, "-=0.45")
+          .to(cta, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, "-=0.35")
+          .to(cue, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, "-=0.3");
 
         const fabric = el.querySelector<SVGPathElement>("[data-hero-fabric]");
         const shade = el.querySelector<SVGPathElement>("[data-hero-shade]");

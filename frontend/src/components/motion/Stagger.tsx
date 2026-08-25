@@ -24,8 +24,8 @@ export default function Stagger({
   children,
   className,
   selector = ":scope > *",
-  amount = 0.5,
-  y = 40,
+  amount = 0.32,
+  y = 24,
 }: StaggerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,7 +50,7 @@ export default function Stagger({
           items.forEach((item) => {
             if (parseFloat(getComputedStyle(item).opacity) === 0) revealElement(item);
           });
-        }, 1200);
+        }, 850);
         observer.disconnect();
       },
       { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
@@ -66,7 +66,7 @@ export default function Stagger({
           {
             opacity: 1,
             y: 0,
-            duration: 0.9,
+            duration: 0.68,
             ease: "power3.out",
             stagger: { amount },
             scrollTrigger: scrollTriggerConfig({

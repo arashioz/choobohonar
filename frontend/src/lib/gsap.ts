@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let registered = false;
 let lenisActive = false;
+let refreshFrame = 0;
 
 export function registerGsap() {
   if (registered || typeof window === "undefined") return;
@@ -92,7 +93,14 @@ export function isElementHidden(el: HTMLElement): boolean {
 export function refreshScrollTriggers() {
   if (typeof window === "undefined") return;
   registerGsap();
-  ScrollTrigger.refresh(true);
+  // Many reveal components mount together. Refreshing once for every card
+  // forces repeated layout calculation and is the main source of janky first
+  // scrolls on long pages, so coalesce all requests into one animation frame.
+  if (refreshFrame) return;
+  refreshFrame = window.requestAnimationFrame(() => {
+    refreshFrame = 0;
+    ScrollTrigger.refresh(true);
+  });
 }
 
 export { gsap, ScrollTrigger };

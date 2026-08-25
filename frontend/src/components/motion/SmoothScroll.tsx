@@ -45,7 +45,9 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     }
 
     const lenis = new Lenis({
-      lerp: 0.1,
+      // A slightly tighter interpolation feels responsive and reduces the
+      // number of frames a long wheel event keeps the page animating.
+      lerp: 0.14,
       smoothWheel: true,
       wheelMultiplier: 1,
     });
@@ -57,7 +59,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       lenis.raf(time * 1000);
     };
     gsap.ticker.add(onTick);
-    gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(500, 33);
 
     const refresh = () => refreshScrollTriggers();
     window.addEventListener("load", refresh);

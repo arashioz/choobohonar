@@ -25,8 +25,8 @@ export default function FadeUp({
   children,
   className,
   delay = 0,
-  y = 40,
-  duration = 1,
+  y = 24,
+  duration = 0.68,
   as = "div",
 }: FadeUpProps) {
   const ref = useRef<HTMLElement>(null);
@@ -51,7 +51,7 @@ export default function FadeUp({
           window.clearTimeout(fallbackId);
           fallbackId = window.setTimeout(() => {
             if (isElementHidden(el)) revealElement(el);
-          }, Math.max(700, (delay + duration) * 1000 + 200));
+          }, Math.max(550, (delay + duration) * 1000 + 160));
           io.unobserve(el);
         });
       },
