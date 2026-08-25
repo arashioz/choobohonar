@@ -13,6 +13,7 @@ services:
       - ./data/redis:/data
 
   backend:
+    image: ${REGISTRY_PREFIX:-choobohonar}/backend:${IMAGE_TAG:-latest}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -38,6 +39,7 @@ services:
       - redis
 
   frontend:
+    image: ${REGISTRY_PREFIX:-choobohonar}/frontend:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -47,12 +49,14 @@ services:
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_ENV: production
+      API_URL: http://backend:3001/api
     expose:
       - '3000'
     depends_on:
       - backend
 
   admin:
+    image: ${REGISTRY_PREFIX:-choobohonar}/admin:${IMAGE_TAG:-latest}
     build:
       context: ./admin
       dockerfile: Dockerfile
@@ -70,6 +74,7 @@ services:
       - backend
 
   nginx:
+    image: ${REGISTRY_PREFIX:-choobohonar}/nginx:${IMAGE_TAG:-latest}
     build:
       context: ./deploy/nginx
       dockerfile: Dockerfile
