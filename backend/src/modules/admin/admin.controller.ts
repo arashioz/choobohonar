@@ -4,6 +4,7 @@ import {
   Body,
   Res,
   HttpStatus,
+  InternalServerErrorException,
   UseInterceptors,
   UploadedFile,
   Get,
@@ -22,8 +23,6 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 // packaging can vary between builds. The interceptor below uses the
 // simpler `dest` option which is robust across environments.
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme_secret';
-
 @Controller('admin')
 export class AdminController {
   @Post('login')
@@ -31,13 +30,18 @@ export class AdminController {
     @Body() body: { username: string; password: string },
     @Res() res: Response,
   ) {
-    const adminUser = process.env.ADMIN_USER || 'choobhonar';
-    const adminPass = process.env.ADMIN_PASS || 'admin123';
+    const adminUser = process.env.ADMIN_USER;
+    const adminPass = process.env.ADMIN_PASS;
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!adminUser || !adminPass || !jwtSecret) {
+      throw new InternalServerErrorException('Admin authentication is not configured');
+    }
 
     if (body.username === adminUser && body.password === adminPass) {
       const token = jwt.sign(
         { sub: body.username },
-        JWT_SECRET,
+        jwtSecret,
         { expiresIn: '8h' },
       );
 

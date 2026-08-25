@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import CheckoutPageClient from "@/components/shop/CheckoutPageClient";
+import CheckoutFlow from "@/components/commerce/checkout/CheckoutFlow";
 
 export const metadata: Metadata = {
   title: "تسویه حساب | خانه چوب و هنر",
 };
 
 export default function CheckoutPage() {
-  return <CheckoutPageClient />;
+  return <CheckoutFlow />;
 }

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
-import { cartStore, DEFAULT_UNIT_PRICE } from "@/lib/cart";
+import { DEFAULT_UNIT_PRICE } from "@/lib/cart";
+import { useCart } from "@/components/commerce/cart/CartProvider";
 
 type Props = {
   slug: string;
@@ -22,6 +23,7 @@ export default function AddToCartButton({
   label = "افزودن به سبد",
 }: Props) {
   const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
   return (
     <Button
@@ -30,12 +32,14 @@ export default function AddToCartButton({
       variant="primary"
       showArrow
       onClick={() => {
-        cartStore.add({
-          productId,
+        addItem({
+          productId: numericProductId(productId || slug),
           slug,
           name,
           image,
           unitPrice,
+          category: "محصولات",
+          currencySymbol: "تومان",
         });
         setAdded(true);
         window.setTimeout(() => setAdded(false), 1800);
@@ -45,3 +49,5 @@ export default function AddToCartButton({
     </Button>
   );
 }
+
+function numericProductId(value: string) { const direct = Number(value); return Number.isFinite(direct) && direct > 0 ? direct : [...value].reduce((hash, char) => ((hash * 31 + char.charCodeAt(0)) >>> 0), 7) || 1; }

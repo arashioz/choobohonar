@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Admin routes stay at /admin, while its generated JS/CSS is namespaced so
+  // nginx never serves storefront assets to the admin application.
+  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined,
   images: {
     remotePatterns: [
       {

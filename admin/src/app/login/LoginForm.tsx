@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/admin";
+  const requestedNext = searchParams.get("next");
+  const nextPath = requestedNext?.startsWith("/admin") ? requestedNext : "/admin";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

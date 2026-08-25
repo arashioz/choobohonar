@@ -7,6 +7,18 @@ const PUBLIC_PATHS = ["/login", "/admin/brandbook/print"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(AUTH_COOKIE)?.value;
+
+  // Credentials must never be carried in a URL: URLs can be retained in
+  // browser history and recorded by proxies, analytics, and access logs.
+  if (
+    pathname === "/login" &&
+    (request.nextUrl.searchParams.has("username") || request.nextUrl.searchParams.has("password"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete("username");
+    url.searchParams.delete("password");
+    return NextResponse.redirect(url);
+  }
   const isPublic = PUBLIC_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );

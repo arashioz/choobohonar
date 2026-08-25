@@ -37,4 +37,5 @@ next-env.d.ts
 
 # media assets are delivered separately and synced during deployment
 /public/images/
-/public/videos/
+/public/videos/*
+!/public/videos/hero-mobile.mp4

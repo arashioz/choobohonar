@@ -199,7 +199,7 @@ export default function HeroSection() {
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover md:hidden"
         >
-          <source src="/030509_KC&H Clip 1.3.m4v" type="video/mp4" />
+          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
         </video>
         {/* Stronger floor wash so the field reads as solid green */}
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/45" />

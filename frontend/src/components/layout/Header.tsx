@@ -5,8 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { brand, homeSectionLinks, navItems } from "@/data/nav";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
-import { cn, toFa } from "@/lib/utils";
-import { useCart } from "@/components/commerce/cart/CartProvider";
+import { cn } from "@/lib/utils";
 import BrandMark from "@/components/brand/BrandMark";
 
 export default function Header() {
@@ -14,7 +13,6 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
-  const { itemCount, hydrated } = useCart();
   const pathname = usePathname();
   const isHome = pathname === "/";
   const hasTransparentHero =
@@ -266,24 +264,6 @@ export default function Header() {
               </svg>
             </button>
 
-            <Link
-              href="/cart"
-              aria-label={hydrated && itemCount ? `سبد خرید، ${toFa(itemCount)} محصول` : "سبد خرید"}
-              className={cn(
-                "relative flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-300",
-                onSolid ? "text-forest hover:bg-forest/5" : "text-paper hover:bg-paper/10",
-              )}
-            >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-[1.35rem] w-[1.35rem]">
-                <path d="M6.75 8.25h10.5l.85 11H5.9l.85-11Z" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M9 9V6.75a3 3 0 0 1 6 0V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-              {hydrated && itemCount > 0 ? (
-                <span className="absolute -left-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1 text-[10px] font-medium leading-none text-forest shadow-[0_2px_8px_rgba(9,43,28,0.18)]">
-                  {toFa(Math.min(itemCount, 99))}
-                </span>
-              ) : null}
-            </Link>
           </div>
         </div>
       </header>

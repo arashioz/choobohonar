@@ -19,9 +19,6 @@ services:
     environment:
       MONGODB_URI: mongodb://mongo:27017/choob-va-honar
       FRONTEND_URL: http://localhost:3000,http://localhost:3003,http://95.38.165.133
-      ADMIN_USER: choobhonar
-      ADMIN_PASS: admin123
-      JWT_SECRET: changeme_secret
       REDIS_URL: redis://redis:6379
     # Mount the backend source so changes are reflected immediately in the
     # running container. We also mount uploads for persisted files.

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { cartStore, type CartItem } from "@/lib/cart";
+import { useCart } from "@/components/commerce/cart/CartProvider";
 import { cn, toFa } from "@/lib/utils";
 
 function isShopRoute(pathname: string) {
@@ -25,18 +25,11 @@ export default function ShopCartDrawer() {
   const router = useRouter();
   const visible = isShopRoute(pathname);
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, itemCount: count, subtotal, setQuantity, removeItem } = useCart();
   const [bounce, setBounce] = useState(false);
   const [pulse, setPulse] = useState(false);
   const [highlightSlug, setHighlightSlug] = useState<string | null>(null);
   const [justAddedName, setJustAddedName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const sync = () => setItems(cartStore.get());
-    sync();
-    window.addEventListener("choobohonar:cart", sync);
-    return () => window.removeEventListener("choobohonar:cart", sync);
-  }, []);
 
   useEffect(() => {
     const onAdd = (event: Event) => {
@@ -69,9 +62,6 @@ export default function ShopCartDrawer() {
   }, [open]);
 
   if (!visible) return null;
-
-  const count = items.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = items.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
 
   return (
     <>
@@ -164,7 +154,7 @@ export default function ShopCartDrawer() {
               ) : (
                 items.map((item) => (
                   <div
-                    key={item.slug}
+                    key={item.key}
                     className={cn(
                       "flex gap-3 rounded-2xl border border-forest/8 bg-white/70 p-3",
                       highlightSlug === item.slug && "cart-item-flash",
@@ -190,28 +180,28 @@ export default function ShopCartDrawer() {
                         {item.name}
                       </Link>
                       <p className="mt-1 text-xs text-forest/50">
-                        {formatPrice(item.unitPrice)}
+                        {item.unitPrice === null ? "استعلام قیمت" : formatPrice(item.unitPrice)}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <button
                           type="button"
                           className="flex h-7 w-7 items-center justify-center rounded-lg border border-forest/15 text-sm"
-                          onClick={() => cartStore.setQty(item.slug, item.qty - 1)}
+                          onClick={() => setQuantity(item.key, item.quantity - 1)}
                         >
                           −
                         </button>
-                        <span className="w-5 text-center text-xs">{toFa(item.qty)}</span>
+                        <span className="w-5 text-center text-xs">{toFa(item.quantity)}</span>
                         <button
                           type="button"
                           className="flex h-7 w-7 items-center justify-center rounded-lg border border-forest/15 text-sm"
-                          onClick={() => cartStore.setQty(item.slug, item.qty + 1)}
+                          onClick={() => setQuantity(item.key, item.quantity + 1)}
                         >
                           +
                         </button>
                         <button
                           type="button"
                           className="ms-auto text-[11px] text-forest/40 hover:text-brick"
-                          onClick={() => cartStore.remove(item.slug)}
+                          onClick={() => removeItem(item.key)}
                         >
                           حذف
                         </button>
