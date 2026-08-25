@@ -75,11 +75,13 @@ class CreateOrderShippingDto {
   @IsString()
   postalCode?: string;
 
+  @IsOptional()
   @IsNumber()
-  lat: number;
+  lat?: number;
 
+  @IsOptional()
   @IsNumber()
-  lng: number;
+  lng?: number;
 
   @IsOptional()
   @IsString()

@@ -17,6 +17,7 @@ import ProductReviews from "@/components/products/ProductReviews";
 import ProductFaq from "@/components/products/ProductFaq";
 import CommerceProductDetail from "@/components/commerce/CommerceProductDetail";
 import CommerceProductEditorial from "@/components/commerce/CommerceProductEditorial";
+import AddToCartButton from "@/components/shop/AddToCartButton";
 import { getProductEditorialContent } from "@/lib/product-editorial";
 import { getApiBase } from "@/lib/api-base";
 
@@ -63,7 +64,7 @@ export default async function ProductPage({ params }: PageProps) {
   if (!product) {
     const shopProduct = await getAdminProduct(slug);
     if (!shopProduct || shopProduct.status !== "published") notFound();
-    return <AdminProductPage product={shopProduct} />;
+    return <AdminProductPage product={shopProduct} slug={slug} />;
   }
 
   if (isShopProduct(product)) {
@@ -165,19 +166,19 @@ export default async function ProductPage({ params }: PageProps) {
   );
 }
 
-type AdminProduct = { name: string; category: string; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
+type AdminProduct = { _id?: string; name: string; category: string; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
 async function getAdminProduct(slug: string): Promise<AdminProduct | null> {
   try {
     const response = await fetch(`${getApiBase()}/shop/products/slug/${encodeURIComponent(slug)}`, { cache: "no-store" });
     return response.ok ? response.json() : null;
   } catch { return null; }
 }
-function AdminProductPage({ product }: { product: AdminProduct }) {
+function AdminProductPage({ product, slug }: { product: AdminProduct; slug: string }) {
   const images = product.gallery?.length ? product.gallery : product.image ? [product.image] : [];
   return <section className="bg-paper pt-32 pb-24 md:pt-40 md:pb-32"><Container>
     <nav className="mb-10 flex items-center gap-2 text-sm text-forest/55"><Link href="/">خانه</Link><span>/</span><Link href="/products">محصولات</Link><span>/</span><span className="text-forest">{product.name}</span></nav>
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-16"><div className="space-y-3">{images.length ? images.map((image, index) => <div key={image} className="relative aspect-[4/5] overflow-hidden bg-forest/5"><img src={image} alt={`${product.name}${index ? ` ${index + 1}` : ""}`} className="h-full w-full object-cover" /></div>) : <div className="aspect-[4/5] bg-forest/5" />}</div>
-      <div className="lg:sticky lg:top-28 lg:h-fit"><p className="eyebrow text-brick">{product.category}</p><h1 className="mt-4 text-4xl font-light tracking-tightest text-forest md:text-6xl">{product.name}</h1><p className="mt-6 text-lg leading-9 text-forest/65">{product.shortDescription}</p>{product.price ? <p className="mt-8 text-2xl text-forest">{product.price.toLocaleString("fa-IR")} تومان</p> : null}<p className="mt-3 text-sm text-forest/45">{product.trackInventory && product.stockQty === 0 ? "ناموجود" : "برای سفارش و مشاوره با ما تماس بگیرید."}</p><a href="/contact" className="mt-8 inline-flex bg-forest px-6 py-3 text-sm text-paper">ثبت درخواست خرید</a></div></div>
+      <div className="lg:sticky lg:top-28 lg:h-fit"><p className="eyebrow text-brick">{product.category}</p><h1 className="mt-4 text-4xl font-light tracking-tightest text-forest md:text-6xl">{product.name}</h1><p className="mt-6 text-lg leading-9 text-forest/65">{product.shortDescription}</p>{product.price ? <p className="mt-8 text-2xl text-forest">{product.price.toLocaleString("fa-IR")} تومان</p> : null}<p className="mt-3 text-sm text-forest/45">{product.trackInventory && product.stockQty === 0 ? "ناموجود" : "امکان ثبت سفارش آنلاین و هماهنگی با کارشناس فراهم است."}</p><div className="mt-8 flex flex-wrap gap-3">{!(product.trackInventory && product.stockQty === 0) ? <AddToCartButton slug={slug} name={product.name} image={product.image || ""} productId={product._id} unitPrice={product.price} label="افزودن به سبد خرید" /> : null}<Link href="/contact" className="inline-flex items-center rounded-xl border border-forest/20 px-6 py-3 text-sm text-forest">مشاوره خرید</Link></div></div></div>
     {product.longDescription && <article className="mx-auto mt-20 max-w-3xl whitespace-pre-wrap text-lg leading-[2] text-forest/75">{product.longDescription}</article>}
     {product.highlights?.length ? <div className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-2">{product.highlights.map((item) => <div key={item.title} className="border-t border-forest/15 pt-4"><h2 className="text-lg text-forest">{item.title}</h2><p className="mt-2 text-sm leading-7 text-forest/60">{item.description}</p></div>)}</div> : null}
     {product.specs?.length ? <dl className="mx-auto mt-16 max-w-3xl divide-y divide-forest/10 border-y border-forest/10">{product.specs.map((item) => <div key={item.label} className="grid grid-cols-2 py-4 text-sm"><dt className="text-forest/50">{item.label}</dt><dd className="text-forest">{item.value}</dd></div>)}</dl> : null}

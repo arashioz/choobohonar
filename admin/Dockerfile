@@ -4,8 +4,6 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package.json package-lock.json ./
-RUN npm config set registry https://mirror-npm.runflare.com
-
 RUN npm ci --no-audit --no-fund
 
 COPY . .

@@ -61,11 +61,11 @@ export class OrderShipping {
   @Prop()
   postalCode?: string;
 
-  @Prop({ required: true })
-  lat: number;
+  @Prop()
+  lat?: number;
 
-  @Prop({ required: true })
-  lng: number;
+  @Prop()
+  lng?: number;
 
   @Prop()
   mapNote?: string;

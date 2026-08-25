@@ -8,6 +8,7 @@ import { useCart } from "@/components/commerce/cart/CartProvider";
 import { formatMoney } from "@/lib/commerce";
 import { cn, toFa } from "@/lib/utils";
 import { required, validateEmail, validatePhone } from "@/lib/form-utils";
+import { checkoutApi } from "@/lib/checkout-api";
 
 type Step = 1 | 2 | 3;
 type PaymentMethod = "coordination" | "online";
@@ -63,6 +64,7 @@ export default function CheckoutFlow() {
   const [data, setData] = useState<CheckoutData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [completedOrder, setCompletedOrder] = useState<{ number: string; total: number } | null>(null);
   const currency = items.find((item) => item.currencySymbol)?.currencySymbol || "تومان";
 
@@ -117,20 +119,27 @@ export default function CheckoutFlow() {
     }
 
     setSubmitting(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    const orderNumber = `CH-${String(Date.now()).slice(-7)}`;
-    const orderSnapshot = {
-      number: orderNumber,
-      total: subtotal,
-      itemCount,
-      createdAt: new Date().toISOString(),
-      mode: "frontend-preview",
-    };
-    window.localStorage.setItem("choobohonar:last-order-preview", JSON.stringify(orderSnapshot));
-    setCompletedOrder({ number: orderNumber, total: subtotal });
-    clearCart();
-    setSubmitting(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSubmitError("");
+    try {
+      const order = await checkoutApi.createOrder({
+        items,
+        customer: { name: data.fullName, phone: data.phone, email: data.email },
+        shipping: {
+          address: data.address,
+          city: data.city,
+          province: data.province,
+          postalCode: data.postalCode,
+          mapNote: data.deliveryNote,
+        },
+      });
+      setCompletedOrder({ number: order.orderNumber, total: order.amounts.total });
+      clearCart();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "ثبت سفارش ناموفق بود. دوباره تلاش کنید.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!hydrated) {
@@ -143,12 +152,12 @@ export default function CheckoutFlow() {
         <Container>
           <div className="mx-auto max-w-3xl text-center">
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-peach/50 bg-peach text-3xl text-forest">✓</span>
-            <p className="eyebrow mt-9 text-peach">Order Preview Complete</p>
+            <p className="eyebrow mt-9 text-peach">Order Registered</p>
             <h1 className="mt-6 text-[clamp(3.4rem,8vw,7.5rem)] font-extralight leading-[0.86] tracking-tightest">
-              سفارش شما آماده ثبت نهایی‌ست
+              سفارش شما ثبت شد
             </h1>
             <p className="mx-auto mt-7 max-w-xl text-base leading-8 text-paper/65">
-              کد پیش‌نمایش سفارش <span dir="ltr" className="font-medium text-peach">{completedOrder.number}</span> ایجاد شد. پس از اتصال API بک‌اند، همین مرحله سفارش را در سیستم ثبت و به درگاه پرداخت هدایت می‌کند.
+              سفارش <span dir="ltr" className="font-medium text-peach">{completedOrder.number}</span> در سیستم ثبت شد. کارشناسان پس از بررسی، فاکتور و زمان ارسال را هماهنگ می‌کنند.
             </p>
             <div className="mx-auto mt-8 flex max-w-md items-center justify-between border-y border-paper/15 py-5 text-sm">
               <span className="text-paper/50">مبلغ محصولات</span>
@@ -303,8 +312,8 @@ export default function CheckoutFlow() {
                       checked={data.paymentMethod === "online"}
                       onChange={() => update("paymentMethod", "online")}
                       title="پرداخت آنلاین"
-                      description="رابط کاربری آماده است و پس از اتصال API به درگاه هدایت می‌شود."
-                      badge="در انتظار بک‌اند"
+                      description="پس از فعال‌سازی درگاه پرداخت، به صفحه پرداخت هدایت می‌شوید."
+                      badge="به‌زودی"
                     />
                   </div>
                 </fieldset>
@@ -323,12 +332,13 @@ export default function CheckoutFlow() {
               {step > 1 ? (
                 <button type="button" onClick={goBack} className="inline-flex min-h-12 items-center gap-2 px-2 text-sm text-forest/55 transition-colors hover:text-forest">→ مرحله قبل</button>
               ) : <span />}
+              {submitError ? <p role="alert" className="text-sm text-brick">{submitError}</p> : null}
               <button
                 type="submit"
-                disabled={submitting || (step === 3 && data.paymentMethod === "online")}
+                disabled={submitting}
                 className="inline-flex min-h-14 min-w-48 items-center justify-center gap-3 rounded-full bg-forest px-8 text-sm font-medium text-paper transition-all hover:bg-brick disabled:cursor-not-allowed disabled:opacity-45"
               >
-                {submitting ? "در حال ثبت..." : step === 1 ? "ادامه به نشانی" : step === 2 ? "بازبینی سفارش" : data.paymentMethod === "online" ? "در انتظار اتصال درگاه" : "ثبت پیش‌سفارش"}
+                {submitting ? "در حال ثبت..." : step === 1 ? "ادامه به نشانی" : step === 2 ? "بازبینی سفارش" : "ثبت سفارش"}
                 {!submitting ? <span>←</span> : null}
               </button>
             </div>
@@ -361,7 +371,7 @@ export default function CheckoutFlow() {
               </dl>
             </div>
             <div className="mt-4 bg-peach/30 p-5 text-xs leading-6 text-forest/60">
-              <span className="font-medium text-brick">نسخه پیش‌نمایش فرانت:</span> اطلاعات این فرم به سرویس خارجی ارسال نمی‌شود. قرارداد ثبت سفارش برای اتصال بک‌اند آماده خواهد شد.
+              سفارش پس از ثبت، مستقیماً در بخش «سفارش‌ها»ی پنل مدیریت قرار می‌گیرد.
             </div>
           </aside>
         </div>

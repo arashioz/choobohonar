@@ -2,8 +2,6 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN npm config set registry https://mirror-npm.runflare.com
-
 COPY package*.json ./
 
 RUN npm install

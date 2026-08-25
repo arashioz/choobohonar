@@ -20,6 +20,7 @@ export default function OrdersAdminPage() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +42,21 @@ export default function OrdersAdminPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function advance(order: ShopOrder, action: "invoice" | "shipping" | "delivered") {
+    setBusyId(order._id);
+    setError("");
+    try {
+      if (action === "invoice") await shopApi.orders.issueInvoice(order._id);
+      if (action === "shipping") await shopApi.orders.updateStatus(order._id, "shipping", "ثبت ارسال توسط مدیر");
+      if (action === "delivered") await shopApi.orders.updateStatus(order._id, "delivered", "ثبت تحویل توسط مدیر");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "به‌روزرسانی سفارش ناموفق بود");
+    } finally {
+      setBusyId("");
+    }
+  }
 
   return (
     <div className="relative min-h-screen bg-paper">
@@ -116,13 +132,14 @@ export default function OrdersAdminPage() {
                 <th className="px-4 py-3 font-medium">مبلغ</th>
                 <th className="px-4 py-3 font-medium">وضعیت</th>
                 <th className="px-4 py-3 font-medium">پرداخت</th>
+                <th className="px-4 py-3 font-medium">عملیات</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-forest/40">در حال بارگذاری…</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-forest/40">در حال بارگذاری…</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-forest/40">سفارشی نیست</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-forest/40">سفارشی نیست</td></tr>
               ) : (
                 items.map((order) => (
                   <tr key={order._id} className="border-t border-forest/5 hover:bg-forest/[0.02]">
@@ -138,6 +155,17 @@ export default function OrdersAdminPage() {
                     <td className="px-4 py-3">{formatPrice(order.amounts.total)}</td>
                     <td className="px-4 py-3">{ORDER_STATUS_LABELS[order.status] || order.status}</td>
                     <td className="px-4 py-3 text-xs text-forest/55">{order.payment.status}</td>
+                    <td className="px-4 py-3">
+                      {!order.invoiceId ? (
+                        <button type="button" disabled={busyId === order._id} onClick={() => void advance(order, "invoice")} className="rounded-lg bg-forest px-2.5 py-1.5 text-[11px] text-paper disabled:opacity-50">تبدیل به فاکتور</button>
+                      ) : order.status !== "shipping" && order.status !== "delivered" ? (
+                        <button type="button" disabled={busyId === order._id} onClick={() => void advance(order, "shipping")} className="rounded-lg bg-peach px-2.5 py-1.5 text-[11px] text-forest disabled:opacity-50">ثبت ارسال</button>
+                      ) : order.status === "shipping" ? (
+                        <button type="button" disabled={busyId === order._id} onClick={() => void advance(order, "delivered")} className="rounded-lg bg-sage/45 px-2.5 py-1.5 text-[11px] text-forest disabled:opacity-50">ثبت تحویل</button>
+                      ) : (
+                        <span className="text-[11px] text-forest/45">تحویل شد</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

@@ -233,8 +233,8 @@ export type ShopOrder = {
     city: string;
     province: string;
     postalCode?: string;
-    lat: number;
-    lng: number;
+    lat?: number;
+    lng?: number;
     mapNote?: string;
   };
   payment: { method: string; status: string; paidAt?: string; mockRef?: string };
@@ -287,7 +287,7 @@ export type OrderStats = {
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: "در انتظار",
-  confirmed: "تأیید شده",
+  confirmed: "فاکتور شده",
   paid: "پرداخت‌شده",
   preparing: "آماده‌سازی",
   shipping: "ارسال",

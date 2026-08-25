@@ -146,17 +146,7 @@ export default function OrderDetailAdminPage() {
               {order.shipping.province}، {order.shipping.city}
             </p>
             <p className="text-forest/60">{order.shipping.address}</p>
-            <p className="mt-2 text-xs text-forest/40" dir="ltr">
-              {order.shipping.lat.toFixed(5)}, {order.shipping.lng.toFixed(5)}
-            </p>
-            <a
-              className="mt-2 inline-block text-xs text-brick hover:underline"
-              href={`https://www.openstreetmap.org/?mlat=${order.shipping.lat}&mlon=${order.shipping.lng}#map=16/${order.shipping.lat}/${order.shipping.lng}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              باز کردن روی نقشه
-            </a>
+            {typeof order.shipping.lat === "number" && typeof order.shipping.lng === "number" ? <><p className="mt-2 text-xs text-forest/40" dir="ltr">{order.shipping.lat.toFixed(5)}, {order.shipping.lng.toFixed(5)}</p><a className="mt-2 inline-block text-xs text-brick hover:underline" href={`https://www.openstreetmap.org/?mlat=${order.shipping.lat}&mlon=${order.shipping.lng}#map=16/${order.shipping.lat}/${order.shipping.lng}`} target="_blank" rel="noreferrer">باز کردن روی نقشه</a></> : <p className="mt-2 text-xs text-forest/40">موقعیت نقشه ثبت نشده است.</p>}
           </section>
         </div>
 

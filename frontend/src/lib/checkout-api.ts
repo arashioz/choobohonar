@@ -1,5 +1,13 @@
 import { getApiBase } from "@/lib/api-base";
-import type { CartItem } from "@/lib/cart";
+type CheckoutCartItem = {
+  productId?: string | number;
+  slug: string;
+  name: string;
+  image?: string;
+  unitPrice: number | null;
+  quantity?: number;
+  qty?: number;
+};
 
 export type CheckoutCustomer = {
   name: string;
@@ -12,8 +20,8 @@ export type CheckoutShipping = {
   city: string;
   province: string;
   postalCode?: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   mapNote?: string;
 };
 
@@ -21,7 +29,13 @@ export type ShopOrder = {
   _id: string;
   orderNumber: string;
   status: string;
-  items: CartItem[];
+  items: {
+    slug: string;
+    name: string;
+    image?: string;
+    qty: number;
+    unitPrice: number;
+  }[];
   customer: CheckoutCustomer;
   shipping: CheckoutShipping;
   payment: {
@@ -73,7 +87,7 @@ export function formatApiError(text: string, status: number): string {
 }
 
 function toOrderPayload(input: {
-  items: CartItem[];
+  items: CheckoutCartItem[];
   customer: CheckoutCustomer;
   shipping: CheckoutShipping;
   shippingFee?: number;
@@ -83,9 +97,9 @@ function toOrderPayload(input: {
       slug: item.slug,
       name: item.name,
       image: item.image || undefined,
-      qty: Number(item.qty) || 1,
+      qty: Number(item.quantity ?? item.qty) || 1,
       unitPrice: Number(item.unitPrice) || 0,
-      ...(item.productId ? { productId: item.productId } : {}),
+      ...(item.productId ? { productId: String(item.productId) } : {}),
     })),
     customer: {
       name: input.customer.name.trim(),
@@ -98,8 +112,8 @@ function toOrderPayload(input: {
       address: input.shipping.address.trim(),
       city: input.shipping.city.trim(),
       province: input.shipping.province.trim(),
-      lat: Number(input.shipping.lat),
-      lng: Number(input.shipping.lng),
+      ...(Number.isFinite(input.shipping.lat) ? { lat: Number(input.shipping.lat) } : {}),
+      ...(Number.isFinite(input.shipping.lng) ? { lng: Number(input.shipping.lng) } : {}),
       ...(input.shipping.postalCode?.trim()
         ? { postalCode: input.shipping.postalCode.trim() }
         : {}),
@@ -135,7 +149,7 @@ async function getJson<T>(path: string): Promise<T> {
 
 export const checkoutApi = {
   createOrder: (input: {
-    items: CartItem[];
+    items: CheckoutCartItem[];
     customer: CheckoutCustomer;
     shipping: CheckoutShipping;
     shippingFee?: number;

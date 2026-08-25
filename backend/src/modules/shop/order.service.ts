@@ -156,11 +156,6 @@ export class OrderService {
 
     await order.save();
 
-    if (dto.status === 'paid' && !order.invoiceId) {
-      await this.issueInvoice(order._id.toString());
-      return this.get(id);
-    }
-
     return order;
   }
 
@@ -200,10 +195,6 @@ export class OrderService {
     order.status = 'paid';
     await order.save();
 
-    if (!order.invoiceId) {
-      await this.issueInvoice(order._id.toString());
-    }
-
     return this.get(id);
   }
 
@@ -237,6 +228,16 @@ export class OrderService {
     });
 
     order.invoiceId = invoice._id as Types.ObjectId;
+    if (order.status === 'pending') {
+      order.statusHistory.push({
+        from: 'pending',
+        to: 'confirmed',
+        at: new Date(),
+        by: 'admin',
+        note: 'تبدیل سفارش به فاکتور',
+      });
+      order.status = 'confirmed';
+    }
     await order.save();
     return invoice;
   }
