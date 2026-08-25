@@ -33,18 +33,21 @@ export default function HeroSection() {
   const monogram = useRef<HTMLDivElement>(null);
   const media = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const mobileVideo = useRef<HTMLVideoElement>(null);
   const [loaderHidden, setLoaderHidden] = useState(false);
 
   useEffect(() => {
-    const heroVideo = video.current;
-    if (!heroVideo) return;
+    const heroVideos = [video.current, mobileVideo.current].filter(
+      (item): item is HTMLVideoElement => Boolean(item),
+    );
+    if (!heroVideos.length) return;
 
     const syncPlayback = () => {
       if (document.hidden || prefersReducedMotion()) {
-        heroVideo.pause();
+        heroVideos.forEach((item) => item.pause());
         return;
       }
-      void heroVideo.play().catch(() => undefined);
+      heroVideos.forEach((item) => void item.play().catch(() => undefined));
     };
 
     syncPlayback();
@@ -182,9 +185,21 @@ export default function HeroSection() {
           playsInline
           preload="metadata"
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 hidden h-full w-full object-cover md:block"
         >
           <source src="/videos/anzhelik.mp4" type="video/mp4" />
+        </video>
+        <video
+          ref={mobileVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover md:hidden"
+        >
+          <source src="/030509_KC&H Clip 1.3.m4v" type="video/mp4" />
         </video>
         {/* Stronger floor wash so the field reads as solid green */}
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/45" />
