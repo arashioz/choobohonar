@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
-import { DEFAULT_UNIT_PRICE } from "@/lib/cart";
-import { useCart } from "@/components/commerce/cart/CartProvider";
+import { cartStore, DEFAULT_UNIT_PRICE } from "@/lib/cart";
 
 type Props = {
   slug: string;
@@ -23,8 +22,6 @@ export default function AddToCartButton({
   label = "افزودن به سبد",
 }: Props) {
   const [added, setAdded] = useState(false);
-  const { addItem } = useCart();
-
   return (
     <Button
       as="button"
@@ -32,14 +29,14 @@ export default function AddToCartButton({
       variant="primary"
       showArrow
       onClick={() => {
-        addItem({
-          productId: numericProductId(productId || slug),
+        // Write immediately so the floating cart is updated even if the
+        // product page is navigating or React is still hydrating.
+        cartStore.add({
+          productId: productId || slug,
           slug,
           name,
           image,
           unitPrice,
-          category: "محصولات",
-          currencySymbol: "تومان",
         });
         setAdded(true);
         window.setTimeout(() => setAdded(false), 1800);
@@ -49,5 +46,3 @@ export default function AddToCartButton({
     </Button>
   );
 }
-
-function numericProductId(value: string) { const direct = Number(value); return Number.isFinite(direct) && direct > 0 ? direct : [...value].reduce((hash, char) => ((hash * 31 + char.charCodeAt(0)) >>> 0), 7) || 1; }

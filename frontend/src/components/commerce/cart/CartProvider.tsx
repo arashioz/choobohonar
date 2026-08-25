@@ -87,7 +87,7 @@ function readStoredCart(): CartItem[] {
         quantity: Math.min(Math.max(Math.round(item.quantity), 1), MAX_ITEM_QUANTITY),
         options: Array.isArray(item.options) ? item.options : [],
       }));
-    return items.length ? items : readLegacyCart();
+    return items;
   } catch {
     return [];
   }
@@ -121,6 +121,13 @@ export default function CartProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     setItems(readStoredCart());
+    // The legacy key is only a one-time migration path. Keeping it would make
+    // removed items return on a later refresh or a subsequent add action.
+    try {
+      window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+    } catch {
+      // Storage may be unavailable; the in-memory cart remains usable.
+    }
     setHydrated(true);
   }, []);
 
@@ -139,6 +146,31 @@ export default function CartProvider({ children }: { children: React.ReactNode }
     };
     window.addEventListener("storage", syncCart);
     return () => window.removeEventListener("storage", syncCart);
+  }, []);
+
+  useEffect(() => {
+    // Legacy product cards write synchronously to their established key.
+    // Merge that data into the storefront cart for a single visible cart.
+    const syncLegacyCart = () => {
+      const legacyItems = readLegacyCart();
+      try {
+        window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+      } catch {
+        // The merged in-memory cart will still update the UI.
+      }
+      setItems((current) => {
+        const legacyByKey = new Map(legacyItems.map((item) => [item.key, item]));
+        const merged = current.map((item) => {
+          const legacy = legacyByKey.get(item.key);
+          return legacy ? { ...item, ...legacy } : item;
+        });
+        const currentKeys = new Set(current.map((item) => item.key));
+        const additions = legacyItems.filter((item) => !currentKeys.has(item.key));
+        return additions.length ? [...merged, ...additions] : merged;
+      });
+    };
+    window.addEventListener("choobohonar:cart", syncLegacyCart);
+    return () => window.removeEventListener("choobohonar:cart", syncLegacyCart);
   }, []);
 
   const addProduct = useCallback((product: ShopProduct, options: CartOption[] = []) => {
