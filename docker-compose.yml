@@ -2,88 +2,84 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    # Avoid binding to host 27017 if a local MongoDB is already running.
-    # Map to 27018 on the host by default; change to 27017 if you want the standard port
-    ports:
-      - '27018:27017'
     volumes:
       - ./data/mongo:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
+
   backend:
-    # Use a lightweight node image for development so we can mount source and
-    # avoid rebuilding images on every change. In production you can switch
-    # this back to a build image or use docker-compose.prod.yml.
-    image: node:20-alpine
+    image: ${REGISTRY_PREFIX:-choobohonar}/backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
       MONGODB_URI: mongodb://mongo:27017/choob-va-honar
-      FRONTEND_URL: http://localhost:3000,http://localhost:3003,http://95.38.165.133
+      FRONTEND_URL: http://95.38.165.133
+      NODE_ENV: production
       REDIS_URL: redis://redis:6379
-    # Mount the backend source so changes are reflected immediately in the
-    # running container. We also mount uploads for persisted files.
     volumes:
-      - ./backend:/app
       - ./backend/uploads:/app/uploads
-    ports:
-      - '3001:3001'
+    expose:
+      - '3001'
     depends_on:
       - mongo
       - redis
-    working_dir: /app
-    command: sh -c "npm install --silent && npm run start:dev"
 
   frontend:
-    # Development-friendly frontend service: mount source and run `npm run dev`.
-    image: node:20-alpine
+    image: ${REGISTRY_PREFIX:-choobohonar}/frontend:${IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api
     restart: unless-stopped
-    # Mount the project but keep node_modules inside the container to avoid
-    # host-driven file changes triggering Next.js restarts (common cause of
-    # continuous "Starting..." loops). The anonymous volume for /app/node_modules
-    # ensures dependencies are stored in the container filesystem instead of
-    # being created/modified on the host.
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - '3000:3000'
-    depends_on:
-      - backend
-      - redis
-    working_dir: /app
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
-      # Browser uses same-origin /api; Next rewrites it to the backend service.
-      API_PROXY_TARGET: http://backend:3001/api
-    # Use npm ci for reproducible installs and keep install output quiet. The
-    # node_modules volume prevents these changes from being seen by the host
-    # Next.js watcher which resolves infinite restart loops caused by mounts.
-    command: sh -c "npm ci --silent --no-audit --no-fund && npm run dev"
+      NODE_ENV: production
+      API_URL: http://backend:3001/api
+    expose:
+      - '3000'
+    depends_on:
+      - backend
 
   admin:
-    # Development-friendly admin UI (Next.js) — mounted so changes are picked up
-    image: node:20-alpine
+    image: ${REGISTRY_PREFIX:-choobohonar}/admin:${IMAGE_TAG:-latest}
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_ASSET_PREFIX: /admin
     restart: unless-stopped
-    volumes:
-      - ./admin:/app
-      - /app/node_modules
-    ports:
-      # Admin Next listens on 3003 inside the container (`next dev -p 3003`).
-      - '3003:3003'
-    depends_on:
-      - backend
-      - redis
-    working_dir: /app
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
-      # Server-side auth proxy → Docker network hostname (not localhost).
+      NODE_ENV: production
       API_URL: http://backend:3001/api
       API_PROXY_TARGET: http://backend:3001/api
-    # Use npm ci for reproducible installs and run the dev server
-    command: sh -c "npm ci --silent --no-audit --no-fund && npm run dev"
+    expose:
+      - '3000'
+    depends_on:
+      - backend
 
-  redis:
-    image: redis:7
+  nginx:
+    image: ${REGISTRY_PREFIX:-choobohonar}/nginx:${IMAGE_TAG:-latest}
+    build:
+      context: ./deploy/nginx
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '95.38.165.133:80:80'
+    volumes:
+      - ./backend/uploads:/var/www/uploads:ro
+    depends_on:
+      - frontend
+      - backend
+      - admin
