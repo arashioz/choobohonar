@@ -2,7 +2,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN npm config set registry https://registry.npmjs.org
+RUN npm config set registry https://npm.arvancloud.ir
 
 COPY package*.json ./
 
