@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
   registerGsap,
   gsap,
@@ -35,11 +35,8 @@ export default function Stagger({
 }: StaggerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  const hiddenState =
-    from === "right"
-      ? { opacity: 0, x: y, y: 0, scale: 1 }
-      : { opacity: 0, y, x: 0, scale: 1 };
-  const visibleState = { opacity: 1, x: 0, y: 0, scale: 1 };
+  const hiddenState = useMemo(() => from === "right" ? { opacity: 0, x: y, y: 0, scale: 1 } : { opacity: 0, y, x: 0, scale: 1 }, [from, y]);
+  const visibleState = useMemo(() => ({ opacity: 1, x: 0, y: 0, scale: 1 }), []);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -47,7 +44,7 @@ export default function Stagger({
     registerGsap();
     const items = Array.from(el.querySelectorAll<HTMLElement>(selector));
     if (items.length) gsap.set(items, hiddenState);
-  }, [selector, y, from]);
+  }, [selector, hiddenState]);
 
   useEffect(() => {
     const el = ref.current;
@@ -99,7 +96,7 @@ export default function Stagger({
       ctx?.revert();
       window.clearTimeout(cancelFailsafe);
     };
-  }, [selector, amount, y, from, start]);
+  }, [selector, amount, start, hiddenState, visibleState]);
 
   return (
     <div ref={ref} className={cn("motion-stagger", className)}>

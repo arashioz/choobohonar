@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import BrandbookHeroMotion from "@/components/motion/BrandbookHeroMotion";
-import RevealLine from "@/components/motion/RevealLine";
 import BrandbookNavigation from "@/components/brandbook/layout/BrandbookNavigation";
 import { brandbookNavItems } from "@/data/brandbook-nav";
 import BrandbookSections from "@/components/brandbook/BrandbookSections";

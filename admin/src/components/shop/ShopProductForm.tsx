@@ -332,8 +332,8 @@ export default function ShopProductForm({
             <div className="grid gap-4 sm:grid-cols-3"><Field label="عرض (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.width} onChange={(e) => set("width", e.target.value)} /></Field><Field label="عمق (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.depth} onChange={(e) => set("depth", e.target.value)} /></Field><Field label="ارتفاع (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.height} onChange={(e) => set("height", e.target.value)} /></Field></div>
           </section>
 
-          <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs)} left="عنوان مشخصه" right="مقدار" />
-          <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights)} left="عنوان" right="توضیح کوتاه" />
+          <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs.map((item) => ({ label: item.label || "", value: item.value || "" })))} left="عنوان مشخصه" right="مقدار" />
+          <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights.map((item) => ({ title: item.title || "", description: item.description || "" })))} left="عنوان" right="توضیح کوتاه" />
 
           <ProductMediaGallery images={form.gallery} uploading={uploading} onUpload={uploadImages} onChange={setGallery} />
 
@@ -408,7 +408,9 @@ function parsePrice(value: string) { return Number(value.replace(/[^0-9]/g, ""))
 function formatPrice(value: string) { const digits = value.replace(/[^0-9]/g, ""); return digits ? Number(digits).toLocaleString("en-US") : ""; }
 function compactDimensions(form: FormState) { const dimensions = { width: Number(form.width) || undefined, depth: Number(form.depth) || undefined, height: Number(form.height) || undefined }; return Object.values(dimensions).some(Boolean) ? dimensions : undefined; }
 
-function ProductDetailsEditor({ label, description, rows, onChange, left, right }: { label: string; description: string; rows: { label?: string; value?: string; title?: string; description?: string }[]; onChange: (rows: any[]) => void; left: string; right: string }) {
+type ProductDetailRow = { label?: string; value?: string; title?: string; description?: string };
+
+function ProductDetailsEditor({ label, description, rows, onChange, left, right }: { label: string; description: string; rows: ProductDetailRow[]; onChange: (rows: ProductDetailRow[]) => void; left: string; right: string }) {
   const isHighlight = rows.some((row) => "title" in row) || label.includes("نقاط");
   const normalized = rows.length ? rows : [isHighlight ? { title: "", description: "" } : { label: "", value: "" }];
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
@@ -436,6 +438,7 @@ function ProductMediaGallery({ images, uploading, onUpload, onChange }: { images
       <input className="hidden" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={uploading} onChange={onUpload} />
     </label>
     <div className="mt-3 space-y-2">{images.map((image, index) => <div key={`${image}-${index}`} className="flex items-center gap-2 rounded-xl border border-forest/10 bg-[#faf8f5] p-2">
+      {/* eslint-disable-next-line @next/next/no-img-element -- uploaded media can use an arbitrary external URL */}
       <img src={image} alt="" className="h-14 w-14 rounded-lg object-cover bg-forest/5" />
       <span className="min-w-0 flex-1 truncate text-[9px] text-forest/40" dir="ltr">{image}</span>
       <div className="flex items-center gap-1"><button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="rounded px-2 py-1 text-forest/45 disabled:opacity-20" title="انتقال به قبل">↑</button><button type="button" disabled={index === images.length - 1} onClick={() => move(index, 1)} className="rounded px-2 py-1 text-forest/45 disabled:opacity-20" title="انتقال به بعد">↓</button><button type="button" onClick={() => onChange(images.filter((_, i) => i !== index))} className="rounded px-2 py-1 text-brick" title="حذف">×</button></div>
