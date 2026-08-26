@@ -8,13 +8,17 @@ import Stagger from "@/components/motion/Stagger";
 import { materials } from "@/data/materials";
 import { getMaterialCommerceItems, materialCommerceItems } from "@/data/material-products";
 import { toFa } from "@/lib/utils";
+import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import type { Material } from "@/data/materials";
 
 export const metadata: Metadata = {
   title: "کتابخانه و فروشگاه متریال | خانه چوب و هنر",
   description: "چوب، پارچه، روکش و فلز؛ مشاهده مشخصات فنی، مقایسه و درخواست نمونه متریال‌های خانه چوب و هنر.",
 };
 
-export default function MaterialsPage() {
+export default async function MaterialsPage() {
+  const migrated = await fetchPublicCmsEntries("material");
+  const visibleMaterials = migrated.length ? migrated as unknown as Material[] : materials;
   return (
     <>
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#73563d] text-paper">
@@ -71,7 +75,7 @@ export default function MaterialsPage() {
           </div>
 
           <Stagger className="mt-16 grid gap-px bg-forest/10 md:grid-cols-2 lg:mt-24" selector="[data-material-card]">
-            {materials.map((material, index) => {
+            {visibleMaterials.map((material, index) => {
               const items = getMaterialCommerceItems(material.id);
               const first = items[0];
               return (

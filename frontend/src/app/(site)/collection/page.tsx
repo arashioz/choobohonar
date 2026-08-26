@@ -5,13 +5,17 @@ import { collections, getCollectionProductCount } from "@/data/collections";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import { toFa } from "@/lib/utils";
+import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import type { ProductCollection } from "@/data/collections";
 
 export const metadata: Metadata = {
   title: "کالکشن‌ها | خانه چوب و هنر",
   description: "مجموعه‌های محصول خانه چوب و هنر؛ از کالکشن سولو تا مجموعه‌های آینده برند.",
 };
 
-export default function CollectionPage() {
+export default async function CollectionPage() {
+  const migrated = await fetchPublicCmsEntries("collection");
+  const visibleCollections = migrated.length ? migrated as unknown as ProductCollection[] : collections;
   return (
     <section className="bg-paper pt-32 pb-24 md:pt-40 md:pb-32">
       <Container>
@@ -35,7 +39,7 @@ export default function CollectionPage() {
         </div>
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {collections.map((collection, index) => {
+          {visibleCollections.map((collection, index) => {
             const productCount = getCollectionProductCount(collection.slug);
             return (
               <FadeUp key={collection.slug} delay={index * 0.08}>
