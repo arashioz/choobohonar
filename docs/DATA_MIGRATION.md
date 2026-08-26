@@ -7,9 +7,9 @@
 | `frontend/src/data/shop-catalog.json` | کاتالوگ محصولات و تصاویر | `shop_products` | seed خودکار + دکمه «سینک کاتالوگ» |
 | `frontend/src/data/posts/articles/editorial-series.ts` | ۲۰ مقاله‌ی مجله و تصاویر جلد | `cms_entries` با `kind=article` | seed خودکار و idempotent |
 | `frontend/src/data/content-seed.json` | نمونه jobهای هوش مصنوعی | `content_jobs` | داده‌ی آزمایشی؛ برای تولید واقعی باید با provider جایگزین شود |
-| `frontend/src/data/projects.ts` | پروژه‌ها و روایت تصویری | `cms_entries` با `kind=project` | نیازمند تکمیل migration ساختاری |
-| `frontend/src/data/materials.ts` و `material-products.ts` | متریال و اطلاعات فروش | `cms_entries` با `kind=material` | نیازمند تکمیل migration ساختاری |
-| `frontend/src/data/collections.ts` | کالکشن‌ها | `cms_entries` با `kind=collection` | نیازمند تکمیل migration ساختاری |
+| `frontend/src/data/projects.ts` | پروژه‌ها و روایت تصویری | `cms_entries` با `kind=project` | seed شده؛ صفحه فهرست از CMS می‌خواند |
+| `frontend/src/data/materials.ts` و `material-products.ts` | متریال و اطلاعات فروش | `cms_entries` با `kind=material` | seed شده؛ صفحه فهرست از CMS می‌خواند |
+| `frontend/src/data/collections.ts` | کالکشن‌ها | `cms_entries` با `kind=collection` | seed شده؛ صفحه فهرست از CMS می‌خواند |
 | `frontend/src/data/stores.ts` | شعب و آدرس‌ها | collection تنظیمات/شعب | نیازمند schema جدا |
 | `frontend/src/data/nav.ts`, `workAreas.ts`, `interior-architecture.ts`, `contact-forms.ts` | ناوبری و محتوای صفحات | تنظیمات/صفحات CMS | فعلاً محتوای ثابت رابط کاربری |
 
