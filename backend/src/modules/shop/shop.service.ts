@@ -41,9 +41,7 @@ export class ShopService implements OnModuleInit {
   async onModuleInit() {
     // Bootstrap the catalog into MongoDB once. Admin-created products are
     // preserved on subsequent restarts and can then be managed normally.
-    if ((await this.productModel.countDocuments()) === 0) {
-      await this.seedFromCatalog(false);
-    }
+    await this.seedFromCatalog(false);
   }
 
   async list(query: {
@@ -366,7 +364,7 @@ export class ShopService implements OnModuleInit {
       },
     }));
 
-    const result = await this.productModel.bulkWrite(ops as never);
+    const result = ops.length ? await this.productModel.bulkWrite(ops as never) : { upsertedCount: 0, modifiedCount: 0 };
     const total = await this.productModel.countDocuments();
 
     return {
