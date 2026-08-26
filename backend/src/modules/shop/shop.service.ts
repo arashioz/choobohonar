@@ -357,7 +357,9 @@ export class ShopService implements OnModuleInit {
 
     // bulkWrite upsert by slug
     const ops = docs.map((doc) => {
-      const { image: _image, gallery: _gallery, ...catalogFields } = doc;
+      // `slug` is the upsert key and must only be present in $setOnInsert;
+      // MongoDB rejects updating the same path in both operators.
+      const { slug: _slug, image: _image, gallery: _gallery, ...catalogFields } = doc;
       return {
       updateOne: {
         filter: { slug: doc.slug },
