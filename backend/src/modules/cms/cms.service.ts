@@ -23,6 +23,9 @@ export class CmsService implements OnModuleInit {
       { kind: 'collection', title: 'کالکشن زیست', slug: 'zist-collection', status: 'draft', excerpt: 'مجموعه‌ای با تمرکز بر فرم‌های طبیعی و متریال صادق.', description: 'داستان کالکشن زیست از طبیعت و ریتم زندگی روزمره الهام می‌گیرد.', data: { season: 'پاییز ۱۴۰۵', productIds: [], featured: true } },
     ]);
     await this.seedEditorialArticles();
+    await this.seedLegacyContent('project', 'legacy-projects.json');
+    await this.seedLegacyContent('material', 'legacy-materials.json');
+    await this.seedLegacyContent('collection', 'legacy-collections.json');
   }
 
   assertKind(kind: string): CmsEntryKind {
@@ -126,6 +129,21 @@ export class CmsService implements OnModuleInit {
       if (operations.length) await this.entryModel.bulkWrite(operations as never);
     } catch (error) {
       console.warn('[cms] editorial seed skipped:', error instanceof Error ? error.message : error);
+    }
+  }
+
+  private async seedLegacyContent(kind: CmsEntryKind, filename: string) {
+    const filePath = join(process.cwd(), `src/modules/cms/data/${filename}`);
+    try {
+      const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<Record<string, any>>;
+      const operations = rows.filter((row) => row.slug && (row.title || row.name || row.label)).map((row) => {
+        const title = String(row.title || row.name || row.label);
+        const images = [row.image, ...(Array.isArray(row.featuredImages) ? row.featuredImages : []), ...(Array.isArray(row.gallery) ? row.gallery.map((item: any) => typeof item === 'string' ? item : item?.src) : []), ...(Array.isArray(row.sections) ? row.sections.map((item: any) => item?.image) : [])].filter((image): image is string => typeof image === 'string' && image.length > 0).filter((image, index, all) => all.indexOf(image) === index);
+        return { updateOne: { filter: { kind, slug: row.slug }, update: { $setOnInsert: { kind, title, slug: row.slug, status: 'published', excerpt: row.excerpt || row.summary || row.shortDescription || '', description: row.description || row.longDescription || '', content: row.description || row.longDescription || '', images, data: row, tags: Array.isArray(row.tags) ? row.tags : Array.isArray(row.scope) ? row.scope : [], publishedAt: new Date() } }, upsert: true } };
+      });
+      if (operations.length) await this.entryModel.bulkWrite(operations as never);
+    } catch (error) {
+      console.warn(`[cms] ${kind} seed skipped:`, error instanceof Error ? error.message : error);
     }
   }
 

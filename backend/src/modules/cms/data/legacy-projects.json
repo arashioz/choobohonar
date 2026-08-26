@@ -1,0 +1,846 @@
+[
+  {
+    "slug": "aknoon-residence",
+    "title": "اقامتگاه آکنون",
+    "category": "مسکونی",
+    "year": "۱۴۰۳",
+    "featured": true,
+    "featuredImages": [
+      "/images/projects/aknoon-residence/04.jpg",
+      "/images/projects/aknoon-residence/09.jpg"
+    ],
+    "image": "/images/projects/aknoon-residence/04.jpg",
+    "heroMarkers": [
+      {
+        "id": "aknoon-hero-sofa",
+        "productSlug": "alder-sofa",
+        "x": 38,
+        "y": 58
+      },
+      {
+        "id": "aknoon-hero-table",
+        "productSlug": "meranti-table",
+        "x": 62,
+        "y": 72
+      }
+    ],
+    "location": "تهران، زعفرانیه",
+    "area": "۳۲۰ مترمربع",
+    "client": "خانواده‌ی مهرآیین",
+    "duration": "۱۱ ماه",
+    "scope": [
+      "طراحی داخلی",
+      "ساخت مبلمان سفارشی",
+      "روکش‌کاری چوب",
+      "نورپردازی معماری"
+    ],
+    "summary": "بازآفرینی یک آپارتمان خانوادگی با زبان چوب گرم و خطوط آرام؛ فضایی که آرامش و دوام را در کنار هم می‌نشاند.",
+    "description": "اقامتگاه آکنون با هدف تبدیل یک واحد مسکونی استاندارد به خانه‌ای شخصی و ماندگار طراحی شد. تیم خانه چوب و هنر از چوب سخت خشک‌شده در کوره، روکش‌های اصیل گردو و پرداخت‌های مات کم‌بازتاب استفاده کرد تا گرمای متریال در سراسر فضا یکدست بماند.",
+    "gallery": [
+      "/images/projects/aknoon-residence/01.jpg",
+      "/images/projects/aknoon-residence/02.jpg",
+      "/images/projects/aknoon-residence/03.jpg",
+      "/images/projects/aknoon-residence/04.jpg",
+      "/images/projects/aknoon-residence/05.jpg",
+      "/images/projects/aknoon-residence/06.jpg",
+      "/images/projects/aknoon-residence/07.jpg",
+      "/images/projects/aknoon-residence/08.jpg",
+      "/images/projects/aknoon-residence/09.jpg",
+      "/images/projects/aknoon-residence/10.jpg",
+      "/images/projects/aknoon-residence/11.jpg",
+      "/images/projects/aknoon-residence/12.jpg",
+      "/images/projects/aknoon-residence/13.jpg",
+      "/images/projects/aknoon-residence/14.jpg",
+      "/images/projects/aknoon-residence/15.jpg",
+      "/images/projects/aknoon-residence/16.jpg",
+      "/images/projects/aknoon-residence/17.jpg",
+      "/images/projects/aknoon-residence/18.jpg",
+      "/images/projects/aknoon-residence/19.jpg",
+      "/images/projects/aknoon-residence/20.jpg",
+      "/images/projects/aknoon-residence/21.jpg",
+      "/images/projects/aknoon-residence/22.jpg",
+      "/images/projects/aknoon-residence/23.jpg",
+      "/images/projects/aknoon-residence/24.jpg",
+      "/images/projects/aknoon-residence/25.jpg",
+      "/images/projects/aknoon-residence/26.jpg",
+      "/images/projects/aknoon-residence/27.jpg",
+      "/images/projects/aknoon-residence/28.jpg",
+      "/images/projects/aknoon-residence/29.jpg",
+      "/images/projects/aknoon-residence/30.jpg",
+      "/images/projects/aknoon-residence/31.jpg",
+      "/images/projects/aknoon-residence/32.jpg",
+      "/images/projects/aknoon-residence/33.jpg",
+      "/images/projects/aknoon-residence/34.jpg",
+      "/images/projects/aknoon-residence/35.jpg",
+      "/images/projects/aknoon-residence/36.jpg",
+      "/images/projects/aknoon-residence/37.jpg",
+      "/images/projects/aknoon-residence/38.jpg",
+      "/images/projects/aknoon-residence/39.jpg",
+      "/images/projects/aknoon-residence/40.jpg"
+    ],
+    "stats": [
+      {
+        "label": "متراژ",
+        "value": "۳۲۰ مترمربع"
+      },
+      {
+        "label": "موقعیت",
+        "value": "تهران، زعفرانیه"
+      },
+      {
+        "label": "سال اجرا",
+        "value": "۱۴۰۳"
+      },
+      {
+        "label": "مدت اجرا",
+        "value": "۱۱ ماه"
+      },
+      {
+        "label": "کارفرما",
+        "value": "خانواده‌ی مهرآیین"
+      },
+      {
+        "label": "دسته",
+        "value": "مسکونی"
+      }
+    ],
+    "sections": [
+      {
+        "title": "چالش پروژه",
+        "body": "فضای اولیه با تقسیم‌بندی فشرده و نورگیری ناکافی، حس بسته‌بودن داشت. کارفرما خانه‌ای می‌خواست که هم برای زندگی روزمره آرام باشد و هم میزبانی از جمع‌های خانوادگی را به‌راحتی بپذیرد.",
+        "image": "/images/projects/aknoon-residence/05.jpg",
+        "markers": [
+          {
+            "id": "aknoon-s01-sofa",
+            "productSlug": "alder-sofa",
+            "x": 40,
+            "y": 60
+          }
+        ]
+      },
+      {
+        "title": "رویکرد طراحی",
+        "body": "دیوارهای غیرسازه‌ای حذف شدند تا نشیمن، ناهارخوری و آشپزخانه در یک پیوستار بصری قرار بگیرند. پنل‌های چوبی یکپارچه و نورپردازی غیرمستقیم، بافت رگه‌ی چوب را شب‌ها هم زنده نگه داشت.",
+        "image": "/images/projects/aknoon-residence/09.jpg",
+        "markers": [
+          {
+            "id": "aknoon-s02-bed",
+            "productSlug": "maple-bed-set",
+            "x": 50,
+            "y": 45
+          },
+          {
+            "id": "aknoon-s02-table",
+            "productSlug": "meranti-table",
+            "x": 72,
+            "y": 68
+          }
+        ]
+      }
+    ],
+    "narrative": {
+      "title": "جزئیاتی که فضا را کامل می‌کنند",
+      "paragraphs": [
+        "خانه‌ای یکپارچه و نورگیر که در آن هر سطح چوبی با اتصالات دقیق و پرداخت دستی اجرا شده است.",
+        "در اقامتگاه آکنون، انتخاب مبلمان تنها یک تصمیم تزئینی نبود؛ هر قطعه باید با زبان چوبی فضا و ریتم زندگی خانواده هماهنگ می‌شد."
+      ],
+      "products": [
+        {
+          "productSlug": "alder-sofa",
+          "body": "برای نشیمن خانوادگی، مبل الدر با اسکلت چوبی مستحکم و خطوط آرام انتخاب شد."
+        },
+        {
+          "productSlug": "maple-bed-set",
+          "body": "سرویس میپل با پرداخت گردو، گرمای چوب را در اتاق خواب حفظ می‌کند."
+        },
+        {
+          "productSlug": "meranti-table",
+          "body": "میز مرانتی پیوستار نشیمن و آشپزخانه را بدون شلوغ کردن فضا ممکن کرد."
+        },
+        {
+          "productSlug": "celtis-buffet",
+          "body": "بوفه سلتیس در راهروی ورودی، اولین برخورد بصری با هویت چوبی خانه را شکل می‌دهد."
+        }
+      ]
+    }
+  },
+  {
+    "slug": "armon-hotel",
+    "title": "هتل آرمون",
+    "category": "هتل و اقامتی",
+    "year": "۱۴۰۲",
+    "featured": false,
+    "featuredImages": [
+      "/images/projects/armon-hotel/01.jpg",
+      "/images/projects/armon-hotel/25.jpg"
+    ],
+    "image": "/images/projects/armon-hotel/01.jpg",
+    "heroMarkers": [
+      {
+        "id": "armon-hero-buffet",
+        "productSlug": "celtis-buffet",
+        "x": 34,
+        "y": 52
+      },
+      {
+        "id": "armon-hero-sofa",
+        "productSlug": "alder-sofa",
+        "x": 58,
+        "y": 64
+      }
+    ],
+    "location": "اصفهان، خیابان چهارباغ",
+    "area": "۱۸۰۰ مترمربع",
+    "client": "گروه هتل‌های آرمون",
+    "duration": "۱۸ ماه",
+    "scope": [
+      "طراحی لابی و پذیرش",
+      "مبلمان سری اتاق‌ها",
+      "مشبک‌کاری چوبی",
+      "اجرای رستوران"
+    ],
+    "summary": "هویت‌بخشی چوبی به یک هتل شهری؛ از لابی پرتردد تا اتاق‌هایی که آرامش سفر را به مهمان برمی‌گردانند.",
+    "description": "هتل آرمون به فضایی نیاز داشت که در کنار دوام بالا برای محیط پرتردد تجاری، حس مهمان‌نوازی گرم ایرانی را منتقل کند. خانه چوب و هنر مسئول طراحی و ساخت مبلمان لابی، پیشخوان پذیرش، مشبک‌کاری‌های تزئینی و مبلمان استاندارد اتاق‌ها بود.",
+    "gallery": [
+      "/images/projects/armon-hotel/01.jpg",
+      "/images/projects/armon-hotel/02.jpg",
+      "/images/projects/armon-hotel/03.jpg",
+      "/images/projects/armon-hotel/04.jpg",
+      "/images/projects/armon-hotel/05.jpg",
+      "/images/projects/armon-hotel/06.jpg",
+      "/images/projects/armon-hotel/07.jpg",
+      "/images/projects/armon-hotel/08.jpg",
+      "/images/projects/armon-hotel/09.jpg",
+      "/images/projects/armon-hotel/10.jpg",
+      "/images/projects/armon-hotel/11.jpg",
+      "/images/projects/armon-hotel/12.jpg",
+      "/images/projects/armon-hotel/13.jpg",
+      "/images/projects/armon-hotel/14.jpg",
+      "/images/projects/armon-hotel/15.jpg",
+      "/images/projects/armon-hotel/16.jpg",
+      "/images/projects/armon-hotel/17.jpg",
+      "/images/projects/armon-hotel/18.jpg",
+      "/images/projects/armon-hotel/19.jpg",
+      "/images/projects/armon-hotel/20.jpg",
+      "/images/projects/armon-hotel/21.jpg",
+      "/images/projects/armon-hotel/22.jpg",
+      "/images/projects/armon-hotel/23.jpg",
+      "/images/projects/armon-hotel/24.jpg",
+      "/images/projects/armon-hotel/25.jpg",
+      "/images/projects/armon-hotel/26.jpg",
+      "/images/projects/armon-hotel/27.jpg",
+      "/images/projects/armon-hotel/28.jpg",
+      "/images/projects/armon-hotel/29.jpg",
+      "/images/projects/armon-hotel/30.jpg",
+      "/images/projects/armon-hotel/31.jpg",
+      "/images/projects/armon-hotel/32.jpg",
+      "/images/projects/armon-hotel/33.jpg",
+      "/images/projects/armon-hotel/34.jpg",
+      "/images/projects/armon-hotel/35.jpg",
+      "/images/projects/armon-hotel/36.jpg",
+      "/images/projects/armon-hotel/37.jpg",
+      "/images/projects/armon-hotel/38.jpg",
+      "/images/projects/armon-hotel/39.jpg",
+      "/images/projects/armon-hotel/40.jpg",
+      "/images/projects/armon-hotel/41.jpg",
+      "/images/projects/armon-hotel/42.jpg",
+      "/images/projects/armon-hotel/43.jpg",
+      "/images/projects/armon-hotel/44.jpg",
+      "/images/projects/armon-hotel/45.jpg",
+      "/images/projects/armon-hotel/46.jpg",
+      "/images/projects/armon-hotel/47.jpg",
+      "/images/projects/armon-hotel/48.jpg",
+      "/images/projects/armon-hotel/49.jpg",
+      "/images/projects/armon-hotel/50.jpg",
+      "/images/projects/armon-hotel/51.jpg",
+      "/images/projects/armon-hotel/52.jpg",
+      "/images/projects/armon-hotel/53.jpg",
+      "/images/projects/armon-hotel/54.jpg",
+      "/images/projects/armon-hotel/55.jpg",
+      "/images/projects/armon-hotel/56.jpg",
+      "/images/projects/armon-hotel/57.jpg",
+      "/images/projects/armon-hotel/58.jpg",
+      "/images/projects/armon-hotel/59.jpg",
+      "/images/projects/armon-hotel/60.jpg",
+      "/images/projects/armon-hotel/61.jpg",
+      "/images/projects/armon-hotel/62.jpg",
+      "/images/projects/armon-hotel/63.jpg",
+      "/images/projects/armon-hotel/64.jpg",
+      "/images/projects/armon-hotel/65.jpg",
+      "/images/projects/armon-hotel/66.jpg",
+      "/images/projects/armon-hotel/67.jpg",
+      "/images/projects/armon-hotel/68.jpg",
+      "/images/projects/armon-hotel/69.jpg",
+      "/images/projects/armon-hotel/70.jpg",
+      "/images/projects/armon-hotel/71.jpg",
+      "/images/projects/armon-hotel/72.jpg",
+      "/images/projects/armon-hotel/73.jpg",
+      "/images/projects/armon-hotel/74.jpg",
+      "/images/projects/armon-hotel/75.jpg",
+      "/images/projects/armon-hotel/76.jpg",
+      "/images/projects/armon-hotel/77.jpg",
+      "/images/projects/armon-hotel/78.jpg",
+      "/images/projects/armon-hotel/79.jpg",
+      "/images/projects/armon-hotel/80.jpg",
+      "/images/projects/armon-hotel/81.jpg",
+      "/images/projects/armon-hotel/82.jpg",
+      "/images/projects/armon-hotel/83.jpg",
+      "/images/projects/armon-hotel/84.jpg",
+      "/images/projects/armon-hotel/85.jpg",
+      "/images/projects/armon-hotel/86.jpg",
+      "/images/projects/armon-hotel/87.jpg",
+      "/images/projects/armon-hotel/88.jpg",
+      "/images/projects/armon-hotel/89.jpg",
+      "/images/projects/armon-hotel/90.jpg",
+      "/images/projects/armon-hotel/91.jpg",
+      "/images/projects/armon-hotel/92.jpg",
+      "/images/projects/armon-hotel/93.jpg",
+      "/images/projects/armon-hotel/94.jpg",
+      "/images/projects/armon-hotel/95.jpg",
+      "/images/projects/armon-hotel/96.jpg",
+      "/images/projects/armon-hotel/97.jpg",
+      "/images/projects/armon-hotel/98.jpg",
+      "/images/projects/armon-hotel/99.jpg",
+      "/images/projects/armon-hotel/100.jpg",
+      "/images/projects/armon-hotel/101.jpg",
+      "/images/projects/armon-hotel/102.jpg",
+      "/images/projects/armon-hotel/103.jpg",
+      "/images/projects/armon-hotel/104.jpg",
+      "/images/projects/armon-hotel/105.jpg",
+      "/images/projects/armon-hotel/106.jpg",
+      "/images/projects/armon-hotel/107.jpg",
+      "/images/projects/armon-hotel/108.jpg",
+      "/images/projects/armon-hotel/109.jpg",
+      "/images/projects/armon-hotel/110.jpg",
+      "/images/projects/armon-hotel/111.jpg",
+      "/images/projects/armon-hotel/112.jpg",
+      "/images/projects/armon-hotel/113.jpg",
+      "/images/projects/armon-hotel/114.jpg",
+      "/images/projects/armon-hotel/115.jpg",
+      "/images/projects/armon-hotel/116.jpg",
+      "/images/projects/armon-hotel/117.jpg",
+      "/images/projects/armon-hotel/118.jpg",
+      "/images/projects/armon-hotel/119.jpg",
+      "/images/projects/armon-hotel/120.jpg",
+      "/images/projects/armon-hotel/121.jpg",
+      "/images/projects/armon-hotel/122.jpg",
+      "/images/projects/armon-hotel/123.jpg",
+      "/images/projects/armon-hotel/124.jpg",
+      "/images/projects/armon-hotel/125.jpg",
+      "/images/projects/armon-hotel/126.jpg",
+      "/images/projects/armon-hotel/127.jpg",
+      "/images/projects/armon-hotel/128.jpg",
+      "/images/projects/armon-hotel/129.jpg",
+      "/images/projects/armon-hotel/130.jpg",
+      "/images/projects/armon-hotel/131.jpg",
+      "/images/projects/armon-hotel/132.jpg",
+      "/images/projects/armon-hotel/133.jpg",
+      "/images/projects/armon-hotel/134.jpg",
+      "/images/projects/armon-hotel/135.jpg",
+      "/images/projects/armon-hotel/136.jpg",
+      "/images/projects/armon-hotel/137.jpg",
+      "/images/projects/armon-hotel/138.jpg",
+      "/images/projects/armon-hotel/139.jpg",
+      "/images/projects/armon-hotel/140.jpg",
+      "/images/projects/armon-hotel/141.jpg",
+      "/images/projects/armon-hotel/142.jpg",
+      "/images/projects/armon-hotel/143.jpg",
+      "/images/projects/armon-hotel/144.jpg",
+      "/images/projects/armon-hotel/145.jpg",
+      "/images/projects/armon-hotel/146.jpg",
+      "/images/projects/armon-hotel/147.jpg",
+      "/images/projects/armon-hotel/148.jpg",
+      "/images/projects/armon-hotel/149.jpg",
+      "/images/projects/armon-hotel/150.jpg",
+      "/images/projects/armon-hotel/151.jpg",
+      "/images/projects/armon-hotel/152.jpg",
+      "/images/projects/armon-hotel/153.jpg",
+      "/images/projects/armon-hotel/154.jpg",
+      "/images/projects/armon-hotel/155.jpg",
+      "/images/projects/armon-hotel/156.jpg"
+    ],
+    "stats": [
+      {
+        "label": "متراژ",
+        "value": "۱۸۰۰ مترمربع"
+      },
+      {
+        "label": "موقعیت",
+        "value": "اصفهان، چهارباغ"
+      },
+      {
+        "label": "سال اجرا",
+        "value": "۱۴۰۲"
+      },
+      {
+        "label": "مدت اجرا",
+        "value": "۱۸ ماه"
+      },
+      {
+        "label": "کارفرما",
+        "value": "گروه هتل‌های آرمون"
+      },
+      {
+        "label": "تعداد اتاق",
+        "value": "۶۴ واحد"
+      }
+    ],
+    "sections": [
+      {
+        "title": "چالش پروژه",
+        "body": "هتل شهری با ترافیک بالای مهمان به متریالی نیاز داشت که هم زیبا بماند و هم در برابر سایش روزانه دوام بیاورد.",
+        "image": "/images/projects/armon-hotel/13.jpg",
+        "markers": [
+          {
+            "id": "armon-s01-sofa",
+            "productSlug": "alder-sofa",
+            "x": 44,
+            "y": 58
+          }
+        ]
+      },
+      {
+        "title": "رویکرد طراحی",
+        "body": "زبان طراحی حول مشبک‌کاری‌های چوبی الهام‌گرفته از معماری اصفهان شکل گرفت. مبلمان اتاق‌ها به‌صورت ماژولار طراحی شد تا اجرای انبوه با کیفیت یکنواخت ممکن شود.",
+        "image": "/images/projects/armon-hotel/49.jpg",
+        "markers": [
+          {
+            "id": "armon-s02-bed",
+            "productSlug": "maple-bed-set",
+            "x": 48,
+            "y": 44
+          },
+          {
+            "id": "armon-s02-table",
+            "productSlug": "meranti-table",
+            "x": 70,
+            "y": 68
+          }
+        ]
+      },
+      {
+        "title": "نتیجه",
+        "body": "لابی‌ای که از همان ورود حس اقامتگاهی اصیل را منتقل می‌کند و اتاق‌هایی با مبلمان مقاوم و آرام.",
+        "image": "/images/projects/armon-hotel/91.jpg",
+        "markers": [
+          {
+            "id": "armon-s03-buffet",
+            "productSlug": "celtis-buffet",
+            "x": 38,
+            "y": 60
+          }
+        ]
+      }
+    ],
+    "narrative": {
+      "title": "متریال و مبلمان در مقیاس هتل",
+      "paragraphs": [
+        "هتل آرمون توانست هویت بصری منسجمی در تمام طبقات حفظ کند؛ از لابی تا اتاق‌های مهمان.",
+        "هر محصول باید هم با زبان طراحی برند هماهنگ می‌شد و هم استانداردهای دوام محیط پرتردد را پاس می‌کرد."
+      ],
+      "products": [
+        {
+          "productSlug": "alder-sofa",
+          "body": "مبل الدر در لابی و فضاهای عمومی، نشستن راحت مهمانان را بدون به‌هم‌ریختن خطوط معماری ممکن کرد."
+        },
+        {
+          "productSlug": "maple-bed-set",
+          "body": "سرویس میپل در اتاق‌های مهمان با پرداخت یکنواخت، تجربه‌ی اقامت را در تمام واحدها یکسان نگه داشت."
+        },
+        {
+          "productSlug": "celtis-buffet",
+          "body": "بوفه سلتیس در پیشخوان پذیرش، اولین تماس بصری مهمان با هویت چوبی هتل را شکل می‌دهد."
+        },
+        {
+          "productSlug": "meranti-table",
+          "body": "میز مرانتی در رستوران و فضاهای نشیمن لابی، پیوستگی چیدمان را در مقیاس بزرگ حفظ کرد."
+        }
+      ]
+    }
+  },
+  {
+    "slug": "araz-suite",
+    "title": "هتل آراز",
+    "category": "هتل و اقامتی",
+    "year": "۱۴۰۲",
+    "featured": false,
+    "featuredImages": [
+      "/images/projects/araz-suite/01.jpg",
+      "/images/projects/araz-suite/13.jpg"
+    ],
+    "image": "/images/projects/araz-suite/01.jpg",
+    "heroMarkers": [
+      {
+        "id": "araz-hero-sofa",
+        "productSlug": "alder-sofa",
+        "x": 40,
+        "y": 58
+      },
+      {
+        "id": "araz-hero-table",
+        "productSlug": "meranti-table",
+        "x": 64,
+        "y": 70
+      }
+    ],
+    "location": "تبریز، ائل‌گلی",
+    "area": "۱۴۰۰ مترمربع",
+    "client": "مجموعه‌ی اقامتی آراز",
+    "duration": "۱۰ ماه",
+    "scope": [
+      "طراحی لابی و رستوران",
+      "مبلمان اتاق‌ها",
+      "کابینت و کمد سفارشی",
+      "پرداخت سطوح چوبی"
+    ],
+    "summary": "هتل اقامتی با چوب گرم و چیدمان یکپارچه؛ فضایی آرام برای مهمانان در مقیاس اجرای کامل.",
+    "description": "پروژه‌ی هتل آراز شامل طراحی داخلی و ساخت مبلمان برای فضاهای عمومی، اتاق‌ها و رستوران بود. تیم خانه چوب و هنر با انتخاب متریال مقاوم و پالت چوب روشن، فضایی یکدست و ماندگار برای مجموعه‌ی اقامتی آراز خلق کرد.",
+    "gallery": [
+      "/images/projects/araz-suite/01.jpg",
+      "/images/projects/araz-suite/02.jpg",
+      "/images/projects/araz-suite/03.jpg",
+      "/images/projects/araz-suite/04.jpg",
+      "/images/projects/araz-suite/05.jpg",
+      "/images/projects/araz-suite/06.jpg",
+      "/images/projects/araz-suite/07.jpg",
+      "/images/projects/araz-suite/08.jpg",
+      "/images/projects/araz-suite/09.jpg",
+      "/images/projects/araz-suite/10.jpg",
+      "/images/projects/araz-suite/11.jpg",
+      "/images/projects/araz-suite/12.jpg",
+      "/images/projects/araz-suite/13.jpg",
+      "/images/projects/araz-suite/14.jpg",
+      "/images/projects/araz-suite/15.jpg",
+      "/images/projects/araz-suite/16.jpg",
+      "/images/projects/araz-suite/17.jpg",
+      "/images/projects/araz-suite/18.jpg",
+      "/images/projects/araz-suite/19.jpg",
+      "/images/projects/araz-suite/20.jpg",
+      "/images/projects/araz-suite/21.jpg",
+      "/images/projects/araz-suite/22.jpg",
+      "/images/projects/araz-suite/23.jpg",
+      "/images/projects/araz-suite/24.jpg",
+      "/images/projects/araz-suite/25.jpg",
+      "/images/projects/araz-suite/26.jpg"
+    ],
+    "stats": [
+      {
+        "label": "متراژ",
+        "value": "۱۴۰۰ مترمربع"
+      },
+      {
+        "label": "موقعیت",
+        "value": "تبریز، ائل‌گلی"
+      },
+      {
+        "label": "سال اجرا",
+        "value": "۱۴۰۲"
+      },
+      {
+        "label": "مدت اجرا",
+        "value": "۱۰ ماه"
+      },
+      {
+        "label": "کارفرما",
+        "value": "مجموعه‌ی آراز"
+      },
+      {
+        "label": "دسته",
+        "value": "هتل و اقامتی"
+      }
+    ],
+    "sections": [
+      {
+        "title": "چالش پروژه",
+        "body": "هماهنگی فضاهای عمومی پرتردد با اتاق‌های اقامتی و نیاز به متریالی با دوام بالا، اصلی‌ترین چالش پروژه بود.",
+        "image": "/images/projects/araz-suite/04.jpg",
+        "markers": [
+          {
+            "id": "araz-s01-buffet",
+            "productSlug": "celtis-buffet",
+            "x": 36,
+            "y": 54
+          }
+        ]
+      },
+      {
+        "title": "رویکرد طراحی",
+        "body": "چوب در سطوح تماس، مبلمان و جزئیات تزئینی به‌صورت یکپارچه اجرا شد تا هویت بصری هتل در تمام فضاها حفظ شود.",
+        "image": "/images/projects/araz-suite/11.jpg",
+        "markers": [
+          {
+            "id": "araz-s02-sofa",
+            "productSlug": "alder-sofa",
+            "x": 46,
+            "y": 62
+          },
+          {
+            "id": "araz-s02-table",
+            "productSlug": "meranti-table",
+            "x": 68,
+            "y": 72
+          }
+        ]
+      },
+      {
+        "title": "نتیجه",
+        "body": "فضایی گرم و منسجم که از لابی تا اتاق‌ها، تجربه‌ی اقامت را یکدست می‌کند.",
+        "image": "/images/projects/araz-suite/21.jpg",
+        "markers": [
+          {
+            "id": "araz-s03-bed",
+            "productSlug": "maple-bed-set",
+            "x": 50,
+            "y": 46
+          }
+        ]
+      }
+    ],
+    "narrative": {
+      "title": "جزئیاتی که هویت هتل را یکپارچه می‌کنند",
+      "paragraphs": [
+        "هتل آراز با پالت چوب روشن و چیدمان منظم، فضایی آرام برای مهمانان در مقیاس اجرای کامل خلق کرد.",
+        "در این پروژه، هر قطعه مبلمان باید هم با فضاهای عمومی پرتردد سازگار می‌بود و هم در اتاق‌های اقامتی حس یکنواختی ایجاد می‌کرد."
+      ],
+      "products": [
+        {
+          "productSlug": "alder-sofa",
+          "body": "مبل الدر در لابی و رستوران، نشستن گروهی مهمانان را بدون شلوغ کردن فضا ممکن کرد."
+        },
+        {
+          "productSlug": "meranti-table",
+          "body": "میز مرانتی پیوند فضاهای نشیمن و غذاخوری را در یک خط بصری یکپارچه نگه داشت."
+        },
+        {
+          "productSlug": "maple-bed-set",
+          "body": "سرویس میپل در اتاق‌ها، گرمای چوب را در تمام واحدهای اقامتی به‌صورت یکسان منتقل می‌کند."
+        },
+        {
+          "productSlug": "celtis-buffet",
+          "body": "بوفه سلتیس در لابی، نقطه‌ی تمرکز چیدمان ورودی و اولین برخورد با هویت چوبی هتل است."
+        }
+      ]
+    }
+  },
+  {
+    "slug": "shenaj-villa",
+    "title": "ویلای شناج",
+    "category": "ویلایی",
+    "year": "۱۴۰۱",
+    "featured": true,
+    "featuredImages": [
+      "/images/projects/shenaj-villa/68.jpg",
+      "/images/projects/shenaj-villa/46.jpg"
+    ],
+    "image": "/images/projects/shenaj-villa/68.jpg",
+    "heroMarkers": [
+      {
+        "id": "shenaj-hero-sofa",
+        "productSlug": "alder-sofa",
+        "x": 38,
+        "y": 56
+      },
+      {
+        "id": "shenaj-hero-table",
+        "productSlug": "meranti-table",
+        "x": 62,
+        "y": 70
+      }
+    ],
+    "location": "مازندران، نوشهر",
+    "area": "۴۸۰ مترمربع",
+    "client": "خانواده‌ی شناج",
+    "duration": "۱۴ ماه",
+    "scope": [
+      "طراحی داخلی ویلا",
+      "پذیرایی و نشیمن",
+      "اتاق‌های خواب",
+      "آشپزخانه و تراس",
+      "ساخت مبلمان سفارشی"
+    ],
+    "summary": "ویلایی در شمال ایران که در آن چوب، مرز میان فضای داخل و طبیعت اطراف را محو می‌کند.",
+    "description": "ویلای شناج در دل طبیعت شمال طراحی شد تا گفت‌وگوی پیوسته‌ای میان فضای داخلی و چشم‌انداز اطراف برقرار کند. پروژه شامل پذیرایی، نشیمن، اتاق‌های خواب، آشپزخانه، فضای کار، تراس و مشاعات بود و هر بخش با مبلمان و پوشش چوبی سفارشی اجرا شد.",
+    "gallery": [
+      "/images/projects/shenaj-villa/01.jpg",
+      "/images/projects/shenaj-villa/02.jpg",
+      "/images/projects/shenaj-villa/03.jpg",
+      "/images/projects/shenaj-villa/04.jpg",
+      "/images/projects/shenaj-villa/05.jpg",
+      "/images/projects/shenaj-villa/06.jpg",
+      "/images/projects/shenaj-villa/07.jpg",
+      "/images/projects/shenaj-villa/08.jpg",
+      "/images/projects/shenaj-villa/09.jpg",
+      "/images/projects/shenaj-villa/10.jpg",
+      "/images/projects/shenaj-villa/11.jpg",
+      "/images/projects/shenaj-villa/12.jpg",
+      "/images/projects/shenaj-villa/13.jpg",
+      "/images/projects/shenaj-villa/14.jpg",
+      "/images/projects/shenaj-villa/15.jpg",
+      "/images/projects/shenaj-villa/16.jpg",
+      "/images/projects/shenaj-villa/17.jpg",
+      "/images/projects/shenaj-villa/18.jpg",
+      "/images/projects/shenaj-villa/19.jpg",
+      "/images/projects/shenaj-villa/20.jpg",
+      "/images/projects/shenaj-villa/21.jpg",
+      "/images/projects/shenaj-villa/22.jpg",
+      "/images/projects/shenaj-villa/23.jpg",
+      "/images/projects/shenaj-villa/24.jpg",
+      "/images/projects/shenaj-villa/25.jpg",
+      "/images/projects/shenaj-villa/26.jpg",
+      "/images/projects/shenaj-villa/27.jpg",
+      "/images/projects/shenaj-villa/28.jpg",
+      "/images/projects/shenaj-villa/29.jpg",
+      "/images/projects/shenaj-villa/30.jpg",
+      "/images/projects/shenaj-villa/31.jpg",
+      "/images/projects/shenaj-villa/32.jpg",
+      "/images/projects/shenaj-villa/33.jpg",
+      "/images/projects/shenaj-villa/34.jpg",
+      "/images/projects/shenaj-villa/35.jpg",
+      "/images/projects/shenaj-villa/36.jpg",
+      "/images/projects/shenaj-villa/37.jpg",
+      "/images/projects/shenaj-villa/38.jpg",
+      "/images/projects/shenaj-villa/39.jpg",
+      "/images/projects/shenaj-villa/40.jpg",
+      "/images/projects/shenaj-villa/41.jpg",
+      "/images/projects/shenaj-villa/42.jpg",
+      "/images/projects/shenaj-villa/43.jpg",
+      "/images/projects/shenaj-villa/44.jpg",
+      "/images/projects/shenaj-villa/45.jpg",
+      "/images/projects/shenaj-villa/46.jpg",
+      "/images/projects/shenaj-villa/47.jpg",
+      "/images/projects/shenaj-villa/48.jpg",
+      "/images/projects/shenaj-villa/49.jpg",
+      "/images/projects/shenaj-villa/50.jpg",
+      "/images/projects/shenaj-villa/51.jpg",
+      "/images/projects/shenaj-villa/52.jpg",
+      "/images/projects/shenaj-villa/53.jpg",
+      "/images/projects/shenaj-villa/54.jpg",
+      "/images/projects/shenaj-villa/55.jpg",
+      "/images/projects/shenaj-villa/56.jpg",
+      "/images/projects/shenaj-villa/57.jpg",
+      "/images/projects/shenaj-villa/58.jpg",
+      "/images/projects/shenaj-villa/59.jpg",
+      "/images/projects/shenaj-villa/60.jpg",
+      "/images/projects/shenaj-villa/61.jpg",
+      "/images/projects/shenaj-villa/62.jpg",
+      "/images/projects/shenaj-villa/63.jpg",
+      "/images/projects/shenaj-villa/64.jpg",
+      "/images/projects/shenaj-villa/65.jpg",
+      "/images/projects/shenaj-villa/66.jpg",
+      "/images/projects/shenaj-villa/67.jpg",
+      "/images/projects/shenaj-villa/68.jpg",
+      "/images/projects/shenaj-villa/69.jpg",
+      "/images/projects/shenaj-villa/70.jpg",
+      "/images/projects/shenaj-villa/71.jpg",
+      "/images/projects/shenaj-villa/72.jpg",
+      "/images/projects/shenaj-villa/73.jpg",
+      "/images/projects/shenaj-villa/74.jpg",
+      "/images/projects/shenaj-villa/75.jpg",
+      "/images/projects/shenaj-villa/76.jpg",
+      "/images/projects/shenaj-villa/77.jpg",
+      "/images/projects/shenaj-villa/78.jpg",
+      "/images/projects/shenaj-villa/79.jpg",
+      "/images/projects/shenaj-villa/80.jpg",
+      "/images/projects/shenaj-villa/81.jpg",
+      "/images/projects/shenaj-villa/82.jpg"
+    ],
+    "stats": [
+      {
+        "label": "متراژ",
+        "value": "۴۸۰ مترمربع"
+      },
+      {
+        "label": "موقعیت",
+        "value": "مازندران، نوشهر"
+      },
+      {
+        "label": "سال اجرا",
+        "value": "۱۴۰۱"
+      },
+      {
+        "label": "مدت اجرا",
+        "value": "۱۴ ماه"
+      },
+      {
+        "label": "کارفرما",
+        "value": "خانواده‌ی شناج"
+      },
+      {
+        "label": "تعداد فضا",
+        "value": "۸ زون"
+      }
+    ],
+    "sections": [
+      {
+        "title": "چالش پروژه",
+        "body": "اقلیم مرطوب شمال و نیاز به حداکثر ارتباط بصری با منظره‌ی اطراف، انتخاب متریال مقاوم و چیدمان یکپارچه در تمام فضاها را ضروری کرد.",
+        "image": "/images/projects/shenaj-villa/01.jpg",
+        "markers": [
+          {
+            "id": "shenaj-s01-sofa",
+            "productSlug": "alder-sofa",
+            "x": 42,
+            "y": 58
+          }
+        ]
+      },
+      {
+        "title": "رویکرد طراحی",
+        "body": "هر فضا — از پذیرایی و نشیمن تا اتاق خواب و آشپزخانه — با زبان چوبی یکسان و جزئیات سفارشی طراحی شد. تراس و مشاعات نیز در همین خط بصری اجرا شدند.",
+        "image": "/images/projects/shenaj-villa/56.jpg",
+        "markers": [
+          {
+            "id": "shenaj-s02-bed",
+            "productSlug": "maple-bed-set",
+            "x": 52,
+            "y": 44
+          },
+          {
+            "id": "shenaj-s02-table",
+            "productSlug": "meranti-table",
+            "x": 70,
+            "y": 66
+          }
+        ]
+      },
+      {
+        "title": "نتیجه",
+        "body": "ویلایی که در آن نشستن داخل خانه، تجربه‌ای نزدیک به بودن در دل طبیعت است؛ با گالری کاملی از تصاویر اجراشده در تمام فضاها.",
+        "image": "/images/projects/shenaj-villa/46.jpg",
+        "markers": [
+          {
+            "id": "shenaj-s03-buffet",
+            "productSlug": "celtis-buffet",
+            "x": 40,
+            "y": 62
+          }
+        ]
+      }
+    ],
+    "narrative": {
+      "title": "فضاهای ویلای شناج",
+      "paragraphs": [
+        "پذیرایی و نشیمن قلب خانه‌اند؛ جایی که خانواده و مهمان در کنار چوب گرم و نور طبیعی گرد هم می‌آیند.",
+        "اتاق‌های خواب، آشپزخانه، فضای کار و تراس هر کدام با جزئیات اختصاصی اجرا شدند تا ویلا در تمام ساعات شبانه‌روز یکدست و کاربردی بماند."
+      ],
+      "products": [
+        {
+          "productSlug": "alder-sofa",
+          "body": "مبل الدر در پذیرایی و نشیمن، نقطه‌ی تمرکز چیدمان و جایی برای گردهمایی خانواده در کنار منظره‌ی شمال است."
+        },
+        {
+          "productSlug": "maple-bed-set",
+          "body": "سرویس میپل در اتاق‌های خواب، آرامش چوب گرم را در فضایی که به طبیعت اطراف باز است حفظ می‌کند."
+        },
+        {
+          "productSlug": "meranti-table",
+          "body": "میز مرانتی پیوند نشیمن و آشپزخانه را بدون قطع دید به منظره ممکن کرد."
+        },
+        {
+          "productSlug": "celtis-buffet",
+          "body": "بوفه سلتیس در راهروی ورودی، اولین برخورد بصری با هویت چوبی ویلا را شکل می‌دهد."
+        }
+      ]
+    }
+  }
+]
