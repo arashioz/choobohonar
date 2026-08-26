@@ -1,0 +1,150 @@
+{
+  "navItems": [
+    {
+      "label": "محصولات",
+      "href": "/products",
+      "children": [
+        {
+          "label": "نشیمن",
+          "href": "/products/category/livingroom",
+          "description": "مبلمان و میزهایی برای مکث، گفتگو و زندگی روزمره."
+        },
+        {
+          "label": "اتاق خواب",
+          "href": "/products/category/bedroom",
+          "description": "فضایی شخصی برای آرامش، نظم و شروع دوباره."
+        },
+        {
+          "label": "کالای خواب",
+          "href": "/products/category/bedding",
+          "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
+        },
+        {
+          "label": "غذاخوری",
+          "href": "/products/category/diningroom",
+          "description": "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند."
+        },
+        {
+          "label": "فرش و قالی",
+          "href": "/products/category/carpet",
+          "description": "بافت‌هایی که فضا را یکپارچه و گرم می‌کنند."
+        },
+        {
+          "label": "روشنایی",
+          "href": "/products/category/lighting",
+          "description": "نورهایی برای تعریف حال‌وهوای هر گوشه از خانه."
+        },
+        {
+          "label": "دکور",
+          "href": "/products/category/decor",
+          "description": "اشیایی کوچک با تأثیری ماندگار بر شخصیت فضا."
+        },
+        {
+          "label": "اکسسوری",
+          "href": "/products/category/accessory",
+          "description": "آخرین لایه برای کامل‌کردن ترکیب خانه."
+        }
+      ]
+    },
+    {
+      "label": "کالکشن",
+      "href": "/collection"
+    },
+    {
+      "label": "پروژه‌ها",
+      "href": "/projects"
+    },
+    {
+      "label": "معماری داخلی",
+      "href": "/interior-architecture-services"
+    },
+    {
+      "label": "گالری",
+      "href": "/gallery"
+    },
+    {
+      "label": "مجله",
+      "href": "/magazine"
+    },
+    {
+      "label": "فروشگاه‌ها",
+      "href": "/stores"
+    },
+    {
+      "label": "ارتباط با ما",
+      "href": "/contact"
+    }
+  ],
+  "homeSectionLinks": [
+    {
+      "label": "پروژه‌های منتخب",
+      "href": "/#projects"
+    },
+    {
+      "label": "گروه‌های کالایی",
+      "href": "/#work-areas"
+    },
+    {
+      "label": "رویکرد ما",
+      "href": "/#approach"
+    },
+    {
+      "label": "فرم مشاوره",
+      "href": "/#consultation"
+    }
+  ],
+  "brand": {
+    "nameFa": "خانه چوب و هنر",
+    "nameEn": "ChooboHonar Home",
+    "sloganFa": "سبک دلخواه من",
+    "sloganSubFa": "همراه تو در خلق خانه‌ای که دوستش داری",
+    "phone": "۵۴۱۶۹",
+    "phoneIntl": "54169",
+    "email": "info@choobohonar.com",
+    "instagram": "https://instagram.com/choobohonar",
+    "addressFa": "تهران، شوروم خانه چوب و هنر",
+    "showroomHoursFa": "شنبه تا پنج‌شنبه، ۱۰ تا ۲۰"
+  },
+  "productMegaMenu": [
+    {
+      "label": "نشیمن",
+      "href": "/products/category/livingroom",
+      "description": "مبلمان و میزهایی برای مکث، گفتگو و زندگی روزمره."
+    },
+    {
+      "label": "اتاق خواب",
+      "href": "/products/category/bedroom",
+      "description": "فضایی شخصی برای آرامش، نظم و شروع دوباره."
+    },
+    {
+      "label": "کالای خواب",
+      "href": "/products/category/bedding",
+      "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
+    },
+    {
+      "label": "غذاخوری",
+      "href": "/products/category/diningroom",
+      "description": "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند."
+    },
+    {
+      "label": "فرش و قالی",
+      "href": "/products/category/carpet",
+      "description": "بافت‌هایی که فضا را یکپارچه و گرم می‌کنند."
+    },
+    {
+      "label": "روشنایی",
+      "href": "/products/category/lighting",
+      "description": "نورهایی برای تعریف حال‌وهوای هر گوشه از خانه."
+    },
+    {
+      "label": "دکور",
+      "href": "/products/category/decor",
+      "description": "اشیایی کوچک با تأثیری ماندگار بر شخصیت فضا."
+    },
+    {
+      "label": "اکسسوری",
+      "href": "/products/category/accessory",
+      "description": "آخرین لایه برای کامل‌کردن ترکیب خانه."
+    }
+  ]
+}

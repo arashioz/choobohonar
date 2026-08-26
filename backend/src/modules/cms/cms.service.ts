@@ -29,6 +29,9 @@ export class CmsService implements OnModuleInit {
     await this.seedPageData('stores', 'legacy-stores.json', 'شعب و نمایندگی‌ها');
     await this.seedPageData('work-areas', 'legacy-work-areas.json', 'حوزه‌های کاری');
     await this.seedPageData('gallery', 'legacy-gallery.json', 'گالری');
+    await this.seedPageData('nav', 'legacy-nav.json', 'ناوبری و هویت برند');
+    await this.seedPageData('interior', 'legacy-interior.json', 'معماری داخلی');
+    await this.seedPageData('contact-forms', 'legacy-contact-forms.json', 'فرم‌های تماس');
   }
 
   assertKind(kind: string): CmsEntryKind {

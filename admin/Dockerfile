@@ -22,6 +22,11 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+# The admin's server-side proxy must use the Docker service name.  Compose may
+# override this value, but keeping a safe image default prevents it from
+# falling back to localhost (which points at the admin container itself).
+ENV API_URL=http://backend:3001/api
+ENV API_PROXY_TARGET=http://backend:3001/api
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
