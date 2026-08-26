@@ -8,6 +8,7 @@ import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 import { commerceCategories, getFeaturedCommerceProducts } from "@/data/commerce";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
+import { isUploadedMedia } from "@/lib/media";
 
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
@@ -28,6 +29,7 @@ export default async function ProductsLanding() {
             alt="مجموعه محصولات خانه چوب و هنر"
             fill
             priority
+            unoptimized={isUploadedMedia(heroProduct.image)}
             sizes="100vw"
             className="object-cover object-center"
           />

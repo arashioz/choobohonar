@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName, getProductAttributeOptions } from "@/lib/commerce";
+import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
 import { useCart, type CartOption } from "@/components/commerce/cart/CartProvider";
 
@@ -76,6 +77,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
                     alt={product.name}
                     fill
                     priority
+                    unoptimized={isUploadedMedia(activeImage)}
                     sizes="(max-width: 1024px) 100vw, 60vw"
                     className="object-cover animate-[commerce-image-in_600ms_cubic-bezier(0.16,1,0.3,1)]"
                   />
@@ -107,7 +109,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
                         activeImage === src ? "border-forest" : "border-transparent opacity-65 hover:opacity-100",
                       )}
                     >
-                      <Image src={src} alt={`${product.name}، تصویر ${toFa(index + 1)}`} fill sizes="112px" className="object-cover" />
+                      <Image src={src} alt={`${product.name}، تصویر ${toFa(index + 1)}`} fill unoptimized={isUploadedMedia(src)} sizes="112px" className="object-cover" />
                     </button>
                   ))}
                 </div>

@@ -5,6 +5,7 @@ import { ChangeEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type ResourcePath } from "@/lib/cms";
+import { uploadMedia } from "@/lib/upload";
 
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
 
@@ -28,6 +29,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   const [loading, setLoading] = useState(Boolean(entryId));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [slugTouched, setSlugTouched] = useState(Boolean(entryId));
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -64,6 +66,10 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   function dataText(key: string) { return String(data[key] ?? ""); }
 
   async function save(mode: "draft" | "publish" = "draft") {
+    if (uploading) {
+      setNotice({ tone: "error", text: "تا پایان آپلود تصاویر، ذخیره یا انتشار امکان‌پذیر نیست." });
+      return;
+    }
     if (!entry.title.trim()) { setNotice({ tone: "error", text: `نام ${labels.singular} الزامی است.` }); return; }
     setSaving(true); setNotice(null);
     try {
@@ -97,10 +103,22 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []); if (!files.length) return;
-    setUploading(true); setNotice(null);
+    setUploading(true); setUploadProgress(0); setNotice(null);
     try {
-      const uploaded = await Promise.all(files.map(async (file) => { const form = new FormData(); form.append("file", file); const response = await fetch("/api/media", { method: "POST", body: form }); const text = await response.text(); let result: { url?: string; message?: string } = {}; try { result = JSON.parse(text) as typeof result; } catch { throw new Error(`آپلود ${file.name} ناموفق بود (پاسخ سرور: ${response.status})`); } if (!response.ok || !result.url) throw new Error(result.message || `آپلود ${file.name} ناموفق بود`); return result.url; }));
-      setField("images", [...(entry.images || []), ...uploaded]);
+      const totalBytes = Math.max(files.reduce((total, file) => total + file.size, 0), 1);
+      let completedBytes = 0;
+      // Upload sequentially so the aggregate progress bar remains accurate
+      // even when the browser/server limits concurrent multipart requests.
+      for (const file of files) {
+        const url = await uploadMedia(file, ({ loaded }) => {
+          const percent = totalBytes ? ((completedBytes + loaded) / totalBytes) * 100 : 0;
+          setUploadProgress(Math.min(100, Math.round(percent)));
+        });
+        setEntry((current) => ({ ...current, images: [...(current.images || []), url] }));
+        setDirty(true);
+        completedBytes += file.size;
+        setUploadProgress(Math.min(100, Math.round((completedBytes / totalBytes) * 100)));
+      }
     }
     catch (err) { setNotice({ tone: "error", text: err instanceof Error ? err.message : "آپلود انجام نشد" }); }
     finally { setUploading(false); event.target.value = ""; }
@@ -113,7 +131,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
       <div className="sticky top-16 z-30 border-b border-forest/10 bg-[#f6f3ee]/95 backdrop-blur-xl md:top-0">
         <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-4 px-5 py-3 sm:px-8 lg:px-10">
           <div className="flex min-w-0 items-center gap-3"><Link href={basePath} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-forest/10 text-forest/45 hover:bg-white">→</Link><div className="min-w-0"><p className="truncate text-xs font-medium text-forest">{isNew ? `افزودن ${labels.singular}` : entry.title || `ویرایش ${labels.singular}`}</p><div className="mt-1 flex items-center gap-2 text-[9px] text-forest/35"><span className={cn("h-1.5 w-1.5 rounded-full", entry.status === "published" ? "bg-[#54a879]" : entry.status === "archived" ? "bg-forest/30" : "bg-brick")}/><span>{entry.status === "published" ? "منتشرشده" : entry.status === "archived" ? "بایگانی" : "پیش‌نویس"}</span>{dirty && <><span>·</span><span>تغییرات ذخیره‌نشده</span></>}</div></div></div>
-          <div className="flex items-center gap-2"><button type="button" onClick={() => save("draft")} disabled={saving} className="rounded-xl border border-forest/12 bg-white px-3.5 py-2.5 text-[11px] font-medium text-forest/65 hover:border-forest/25 disabled:opacity-50">ذخیره پیش‌نویس</button><button type="button" onClick={() => save("publish")} disabled={saving} className="rounded-xl bg-forest px-3.5 py-2.5 text-[11px] font-medium text-paper hover:bg-forest-700 disabled:opacity-50">{saving ? "در حال ذخیره…" : entry.status === "published" ? "به‌روزرسانی" : "انتشار"}</button></div>
+          <div className="flex items-center gap-2"><button type="button" onClick={() => save("draft")} disabled={saving || uploading} className="rounded-xl border border-forest/12 bg-white px-3.5 py-2.5 text-[11px] font-medium text-forest/65 hover:border-forest/25 disabled:cursor-not-allowed disabled:opacity-50">ذخیره پیش‌نویس</button><button type="button" onClick={() => save("publish")} disabled={saving || uploading} className="rounded-xl bg-forest px-3.5 py-2.5 text-[11px] font-medium text-paper hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50">{uploading ? `آپلود ${uploadProgress}٪` : saving ? "در حال ذخیره…" : entry.status === "published" ? "به‌روزرسانی" : "انتشار"}</button></div>
         </div>
       </div>
 
@@ -136,7 +154,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
         </div>
 
         <aside className="space-y-5 lg:col-span-4">
-          <Panel title="گالری رسانه" description="چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? "در حال آپلود فایل‌ها…" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">انتخاب هم‌زمان · حداکثر ۲۰۰ مگابایت برای هر فایل</span><input type="file" accept="image/*,video/*" multiple onChange={upload} disabled={uploading} className="hidden" /></label><MediaList images={entry.images || []} onChange={(images) => setField("images", images)} /></Panel>
+          <Panel title="گالری رسانه" description="چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">انتخاب هم‌زمان · حداکثر ۲۰۰ مگابایت برای هر فایل</span><input type="file" accept="image/*,video/*" multiple onChange={upload} disabled={uploading} className="hidden" /></label>{uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه انتشار غیرفعال است.</p></div> : null}<MediaList images={entry.images || []} onChange={(images) => setField("images", images)} /></Panel>
 
           {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه چوب و هنر" /></Field><Field label="دسته‌بندی"><select value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass}><option value="">انتخاب دسته‌بندی</option>{articleTaxonomy.categories.map((category) => <option key={category} value={category}>{category}</option>)}</select><span className="mt-1 block text-[9px] text-forest/35">دسته‌ها از مقالات ثبت‌شده در دیتابیس خوانده می‌شوند.</span></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} hint={articleTaxonomy.tags.length ? `برچسب‌های موجود: ${articleTaxonomy.tags.slice(0, 8).join("، ")}` : undefined} /></Panel>}
 
@@ -240,5 +258,5 @@ function KeyValueEditor({ label, value, onChange }: { label: string; value: { la
 function MediaList({ images, onChange }: { images: string[]; onChange: (images: string[]) => void }) {
   const [url, setUrl] = useState("");
   function move(index: number, direction: -1 | 1) { const target = index + direction; if (target < 0 || target >= images.length) return; const next = [...images]; [next[index], next[target]] = [next[target], next[index]]; onChange(next); }
-  return <div className="mt-4 space-y-2">{images.map((image, index) => <div key={`${image}-${index}`} className="flex items-center gap-2 rounded-xl border border-forest/10 bg-[#faf8f5] p-2"><span className="relative h-12 w-12 shrink-0 rounded-lg bg-[#e8e2d9]" style={{ backgroundImage: `url(${image})`, backgroundSize: "cover", backgroundPosition: "center" }}>{index === 0 && <span className="absolute -right-1 -top-1 rounded-md bg-forest px-1.5 py-0.5 text-[7px] text-paper">اصلی</span>}</span><span className="min-w-0 flex-1 truncate text-[8px] text-forest/35" dir="ltr">{image}</span><div className="flex items-center"><button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="flex h-7 w-6 items-center justify-center text-forest/30 disabled:opacity-20" title="انتقال به بالا">↑</button><button type="button" disabled={index === images.length - 1} onClick={() => move(index, 1)} className="flex h-7 w-6 items-center justify-center text-forest/30 disabled:opacity-20" title="انتقال به پایین">↓</button><button type="button" onClick={() => onChange(images.filter((_, i) => i !== index))} className="flex h-7 w-7 items-center justify-center rounded-lg text-forest/30 hover:bg-brick/[0.05] hover:text-brick" title="حذف">×</button></div></div>)}<div className="flex gap-2 pt-1"><input value={url} onChange={(e) => setUrl(e.target.value)} className={`${inputClass} min-w-0`} placeholder="یا آدرس تصویر را وارد کنید" dir="ltr"/><button type="button" onClick={() => { if (url.trim()) { onChange([...images, url.trim()]); setUrl(""); } }} className="shrink-0 rounded-xl border border-forest/10 px-3 text-[10px] text-forest/55">افزودن</button></div></div>;
+  return <div className="mt-4 space-y-2">{images.map((image, index) => <div key={`${image}-${index}`} className="rounded-xl border border-forest/10 bg-[#faf8f5] p-2"><div className="flex items-start gap-2"><span className="relative h-16 w-16 shrink-0 rounded-lg bg-[#e8e2d9]" style={{ backgroundImage: `url(${image})`, backgroundSize: "cover", backgroundPosition: "center" }}>{index === 0 && <span className="absolute -right-1 -top-1 rounded-md bg-forest px-1.5 py-0.5 text-[7px] text-paper">اصلی</span>}</span><div className="min-w-0 flex-1"><a href={image} target="_blank" rel="noopener noreferrer" className="block break-all text-[9px] leading-4 text-brick underline-offset-2 hover:underline" dir="ltr">{image}</a><span className="mt-1 block text-[9px] text-forest/35">لینک تصویر ذخیره‌شده</span></div><div className="flex shrink-0 items-center"><button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="flex h-7 w-6 items-center justify-center text-forest/30 disabled:opacity-20" title="انتقال به بالا">↑</button><button type="button" disabled={index === images.length - 1} onClick={() => move(index, 1)} className="flex h-7 w-6 items-center justify-center text-forest/30 disabled:opacity-20" title="انتقال به پایین">↓</button><button type="button" onClick={() => onChange(images.filter((_, i) => i !== index))} className="flex h-7 w-7 items-center justify-center rounded-lg text-forest/30 hover:bg-brick/[0.05] hover:text-brick" title="حذف">×</button></div></div></div>)}<div className="flex gap-2 pt-1"><input value={url} onChange={(e) => setUrl(e.target.value)} className={`${inputClass} min-w-0`} placeholder="یا آدرس تصویر را وارد کنید" dir="ltr"/><button type="button" onClick={() => { if (url.trim()) { onChange([...images, url.trim()]); setUrl(""); } }} className="shrink-0 rounded-xl border border-forest/10 px-3 text-[10px] text-forest/55">افزودن</button></div></div>;
 }

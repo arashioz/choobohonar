@@ -7,6 +7,17 @@ import { cn } from "@/lib/utils";
 import FadeUp from "@/components/motion/FadeUp";
 import PostCard from "@/components/magazine/PostCard";
 
+type CmsArticleRecord = {
+  slug?: unknown;
+  title?: unknown;
+  excerpt?: unknown;
+  publishedAt?: string | null;
+  images?: unknown[];
+  tags?: unknown;
+  data?: Record<string, unknown>;
+  seo?: { description?: unknown };
+};
+
 export default function MagazineList() {
   const [active, setActive] = useState("همه");
   const [cmsPosts, setCmsPosts] = useState<Post[]>([]);
@@ -22,13 +33,16 @@ export default function MagazineList() {
           if (value === "static" || value === "cms" || value === "both") setSource(value);
         }
         if (!Array.isArray(items)) return;
-        setCmsPosts(items.map((item: any) => ({
+        setCmsPosts(items.map((rawItem) => {
+          const item = rawItem as CmsArticleRecord;
+          return {
           slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
           category: String(item.data?.category || "مقالات آموزشی") as Post["category"], author: String(item.data?.author || "تحریریه چوب و هنر"),
           date: item.publishedAt ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(item.publishedAt)) : "تازه منتشر شده",
           readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""),
-          content: [], tags: Array.isArray(item.tags) ? item.tags : [], metaDescription: item.seo?.description,
-        })));
+          content: [], tags: Array.isArray(item.tags) ? item.tags.map(String) : [], metaDescription: typeof item.seo?.description === "string" ? item.seo.description : undefined,
+          };
+        }));
       }).catch(() => undefined);
   }, []);
 

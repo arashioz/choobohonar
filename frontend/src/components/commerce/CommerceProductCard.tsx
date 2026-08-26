@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName } from "@/lib/commerce";
+import { isUploadedMedia } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
 type CommerceProductCardProps = {
@@ -41,6 +42,7 @@ export default function CommerceProductCard({
               alt={product.name}
               fill
               priority={priority}
+              unoptimized={isUploadedMedia(product.image)}
               sizes="(max-width: 640px) 92vw, (max-width: 1024px) 48vw, 32vw"
               className="media-hover object-cover"
             />

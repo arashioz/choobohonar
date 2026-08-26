@@ -4,6 +4,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { uploadMedia } from "@/lib/upload";
 import {
   ROOM_LABELS,
   shopApi,
@@ -83,6 +84,7 @@ export default function ShopProductForm({
   const [form, setForm] = useState<FormState>(() => fromProduct(initial));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 
@@ -96,6 +98,10 @@ export default function ShopProductForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (uploading) {
+      setError("تا پایان آپلود تصاویر، ذخیره محصول امکان‌پذیر نیست.");
+      return;
+    }
     setSaving(true);
     setError("");
 
@@ -145,17 +151,20 @@ export default function ShopProductForm({
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
     setUploading(true);
+    setUploadProgress(0);
     setError("");
     try {
-      const urls = await Promise.all(files.map(async (file) => {
-        const body = new FormData();
-        body.append("file", file);
-        const response = await fetch("/api/media", { method: "POST", body });
-        const result = await response.json();
-        if (!response.ok || !result.url) throw new Error(result.message || `آپلود «${file.name}» ناموفق بود`);
-        return result.url as string;
-      }));
-      setForm((previous) => ({ ...previous, image: previous.image || urls[0] || "", gallery: [...previous.gallery, ...urls] }));
+      const totalBytes = Math.max(files.reduce((total, file) => total + file.size, 0), 1);
+      let completedBytes = 0;
+      for (const file of files) {
+        const url = await uploadMedia(file, ({ loaded }) => {
+          const percent = totalBytes ? ((completedBytes + loaded) / totalBytes) * 100 : 0;
+          setUploadProgress(Math.min(100, Math.round(percent)));
+        });
+        setForm((previous) => ({ ...previous, image: previous.image || url, gallery: [...previous.gallery, url] }));
+        completedBytes += file.size;
+        setUploadProgress(Math.min(100, Math.round((completedBytes / totalBytes) * 100)));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "آپلود تصاویر ناموفق بود");
     } finally {
@@ -199,7 +208,7 @@ export default function ShopProductForm({
             <button
               type="button"
               onClick={onDelete}
-              disabled={saving}
+              disabled={saving || uploading}
               className="rounded-xl border border-brick/20 px-3 py-2 text-xs text-brick hover:bg-peach/20 disabled:opacity-50"
             >
               حذف
@@ -342,7 +351,7 @@ export default function ShopProductForm({
           <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs.map((item) => ({ label: item.label || "", value: item.value || "" })))} left="عنوان مشخصه" right="مقدار" />
           <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights.map((item) => ({ title: item.title || "", description: item.description || "" })))} left="عنوان" right="توضیح کوتاه" />
 
-          <ProductMediaGallery images={form.gallery} uploading={uploading} onUpload={uploadImages} onChange={setGallery} />
+          <ProductMediaGallery images={form.gallery} uploading={uploading} uploadProgress={uploadProgress} onUpload={uploadImages} onChange={setGallery} />
 
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-3">
             <p className="text-xs font-medium text-forest/55">ویترین و پیشنهاد</p>
@@ -390,13 +399,13 @@ export default function ShopProductForm({
           <div className="flex flex-wrap gap-2 pt-2">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className={cn(
                 "rounded-xl bg-forest px-5 py-2.5 text-sm font-medium text-peach",
                 "transition-colors hover:bg-forest-700 disabled:opacity-60",
               )}
             >
-              {saving ? "در حال ذخیره…" : isEdit ? "ذخیره تغییرات" : "ایجاد محصول"}
+              {uploading ? `آپلود ${uploadProgress}٪` : saving ? "در حال ذخیره…" : isEdit ? "ذخیره تغییرات" : "ایجاد محصول"}
             </button>
             <Link
               href="/admin/shop"
@@ -423,7 +432,7 @@ function ProductDetailsEditor({ label, description, rows, onChange, left, right 
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
 }
 
-function ProductMediaGallery({ images, uploading, onUpload, onChange }: { images: string[]; uploading: boolean; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onChange: (images: string[]) => void }) {
+function ProductMediaGallery({ images, uploading, uploadProgress, onUpload, onChange }: { images: string[]; uploading: boolean; uploadProgress: number; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onChange: (images: string[]) => void }) {
   const [url, setUrl] = useState("");
   function move(index: number, direction: -1 | 1) {
     const target = index + direction;
@@ -441,14 +450,17 @@ function ProductMediaGallery({ images, uploading, onUpload, onChange }: { images
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 sm:p-5">
     <div className="mb-4"><h2 className="text-sm font-medium text-forest">تصاویر محصول</h2><p className="mt-1 text-[10px] leading-5 text-forest/40">تصویر اول، تصویر اصلی محصول است. می‌توانید ترتیب تصاویر را تغییر دهید.</p></div>
     <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-6 text-center hover:border-forest/40 hover:bg-white">
-      <span className="text-lg text-brick">+</span><span className="mt-1 text-xs font-medium text-forest">{uploading ? "در حال آپلود…" : "انتخاب تصویر"}</span><span className="mt-1 text-[9px] text-forest/35">JPG، PNG، WebP یا AVIF · حداکثر ۲۰۰ مگابایت</span>
+      <span className="text-lg text-brick">+</span><span className="mt-1 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : "انتخاب تصویر"}</span><span className="mt-1 text-[9px] text-forest/35">JPG، PNG، WebP یا AVIF · حداکثر ۲۰۰ مگابایت</span>
       <input className="hidden" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={uploading} onChange={onUpload} />
     </label>
-    <div className="mt-3 space-y-2">{images.map((image, index) => <div key={`${image}-${index}`} className="flex items-center gap-2 rounded-xl border border-forest/10 bg-[#faf8f5] p-2">
+    {uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه ذخیره غیرفعال است.</p></div> : null}
+    <div className="mt-3 space-y-2">{images.map((image, index) => <div key={`${image}-${index}`} className="rounded-xl border border-forest/10 bg-[#faf8f5] p-2">
+      <div className="flex items-start gap-2">
       {/* eslint-disable-next-line @next/next/no-img-element -- uploaded media can use an arbitrary external URL */}
       <img src={image} alt="" className="h-14 w-14 rounded-lg object-cover bg-forest/5" />
-      <span className="min-w-0 flex-1 truncate text-[9px] text-forest/40" dir="ltr">{image}</span>
+      <div className="min-w-0 flex-1"><a href={image} target="_blank" rel="noopener noreferrer" className="block break-all text-[9px] leading-4 text-brick underline-offset-2 hover:underline" dir="ltr">{image}</a><span className="mt-1 block text-[9px] text-forest/35">لینک تصویر ذخیره‌شده</span></div>
       <div className="flex items-center gap-1"><button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="rounded px-2 py-1 text-forest/45 disabled:opacity-20" title="انتقال به قبل">↑</button><button type="button" disabled={index === images.length - 1} onClick={() => move(index, 1)} className="rounded px-2 py-1 text-forest/45 disabled:opacity-20" title="انتقال به بعد">↓</button><button type="button" onClick={() => onChange(images.filter((_, i) => i !== index))} className="rounded px-2 py-1 text-brick" title="حذف">×</button></div>
+      </div>
     </div>)}</div>
     <div className="mt-3 flex gap-2"><input value={url} onChange={(event) => setUrl(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addUrl(); } }} className={fieldClass} placeholder="یا آدرس تصویر را وارد کنید" dir="ltr" /><button type="button" onClick={addUrl} className="shrink-0 rounded-xl border border-forest/10 px-3 text-xs text-forest/60">افزودن</button></div>
   </section>;

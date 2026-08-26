@@ -7,6 +7,7 @@ import Container from "@/components/layout/Container";
 import { useCart } from "@/components/commerce/cart/CartProvider";
 import { formatMoney } from "@/lib/commerce";
 import { cn, toFa } from "@/lib/utils";
+import { isUploadedMedia } from "@/lib/media";
 import { required, validateEmail, validatePhone } from "@/lib/form-utils";
 import { checkoutApi } from "@/lib/checkout-api";
 
@@ -59,7 +60,7 @@ const provinces = [
 ];
 
 export default function CheckoutFlow() {
-  const { items, itemCount, subtotal, hydrated, clearCart } = useCart();
+  const { items, subtotal, hydrated, clearCart } = useCart();
   const [step, setStep] = useState<Step>(1);
   const [data, setData] = useState<CheckoutData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -354,7 +355,7 @@ export default function CheckoutFlow() {
                 {items.map((item) => (
                   <div key={item.key} className="flex gap-4 py-5">
                     <div className="relative h-24 w-20 shrink-0 overflow-hidden bg-forest/5">
-                      <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
+                      <Image src={item.image} alt={item.name} fill unoptimized={isUploadedMedia(item.image)} sizes="80px" className="object-cover" />
                       <span className="absolute left-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-forest px-1 text-[10px] text-paper">{toFa(item.quantity)}</span>
                     </div>
                     <div className="min-w-0 flex-1">

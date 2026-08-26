@@ -94,7 +94,10 @@ function CmsArticlePage({ article }: { article: CmsArticle }) {
     <nav className="mb-10 flex items-center gap-2 text-sm text-forest/55"><Link href="/">خانه</Link><span>/</span><Link href="/magazine">مجله</Link><span>/</span><span className="truncate text-forest">{article.title}</span></nav>
     <p className="eyebrow text-brick">{article.data?.category || "مقالات آموزشی"}</p><h1 className="mt-4 max-w-4xl text-balance text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-tightest text-forest">{article.title}</h1>
     <p className="mt-6 text-sm text-forest/55">{article.data?.author || "تحریریه چوب و هنر"}{date ? ` · ${date}` : ""}{article.data?.readingTime ? ` · ${article.data.readingTime}` : ""}</p>
-    {image && <div className="relative mt-10 aspect-[16/9] overflow-hidden bg-forest/5 md:mt-14"><img src={image} alt={article.title} className="h-full w-full object-cover" /></div>}
+    {image && <div className="relative mt-10 aspect-[16/9] overflow-hidden bg-forest/5 md:mt-14">
+      {/* eslint-disable-next-line @next/next/no-img-element -- CMS images can be arbitrary uploaded URLs */}
+      <img src={image} alt={article.title} className="h-full w-full object-cover" />
+    </div>}
     {article.excerpt && <p className="mx-auto mt-12 max-w-3xl text-xl leading-relaxed text-forest/65">{article.excerpt}</p>}
     <article className="mx-auto mt-10 max-w-3xl whitespace-pre-wrap text-lg leading-[2] text-forest/75">{article.content}</article>
     {article.tags?.length ? <div className="mx-auto mt-12 flex max-w-3xl flex-wrap gap-2 border-t border-forest/10 pt-7">{article.tags.map((tag) => <span key={tag} className="rounded-full border border-forest/15 px-4 py-1.5 text-sm text-forest/55">{tag}</span>)}</div> : null}

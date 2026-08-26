@@ -15,14 +15,15 @@ export default function InteriorIntroSlider({ styles = fallbackStyles }: { style
   }));
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const slideCount = slides.length;
 
   useEffect(() => {
-    if (prefersReducedMotion() || slides.length < 2 || paused) return;
+    if (prefersReducedMotion() || slideCount < 2 || paused) return;
     const timer = window.setInterval(() => {
-      setActive((index) => (index + 1) % slides.length);
+      setActive((index) => (index + 1) % slideCount);
     }, 4200);
     return () => window.clearInterval(timer);
-  }, [paused]);
+  }, [paused, slideCount]);
 
   const current = slides[active];
 

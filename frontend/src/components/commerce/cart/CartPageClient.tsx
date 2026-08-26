@@ -5,6 +5,7 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import { formatMoney } from "@/lib/commerce";
 import { toFa } from "@/lib/utils";
+import { isUploadedMedia } from "@/lib/media";
 import { useCart } from "@/components/commerce/cart/CartProvider";
 
 export default function CartPageClient() {
@@ -73,7 +74,7 @@ export default function CartPageClient() {
             {items.map((item) => (
               <article key={item.key} className="grid gap-5 py-7 sm:grid-cols-[9rem_1fr] md:grid-cols-[11rem_1fr] md:gap-8 md:py-9">
                 <Link href={`/products/${item.slug}`} className="relative aspect-[4/5] overflow-hidden bg-forest/[0.045]">
-                  <Image src={item.image} alt={item.name} fill sizes="176px" className="object-cover transition-transform duration-700 hover:scale-[1.035]" />
+                  <Image src={item.image} alt={item.name} fill unoptimized={isUploadedMedia(item.image)} sizes="176px" className="object-cover transition-transform duration-700 hover:scale-[1.035]" />
                 </Link>
 
                 <div className="flex min-w-0 flex-col justify-between gap-7">

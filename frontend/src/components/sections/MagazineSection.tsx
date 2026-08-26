@@ -8,6 +8,17 @@ import { getApiBase } from "@/lib/api-base";
 
 type MagazineSource = "static" | "cms" | "both";
 
+type CmsArticleRecord = {
+  slug?: unknown;
+  title?: unknown;
+  excerpt?: unknown;
+  publishedAt?: string | null;
+  images?: unknown[];
+  tags?: unknown;
+  data?: Record<string, unknown>;
+  seo?: { description?: unknown };
+};
+
 async function getLatestPosts(): Promise<Post[]> {
   let source: MagazineSource = "both";
   try {
@@ -18,13 +29,16 @@ async function getLatestPosts(): Promise<Post[]> {
     const settings = settingsResponse.ok ? await settingsResponse.json() : null;
     if (settings?.magazineSource === "static" || settings?.magazineSource === "cms" || settings?.magazineSource === "both") source = settings.magazineSource;
     const items = cmsResponse.ok ? await cmsResponse.json() : [];
-    const cmsPosts: Post[] = Array.isArray(items) ? items.map((item: any) => ({
-      slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
-      category: String(item.data?.category || "مقالات آموزشی") as Post["category"], author: String(item.data?.author || "تحریریه چوب و هنر"),
-      date: item.publishedAt ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(item.publishedAt)) : "تازه منتشر شده",
-      readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""), content: [],
-      tags: Array.isArray(item.tags) ? item.tags : [], metaDescription: item.seo?.description,
-    })) : [];
+    const cmsPosts: Post[] = Array.isArray(items) ? items.map((rawItem) => {
+      const item = rawItem as CmsArticleRecord;
+      return {
+        slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
+        category: String(item.data?.category || "مقالات آموزشی") as Post["category"], author: String(item.data?.author || "تحریریه چوب و هنر"),
+        date: item.publishedAt ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(item.publishedAt)) : "تازه منتشر شده",
+        readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""), content: [],
+        tags: Array.isArray(item.tags) ? item.tags.map(String) : [], metaDescription: typeof item.seo?.description === "string" ? item.seo.description : undefined,
+      };
+    }) : [];
     const staticPosts = source === "cms" ? [] : posts;
     if (source === "static") return staticPosts.slice(0, 3);
     if (source === "cms") return cmsPosts.slice(0, 3);
