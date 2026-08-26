@@ -4,6 +4,7 @@ WORKDIR /app
 
 ARG NPM_REGISTRY=https://mirror-npm.runflare.com
 RUN npm config set registry "$NPM_REGISTRY" \
+  && npm config set replace-registry-host always \
   && npm config set fetch-retries 2 \
   && npm config set fetch-retry-mintimeout 1000 \
   && npm config set fetch-retry-maxtimeout 5000 \
@@ -11,7 +12,7 @@ RUN npm config set registry "$NPM_REGISTRY" \
 
 COPY package*.json ./
 
-RUN npm install --no-audit --no-fund
+RUN npm install --registry="$NPM_REGISTRY" --no-audit --no-fund
 
 COPY . .
 
