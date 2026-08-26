@@ -356,13 +356,18 @@ export class ShopService implements OnModuleInit {
     }));
 
     // bulkWrite upsert by slug
-    const ops = docs.map((doc) => ({
+    const ops = docs.map((doc) => {
+      const { image: _image, gallery: _gallery, ...catalogFields } = doc;
+      return {
       updateOne: {
         filter: { slug: doc.slug },
-        update: { $set: doc },
+        // Keep image URLs edited by admin or localized by the media migration.
+        // New catalog rows still receive the complete seed document.
+        update: { $set: catalogFields, $setOnInsert: doc },
         upsert: true,
       },
-    }));
+      };
+    });
 
     const result = ops.length ? await this.productModel.bulkWrite(ops as never) : { upsertedCount: 0, modifiedCount: 0 };
     const total = await this.productModel.countDocuments();
