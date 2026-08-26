@@ -3,10 +3,14 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ARG NPM_REGISTRY=https://mirror-npm.runflare.com
-RUN npm config set registry "$NPM_REGISTRY"
+RUN npm config set registry "$NPM_REGISTRY" \
+  && npm config set fetch-retries 2 \
+  && npm config set fetch-retry-mintimeout 1000 \
+  && npm config set fetch-retry-maxtimeout 5000 \
+  && npm config set fetch-timeout 120000
 
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund || (npm config set registry https://registry.npmjs.org && npm ci --no-audit --no-fund)
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 
