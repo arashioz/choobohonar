@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import FormField from "@/components/contact/shared/FormField";
 import FormChipGroup from "@/components/contact/shared/FormChipGroup";
 import FormSuccess from "@/components/contact/shared/FormSuccess";
 import { iranProvinces, ownershipTypes } from "@/data/contact-forms";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import {
   FORM_ENABLED,
   required,
@@ -43,11 +44,18 @@ const initialState: FormState = {
 };
 
 export default function RepresentationForm() {
+  const [formOptions, setFormOptions] = useState({ iranProvinces, ownershipTypes });
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    fetchPublicCmsPage<Partial<typeof formOptions>>("contact-forms")
+      .then((page) => { const data = page?.items; if (data) setFormOptions((current) => ({ ...current, ...data })); })
+      .catch(() => undefined);
+  }, []);
 
   const setField = (name: keyof FormState, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -116,11 +124,11 @@ export default function RepresentationForm() {
       <FormField label="آدرس" name="address" required value={values.address} onChange={(v) => setField("address", v)} error={errors.address} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormField as="select" label="استان" name="province" required value={values.province} onChange={(v) => setField("province", v)} options={iranProvinces.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" error={errors.province} />
+        <FormField as="select" label="استان" name="province" required value={values.province} onChange={(v) => setField("province", v)} options={formOptions.iranProvinces.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" error={errors.province} />
         <FormField label="شهر" name="city" required value={values.city} onChange={(v) => setField("city", v)} error={errors.city} />
       </div>
 
-      <FormChipGroup label="نوع مالکیت" name="ownership" required value={values.ownership} onChange={(v) => setField("ownership", v)} options={[...ownershipTypes]} error={errors.ownership} columns={2} />
+      <FormChipGroup label="نوع مالکیت" name="ownership" required value={values.ownership} onChange={(v) => setField("ownership", v)} options={[...formOptions.ownershipTypes]} error={errors.ownership} columns={2} />
       <FormField label="متراژ (متر مربع)" name="area" type="number" required value={values.area} onChange={(v) => setField("area", v)} error={errors.area} dir="ltr" />
       <FormField as="textarea" label="توضیحات" name="notes" value={values.notes} onChange={(v) => setField("notes", v)} rows={4} placeholder="توضیح کوتاه درباره فضا، موقعیت و تجربه فروش" />
 

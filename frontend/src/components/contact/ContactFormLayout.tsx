@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Container from "@/components/layout/Container";
-import { brand } from "@/data/nav";
+import { brand as fallbackBrand } from "@/data/nav";
 import type { ContactFormMeta } from "@/data/contact-forms";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 
-export default function ContactFormLayout({
+export default async function ContactFormLayout({
   form,
   children,
 }: {
@@ -11,6 +12,8 @@ export default function ContactFormLayout({
   children: React.ReactNode;
   intro?: React.ReactNode;
 }) {
+  const navPage = await fetchPublicCmsPage<{ brand?: typeof fallbackBrand }>("nav");
+  const brand = navPage?.items?.brand ? { ...fallbackBrand, ...navPage.items.brand } : fallbackBrand;
   return (
     <section className="bg-paper pt-28 pb-20 md:pt-36 md:pb-28">
       <Container>

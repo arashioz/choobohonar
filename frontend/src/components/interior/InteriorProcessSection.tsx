@@ -1,9 +1,9 @@
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
-import { interiorProcessSteps } from "@/data/interior-architecture";
+import { interiorProcessSteps as fallbackSteps } from "@/data/interior-architecture";
 import { toFa } from "@/lib/utils";
 
-export default function InteriorProcessSection() {
+export default function InteriorProcessSection({ steps = fallbackSteps }: { steps?: typeof fallbackSteps }) {
   return (
     <section className="bg-forest py-24 text-paper md:py-32">
       <Container>
@@ -15,7 +15,7 @@ export default function InteriorProcessSection() {
         </FadeUp>
 
         <div className="mt-14 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-paper/10 bg-paper/10 md:grid-cols-2">
-          {interiorProcessSteps.map((step, index) => (
+          {steps.map((step, index) => (
             <FadeUp
               key={step.n}
               delay={index * 0.05}

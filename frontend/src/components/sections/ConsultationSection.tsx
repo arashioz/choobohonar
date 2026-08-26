@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { consultationSubjects } from "@/data/contact-forms";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitLead } from "@/lib/leads-api";
 
@@ -19,7 +20,7 @@ type Field = {
   full?: boolean;
 };
 
-const fields: Field[] = [
+const baseFields: Field[] = [
   { name: "name", label: "نام و نام خانوادگی", type: "text", required: true },
   { name: "phone", label: "شماره تماس", type: "tel", required: true },
   {
@@ -36,11 +37,22 @@ type Values = Record<string, string>;
 type Errors = Record<string, string>;
 
 export default function ConsultationSection() {
+  const [subjects, setSubjects] = useState<string[]>([...consultationSubjects]);
+  const fields = useMemo(() => baseFields.map((field) => field.name === "interest" ? { ...field, options: subjects } : field), [subjects]);
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    fetchPublicCmsPage<{ consultationSubjects?: string[] }>("contact-forms")
+      .then((page) => {
+        const values = page?.items?.consultationSubjects;
+        if (Array.isArray(values) && values.length) setSubjects(values);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const setValue = (name: string, value: string) => {
     setValues((v) => ({ ...v, [name]: value }));

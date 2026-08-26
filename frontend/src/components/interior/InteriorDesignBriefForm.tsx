@@ -9,7 +9,7 @@ import {
   budgetOptions,
   consultationOptions,
   interiorStyles,
-  pickMoodboardRound,
+  moodboardImages as fallbackMoodboardImages,
   spaceTypeOptions,
   timelineOptions,
   type MoodboardImage,
@@ -69,7 +69,31 @@ function fieldClass(hasError: boolean) {
   );
 }
 
-export default function InteriorDesignBriefForm() {
+export type BriefContent = {
+  styles: typeof interiorStyles;
+  moodboardImages: typeof fallbackMoodboardImages;
+  spaceTypeOptions: typeof spaceTypeOptions;
+  budgetOptions: typeof budgetOptions;
+  timelineOptions: typeof timelineOptions;
+  consultationOptions: typeof consultationOptions;
+};
+
+const fallbackContent: BriefContent = {
+  styles: interiorStyles,
+  moodboardImages: fallbackMoodboardImages,
+  spaceTypeOptions,
+  budgetOptions,
+  timelineOptions,
+  consultationOptions,
+};
+
+function pickMoodboardRoundFrom(images: MoodboardImage[], selectedStyles: string[], excludeIds: string[], count = 3) {
+  const pool = images.filter((item) => !excludeIds.includes(item.id));
+  const score = (item: MoodboardImage) => item.tags.filter((tag) => selectedStyles.includes(tag)).length;
+  return [...pool].sort((a, b) => score(b) - score(a)).slice(0, count);
+}
+
+export default function InteriorDesignBriefForm({ content = fallbackContent }: { content?: BriefContent }) {
   const [step, setStep] = useState<StepId>("styles");
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,15 +106,15 @@ export default function InteriorDesignBriefForm() {
 
   useEffect(() => {
     if (step === "round1" && !round1Images.length) {
-      setRound1Images(pickMoodboardRound(values.styles, []));
+      setRound1Images(pickMoodboardRoundFrom(content.moodboardImages, values.styles, []));
     }
-  }, [step, round1Images.length, values.styles]);
+  }, [content.moodboardImages, step, round1Images.length, values.styles]);
 
   useEffect(() => {
     if (step === "round2" && !round2Images.length) {
-      setRound2Images(pickMoodboardRound(values.styles, [values.moodboardRound1].filter(Boolean)));
+      setRound2Images(pickMoodboardRoundFrom(content.moodboardImages, values.styles, [values.moodboardRound1].filter(Boolean)));
     }
-  }, [step, round2Images.length, values.moodboardRound1, values.styles]);
+  }, [content.moodboardImages, step, round2Images.length, values.moodboardRound1, values.styles]);
 
   const progress = useMemo(() => {
     if (step === "success") return 100;
@@ -251,7 +275,7 @@ export default function InteriorDesignBriefForm() {
                       description="می‌توانید چند گزینه را هم‌زمان انتخاب کنید."
                     >
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        {interiorStyles.map((style) => {
+                        {content.styles.map((style) => {
                           const selected = values.styles.includes(style.id);
                           return (
                             <button
@@ -330,7 +354,7 @@ export default function InteriorDesignBriefForm() {
                             className={fieldClass(Boolean(errors.spaceType))}
                           >
                             <option value="">انتخاب کنید</option>
-                            {spaceTypeOptions.map((option) => (
+                            {content.spaceTypeOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>
@@ -354,7 +378,7 @@ export default function InteriorDesignBriefForm() {
                             className={fieldClass(false)}
                           >
                             <option value="">انتخاب کنید</option>
-                            {budgetOptions.map((option) => (
+                            {content.budgetOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>
@@ -369,7 +393,7 @@ export default function InteriorDesignBriefForm() {
                             className={fieldClass(false)}
                           >
                             <option value="">انتخاب کنید</option>
-                            {timelineOptions.map((option) => (
+                            {content.timelineOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>
@@ -384,7 +408,7 @@ export default function InteriorDesignBriefForm() {
                             className={fieldClass(Boolean(errors.consultation))}
                           >
                             <option value="">انتخاب کنید</option>
-                            {consultationOptions.map((option) => (
+                            {content.consultationOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>

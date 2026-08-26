@@ -3,12 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { brand, homeSectionLinks, navItems } from "@/data/nav";
+import { brand as fallbackBrand, homeSectionLinks as fallbackHomeSectionLinks, navItems as fallbackNavItems } from "@/data/nav";
+import type { NavItem } from "@/data/nav-types";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
 import { cn } from "@/lib/utils";
 import BrandMark from "@/components/brand/BrandMark";
 
 export default function Header() {
+  const [navItems, setNavItems] = useState<NavItem[]>(fallbackNavItems);
+  const [homeSectionLinks, setHomeSectionLinks] = useState(fallbackHomeSectionLinks);
+  const [brand, setBrand] = useState(fallbackBrand);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -24,6 +29,18 @@ export default function Header() {
     pathname === "/materials" ||
     pathname.startsWith("/materials/") ||
     pathname === "/stores";
+
+  useEffect(() => {
+    fetchPublicCmsPage<{ navItems?: NavItem[]; homeSectionLinks?: typeof fallbackHomeSectionLinks; brand?: typeof fallbackBrand }>("nav")
+      .then((page) => {
+        const data = page?.items;
+        if (!data) return;
+        if (Array.isArray(data.navItems) && data.navItems.length) setNavItems(data.navItems);
+        if (Array.isArray(data.homeSectionLinks) && data.homeSectionLinks.length) setHomeSectionLinks(data.homeSectionLinks);
+        if (data.brand) setBrand({ ...fallbackBrand, ...data.brand });
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     let frame = 0;

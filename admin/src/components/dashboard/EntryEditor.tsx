@@ -22,7 +22,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   const router = useRouter();
   const labels = copy[kind];
   const isNew = !entryId;
-  const basePath = kind === "article" ? "/admin/articles" : `/admin/manage/${resourcePath}`;
+  const basePath = kind === "article" ? "/admin/articles" : kind === "page" ? "/admin/pages" : `/admin/manage/${resourcePath}`;
   const [entry, setEntry] = useState(blankEntry);
   const [currentId, setCurrentId] = useState(entryId || "");
   const [loading, setLoading] = useState(Boolean(entryId));
@@ -59,7 +59,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   const seo = entry.seo || {};
 
   function setField<K extends keyof typeof entry>(key: K, value: (typeof entry)[K]) { setEntry((current) => ({ ...current, [key]: value })); setDirty(true); }
-  function setData(key: string, value: unknown) { setEntry((current) => ({ ...current, data: { ...(current.data || {}), [key]: value } })); setDirty(true); }
+  function setData(key: string, value: unknown) { setEntry((current) => ({ ...current, data: key === "__replace" ? (value as Record<string, unknown>) : { ...(current.data || {}), [key]: value } })); setDirty(true); }
   function setSeo(key: string, value: unknown) { setEntry((current) => ({ ...current, seo: { ...(current.seo || {}), [key]: value } })); setDirty(true); }
   function dataText(key: string) { return String(data[key] ?? ""); }
 
@@ -154,6 +154,7 @@ function splitList(value: string) { return value.split(/[،,]/).map((item) => it
 type ProductVariant = { name: string; sku: string; price: number; inventory: number; attributes: string[] };
 
 function SpecificFields({ kind, data, setData, dataText, relations }: { kind: CmsKind; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] } }) {
+  if (kind === "page") return <Panel title="دادهٔ صفحه" description="ساختار این صفحه از دیتابیس خوانده می‌شود. برای تغییر محتوای ناوبری، برند یا فرم‌ها JSON را ویرایش کنید."><textarea dir="ltr" defaultValue={JSON.stringify(data, null, 2)} onBlur={(event) => { try { const parsed = JSON.parse(event.currentTarget.value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setData("__replace", parsed); } catch { /* keep the last valid payload */ } }} className={`${inputClass} min-h-[520px] resize-y font-mono text-[11px] leading-6`} spellCheck={false} /><p className="text-[9px] leading-5 text-forest/35">پس از ویرایش، ابتدا JSON را معتبر نگه دارید و سپس ذخیره کنید.</p></Panel>;
   if (kind === "product") {
     const categories = arrayValue(data.categories, data.category);
     return <>

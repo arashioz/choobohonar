@@ -1,9 +1,9 @@
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
-import { interiorBenefits } from "@/data/interior-architecture";
+import { interiorBenefits as fallbackBenefits } from "@/data/interior-architecture";
 import { toFa } from "@/lib/utils";
 
-export default function InteriorBenefitsSection() {
+export default function InteriorBenefitsSection({ items = fallbackBenefits }: { items?: typeof fallbackBenefits }) {
   return (
     <section className="border-t border-forest/10 bg-paper py-24 md:py-32">
       <Container>
@@ -15,7 +15,7 @@ export default function InteriorBenefitsSection() {
         </FadeUp>
 
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {interiorBenefits.map((item, index) => (
+          {items.map((item, index) => (
             <FadeUp key={item.title} delay={index * 0.06} className="border border-forest/10 bg-peach/20 p-6 md:p-8">
               <span className="text-sm font-medium tracking-[0.24em] text-brick">{toFa(index + 1)}</span>
               <h3 className="mt-4 text-xl font-light tracking-tight text-forest">{item.title}</h3>

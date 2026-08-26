@@ -12,6 +12,7 @@ const navItems: { label: string; description: string; href: string; icon: IconNa
   { label: "نمای کلی", description: "صفحه اصلی پنل", href: "/admin", icon: "home" },
   { label: "فروشگاه", description: "محصولات، سفارش‌ها و فاکتورها", href: "/admin/shop", icon: "shop" },
   { label: "مقالات", description: "ایجاد، ویرایش و انتشار", href: "/admin/articles", icon: "article" },
+  { label: "صفحات سایت", description: "ناوبری، برند و فرم‌ها", href: "/admin/pages", icon: "book" },
   { label: "مشتریان", description: "CRM و پیگیری ارتباط", href: "/admin/customers", icon: "customers" },
   { label: "چوب‌نویس", description: "دستیار هوشمند محتوا", href: "/admin/content", icon: "bot" },
   { label: "مدیریت آثار", description: "محصول، پروژه و کالکشن", href: "/admin/manage", icon: "archive" },

@@ -1,11 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
-import { brand, homeSectionLinks, navItems, productMegaMenu } from "@/data/nav";
+import { brand as fallbackBrand, homeSectionLinks as fallbackHomeSectionLinks, navItems as fallbackNavItems, productMegaMenu as fallbackProductMegaMenu } from "@/data/nav";
 import { brandAssets } from "@/lib/brand-assets";
 import Stagger from "@/components/motion/Stagger";
 import BrandMark from "@/components/brand/BrandMark";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
+import type { NavItem } from "@/data/nav-types";
 
-export default function Footer() {
+export default async function Footer() {
+  const navPage = await fetchPublicCmsPage<{
+    navItems?: NavItem[];
+    homeSectionLinks?: typeof fallbackHomeSectionLinks;
+    brand?: typeof fallbackBrand;
+    productMegaMenu?: typeof fallbackProductMegaMenu;
+  }>("nav");
+  const navData = navPage?.items;
+  const navItems = navData?.navItems?.length ? navData.navItems : fallbackNavItems;
+  const homeSectionLinks = navData?.homeSectionLinks?.length ? navData.homeSectionLinks : fallbackHomeSectionLinks;
+  const productMegaMenu = navData?.productMegaMenu?.length ? navData.productMegaMenu : fallbackProductMegaMenu;
+  const brand = navData?.brand ? { ...fallbackBrand, ...navData.brand } : fallbackBrand;
   const currentYear = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
 
   return (

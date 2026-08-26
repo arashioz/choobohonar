@@ -1,9 +1,9 @@
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
-import { consultationChannels } from "@/data/interior-architecture";
+import { consultationChannels as fallbackChannels } from "@/data/interior-architecture";
 
-export default function InteriorConsultationCta() {
+export default function InteriorConsultationCta({ channels = fallbackChannels }: { channels?: typeof fallbackChannels }) {
   return (
     <section className="bg-peach py-24 text-forest md:py-32">
       <Container>
@@ -28,7 +28,7 @@ export default function InteriorConsultationCta() {
           </FadeUp>
 
           <div className="grid gap-4 lg:col-span-6 lg:col-start-7">
-            {consultationChannels.map((channel, index) => (
+            {channels.map((channel, index) => (
               <FadeUp
                 key={channel.title}
                 delay={index * 0.06}

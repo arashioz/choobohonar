@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { contactInquirySubjects } from "@/data/contact-forms";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { cn } from "@/lib/utils";
 import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitLead } from "@/lib/leads-api";
@@ -11,7 +12,7 @@ import { submitLead } from "@/lib/leads-api";
 type FieldType = "text" | "tel" | "select" | "textarea";
 type Field = { name: string; label: string; type: FieldType; required?: boolean; options?: string[]; full?: boolean };
 
-const fields: Field[] = [
+const baseFields: Field[] = [
   { name: "name", label: "نام و نام خانوادگی", type: "text", required: true },
   { name: "phone", label: "شماره تماس", type: "tel", required: true },
   {
@@ -34,7 +35,9 @@ function interestFromIntent(intent: string | null) {
 }
 
 export default function ContactLeadForm() {
+  const [subjects, setSubjects] = useState<string[]>([...contactInquirySubjects]);
   const searchParams = useSearchParams();
+  const fields = useMemo(() => baseFields.map((field) => field.name === "interest" ? { ...field, options: subjects } : field), [subjects]);
   const defaultInterest = useMemo(
     () => interestFromIntent(searchParams.get("intent")),
     [searchParams],
@@ -45,6 +48,15 @@ export default function ContactLeadForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    fetchPublicCmsPage<{ contactInquirySubjects?: string[] }>("contact-forms")
+      .then((page) => {
+        const values = page?.items?.contactInquirySubjects;
+        if (Array.isArray(values) && values.length) setSubjects(values);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const setValue = (name: string, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));

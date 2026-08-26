@@ -18,7 +18,7 @@ export default function WorkAreasSection() {
         const page = pages.find((item) => item && typeof item === "object" && (item as { slug?: string }).slug === "work-areas") as { items?: unknown[] } | undefined;
         if (!Array.isArray(page?.items) || !page.items.length) return;
         const migrated = page.items.filter((item): item is { id: string; label: string; en?: string; description?: string; image?: string } => Boolean(item && typeof item === "object" && "id" in item && "label" in item));
-        if (migrated.length) setAreas(migrated.map((area) => ({ slug: area.id, label: area.label, eyebrow: area.en || "Work areas", description: area.description || "", image: area.image || "", children: [] })));
+        if (migrated.length) setAreas(migrated.map((area) => ({ slug: area.id, label: area.label, eyebrow: area.en || "Work areas", description: area.description || "", story: area.description || "", image: area.image || "", children: [] })));
       }).catch(() => undefined);
   }, []);
 

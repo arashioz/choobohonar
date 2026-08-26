@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import FormField from "@/components/contact/shared/FormField";
 import FormChipGroup from "@/components/contact/shared/FormChipGroup";
@@ -15,6 +15,7 @@ import {
   skillLevels,
   type CooperationStepId,
 } from "@/data/contact-forms";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import {
   FORM_ENABLED,
   required,
@@ -86,6 +87,7 @@ const initialState: FormState = {
 const birthDays = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
 export default function CooperationForm() {
+  const [formOptions, setFormOptions] = useState({ iranProvinces, cooperationSteps, skillLevels, cooperationTypes, persianMonths, birthYears });
   const [step, setStep] = useState<CooperationStepId>("personal");
   const [values, setValues] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,7 +95,13 @@ export default function CooperationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const stepIndex = cooperationSteps.findIndex((s) => s.id === step);
+  useEffect(() => {
+    fetchPublicCmsPage<Partial<typeof formOptions>>("contact-forms")
+      .then((page) => { const data = page?.items; if (data) setFormOptions((current) => ({ ...current, ...data })); })
+      .catch(() => undefined);
+  }, []);
+
+  const stepIndex = formOptions.cooperationSteps.findIndex((s) => s.id === step);
 
   const setField = (name: keyof FormState, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -133,13 +141,13 @@ export default function CooperationForm() {
 
   const goNext = () => {
     if (!validateStep(step)) return;
-    const order = cooperationSteps.map((s) => s.id);
+    const order = formOptions.cooperationSteps.map((s) => s.id);
     const idx = order.indexOf(step);
     if (idx < order.length - 1) setStep(order[idx + 1]);
   };
 
   const goPrev = () => {
-    const order = cooperationSteps.map((s) => s.id);
+    const order = formOptions.cooperationSteps.map((s) => s.id);
     const idx = order.indexOf(step);
     if (idx > 0) setStep(order[idx - 1]);
   };
@@ -179,7 +187,7 @@ export default function CooperationForm() {
 
   return (
     <>
-      <FormProgress steps={[...cooperationSteps]} currentIndex={stepIndex} className="mb-8" />
+      <FormProgress steps={[...formOptions.cooperationSteps]} currentIndex={stepIndex} className="mb-8" />
 
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         {step === "personal" && (
@@ -202,12 +210,12 @@ export default function CooperationForm() {
               </p>
               <div className="grid grid-cols-3 gap-4">
                 <FormField as="select" label="روز" name="birthDay" required value={values.birthDay} onChange={(v) => setField("birthDay", v)} options={birthDays.map((d) => ({ value: d, label: d }))} placeholder="روز" error={errors.birthDay} />
-                <FormField as="select" label="ماه" name="birthMonth" required value={values.birthMonth} onChange={(v) => setField("birthMonth", v)} options={persianMonths.map((m) => ({ value: m, label: m }))} placeholder="ماه" />
-                <FormField as="select" label="سال" name="birthYear" required value={values.birthYear} onChange={(v) => setField("birthYear", v)} options={birthYears.map((y) => ({ value: y, label: y }))} placeholder="سال" />
+                <FormField as="select" label="ماه" name="birthMonth" required value={values.birthMonth} onChange={(v) => setField("birthMonth", v)} options={formOptions.persianMonths.map((m) => ({ value: m, label: m }))} placeholder="ماه" />
+                <FormField as="select" label="سال" name="birthYear" required value={values.birthYear} onChange={(v) => setField("birthYear", v)} options={formOptions.birthYears.map((y) => ({ value: y, label: y }))} placeholder="سال" />
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField as="select" label="استان" name="province" required value={values.province} onChange={(v) => setField("province", v)} options={iranProvinces.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" error={errors.province} />
+              <FormField as="select" label="استان" name="province" required value={values.province} onChange={(v) => setField("province", v)} options={formOptions.iranProvinces.map((p) => ({ value: p, label: p }))} placeholder="انتخاب استان" error={errors.province} />
               <FormField label="شهر" name="city" required value={values.city} onChange={(v) => setField("city", v)} error={errors.city} />
             </div>
             <FormField label="محدوده سکونت" name="residenceArea" required value={values.residenceArea} onChange={(v) => setField("residenceArea", v)} error={errors.residenceArea} />
@@ -233,15 +241,15 @@ export default function CooperationForm() {
         {step === "skills" && (
           <>
             <FormField as="textarea" label="مهارت‌ها و توانایی‌ها" name="skills" required value={values.skills} onChange={(v) => setField("skills", v)} error={errors.skills} rows={4} />
-            <FormChipGroup label="آشنایی با زبان انگلیسی" name="englishLevel" required value={values.englishLevel} onChange={(v) => setField("englishLevel", v)} options={[...skillLevels]} error={errors.englishLevel} columns={5} />
-            <FormChipGroup label="آشنایی با کامپیوتر" name="computerLevel" required value={values.computerLevel} onChange={(v) => setField("computerLevel", v)} options={[...skillLevels]} error={errors.computerLevel} columns={5} />
+            <FormChipGroup label="آشنایی با زبان انگلیسی" name="englishLevel" required value={values.englishLevel} onChange={(v) => setField("englishLevel", v)} options={[...formOptions.skillLevels]} error={errors.englishLevel} columns={5} />
+            <FormChipGroup label="آشنایی با کامپیوتر" name="computerLevel" required value={values.computerLevel} onChange={(v) => setField("computerLevel", v)} options={[...formOptions.skillLevels]} error={errors.computerLevel} columns={5} />
             <FormField as="textarea" label="مهارت‌های کامپیوتری" name="computerSkills" required value={values.computerSkills} onChange={(v) => setField("computerSkills", v)} error={errors.computerSkills} rows={3} placeholder="نرم‌افزارها و ابزارهایی که با آن‌ها کار می‌کنید" />
           </>
         )}
 
         {step === "terms" && (
           <>
-            <FormChipGroup label="نوع همکاری" name="cooperationType" required value={values.cooperationType} onChange={(v) => setField("cooperationType", v)} options={[...cooperationTypes]} error={errors.cooperationType} columns={4} />
+              <FormChipGroup label="نوع همکاری" name="cooperationType" required value={values.cooperationType} onChange={(v) => setField("cooperationType", v)} options={[...formOptions.cooperationTypes]} error={errors.cooperationType} columns={4} />
             <div>
               <p className="mb-2 text-sm text-forest/70">فایل رزومه</p>
               <label className="flex cursor-pointer items-center justify-between gap-4 border border-dashed border-forest/20 px-4 py-3 text-sm transition-colors hover:border-forest/35">

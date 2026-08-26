@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import Button from "@/components/ui/Button";
 import Container from "@/components/layout/Container";
-import { interiorHero } from "@/data/interior-architecture";
+import { interiorHero as fallbackHero } from "@/data/interior-architecture";
 import { registerGsap, gsap, prefersReducedMotion } from "@/lib/gsap";
 
-export default function InteriorHero() {
+type InteriorHeroContent = typeof fallbackHero;
+
+export default function InteriorHero({ content = fallbackHero }: { content?: InteriorHeroContent }) {
   const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function InteriorHero() {
   return (
     <section ref={root} className="relative min-h-[92svh] overflow-hidden bg-forest text-paper">
       <div data-interior-hero-media className="absolute inset-0">
-        <Image src={interiorHero.image} alt="" fill priority sizes="100vw" className="object-cover" />
+        <Image src={content.image} alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-forest/72" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/70" />
       </div>
@@ -46,17 +48,17 @@ export default function InteriorHero() {
             خانه
           </Link>
           <span>/</span>
-          <span className="text-paper/85">{interiorHero.eyebrow}</span>
+          <span className="text-paper/85">{content.eyebrow}</span>
         </nav>
 
         <div data-interior-hero-copy className="max-w-3xl">
-          <p className="eyebrow text-peach">{interiorHero.eyebrow}</p>
+          <p className="eyebrow text-peach">{content.eyebrow}</p>
           <h1 className="mt-6 text-balance text-[clamp(2.25rem,6vw,4.75rem)] font-light leading-[1.02] tracking-tightest">
-            {interiorHero.title}
+            {content.title}
           </h1>
-          <p className="mt-5 text-xl font-light text-peach/95 md:text-2xl">{interiorHero.subtitle}</p>
+          <p className="mt-5 text-xl font-light text-peach/95 md:text-2xl">{content.subtitle}</p>
           <p className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-paper/78 md:text-lg">
-            {interiorHero.description}
+            {content.description}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Button href="/interior-architecture-services/order" variant="primary" showArrow>

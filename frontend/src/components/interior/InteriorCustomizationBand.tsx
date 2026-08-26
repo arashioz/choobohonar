@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
-import { interiorCustomizationPieces } from "@/data/interior-architecture";
+import { interiorCustomizationPieces as fallbackPieces } from "@/data/interior-architecture";
 
-export default function InteriorCustomizationBand() {
+export default function InteriorCustomizationBand({ items = fallbackPieces }: { items?: typeof fallbackPieces }) {
   return (
     <section className="bg-paper py-24 md:py-32">
       <Container>
@@ -22,7 +22,7 @@ export default function InteriorCustomizationBand() {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {interiorCustomizationPieces.map((piece, index) => (
+          {items.map((piece, index) => (
             <FadeUp key={piece.id} delay={index * 0.08}>
               <Link
                 href={piece.href}

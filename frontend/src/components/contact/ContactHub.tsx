@@ -1,15 +1,31 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import ContactLeadForm from "@/components/contact/ContactLeadForm";
-import { contactForms } from "@/data/contact-forms";
-import { brand } from "@/data/nav";
+import { contactForms as fallbackContactForms, type ContactFormMeta } from "@/data/contact-forms";
+import { brand as fallbackBrand } from "@/data/nav";
+import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { toFa } from "@/lib/utils";
 
 export default function ContactHub() {
+  const [forms, setForms] = useState<ContactFormMeta[]>(fallbackContactForms);
+  const [brand, setBrand] = useState(fallbackBrand);
+
+  useEffect(() => {
+    Promise.all([
+      fetchPublicCmsPage<{ forms?: ContactFormMeta[] }>("contact-forms"),
+      fetchPublicCmsPage<{ brand?: typeof fallbackBrand }>("nav"),
+    ]).then(([contactPage, navPage]) => {
+      const contactData = contactPage?.items;
+      const navData = navPage?.items;
+      if (Array.isArray(contactData?.forms) && contactData.forms.length) setForms(contactData.forms);
+      if (navData?.brand) setBrand({ ...fallbackBrand, ...navData.brand });
+    }).catch(() => undefined);
+  }, []);
+
   return (
     <section className="bg-paper pt-28 pb-20 md:pt-36 md:pb-28">
       <Container>
@@ -46,7 +62,7 @@ export default function ContactHub() {
         <FadeUp delay={0.16} className="mt-16 md:mt-20">
           <p className="eyebrow text-brick">فرم‌های اختصاصی</p>
           <div className="mt-6 divide-y divide-forest/10 border-y border-forest/10">
-            {contactForms.map((form, i) => (
+            {forms.map((form, i) => (
               <Link
                 key={form.id}
                 href={form.href}

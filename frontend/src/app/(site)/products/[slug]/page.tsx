@@ -175,7 +175,7 @@ export default async function ProductPage({ params }: PageProps) {
   );
 }
 
-type AdminProduct = { _id?: string; slug?: string; name: string; category: string; room?: import("@/data/products").ProductRoom; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
+type AdminProduct = { _id?: string; slug: string; name: string; category: string; room?: import("@/data/products").ProductRoom; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
 async function getAdminProduct(slug: string): Promise<AdminProduct | null> {
   try {
     const response = await fetch(`${getApiBase()}/shop/products/slug/${encodeURIComponent(slug)}`, { cache: "no-store" });

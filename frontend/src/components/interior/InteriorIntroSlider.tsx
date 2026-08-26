@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { interiorStyles } from "@/data/interior-architecture";
+import { interiorStyles as fallbackStyles } from "@/data/interior-architecture";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
-const slides = interiorStyles.slice(0, 6).map((style) => ({
-  src: style.image,
-  alt: style.label,
-  caption: style.description,
-  label: style.label,
-}));
-
-export default function InteriorIntroSlider() {
+export default function InteriorIntroSlider({ styles = fallbackStyles }: { styles?: typeof fallbackStyles }) {
+  const slides = styles.slice(0, 6).map((style) => ({
+    src: style.image,
+    alt: style.label,
+    caption: style.description,
+    label: style.label,
+  }));
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
