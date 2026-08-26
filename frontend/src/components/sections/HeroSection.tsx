@@ -41,18 +41,30 @@ export default function HeroSection() {
       (item): item is HTMLVideoElement => Boolean(item),
     );
     if (!heroVideos.length) return;
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
 
     const syncPlayback = () => {
       if (document.hidden || prefersReducedMotion()) {
         heroVideos.forEach((item) => item.pause());
         return;
       }
-      heroVideos.forEach((item) => void item.play().catch(() => undefined));
+      // Only play the source visible at the current breakpoint. This avoids
+      // downloading two hero videos on tablets and phones, and lets iPads use
+      // the guaranteed mobile MP4 instead of a missing desktop asset.
+      const activeVideo = desktopQuery.matches ? video.current : mobileVideo.current;
+      heroVideos.forEach((item) => {
+        if (item === activeVideo) void item.play().catch(() => undefined);
+        else item.pause();
+      });
     };
 
     syncPlayback();
     document.addEventListener("visibilitychange", syncPlayback);
-    return () => document.removeEventListener("visibilitychange", syncPlayback);
+    desktopQuery.addEventListener("change", syncPlayback);
+    return () => {
+      document.removeEventListener("visibilitychange", syncPlayback);
+      desktopQuery.removeEventListener("change", syncPlayback);
+    };
   }, []);
 
   useEffect(() => {
@@ -183,11 +195,14 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           aria-hidden
-          className="absolute inset-0 hidden h-full w-full object-cover md:block"
+          className="absolute inset-0 hidden h-full w-full object-cover xl:block"
         >
           <source src="/videos/anzhelik.mp4" type="video/mp4" />
+          {/* Keep desktop/tablet rendering usable if the optional desktop
+              asset is not present in the deployment image. */}
+          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
         </video>
         <video
           ref={mobileVideo}
@@ -195,9 +210,9 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover md:hidden"
+          className="absolute inset-0 h-full w-full object-cover xl:hidden"
         >
           <source src="/videos/hero-mobile.mp4" type="video/mp4" />
         </video>
