@@ -10,8 +10,10 @@
 | `frontend/src/data/projects.ts` | پروژه‌ها و روایت تصویری | `cms_entries` با `kind=project` | seed شده؛ صفحه فهرست از CMS می‌خواند |
 | `frontend/src/data/materials.ts` و `material-products.ts` | متریال و اطلاعات فروش | `cms_entries` با `kind=material` | seed شده؛ صفحه فهرست از CMS می‌خواند |
 | `frontend/src/data/collections.ts` | کالکشن‌ها | `cms_entries` با `kind=collection` | seed شده؛ صفحه فهرست از CMS می‌خواند |
-| `frontend/src/data/stores.ts` | شعب و آدرس‌ها | collection تنظیمات/شعب | نیازمند schema جدا |
-| `frontend/src/data/nav.ts`, `workAreas.ts`, `interior-architecture.ts`, `contact-forms.ts` | ناوبری و محتوای صفحات | تنظیمات/صفحات CMS | فعلاً محتوای ثابت رابط کاربری |
+| `frontend/src/data/stores.ts` | شعب و آدرس‌ها | `cms_entries` با `kind=page`, slug=`stores` | seed شده؛ صفحه فروشگاه‌ها از CMS می‌خواند |
+| `frontend/src/data/gallery.ts` | آرشیو تصاویر گالری | `cms_entries` با `kind=page`, slug=`gallery` | seed شده؛ صفحه گالری از CMS می‌خواند |
+| `frontend/src/data/workAreas.ts` | حوزه‌های کاری صفحه اصلی | `cms_entries` با `kind=page`, slug=`work-areas` | seed شده؛ بخش صفحه اصلی از CMS می‌خواند |
+| `frontend/src/data/nav.ts`, `interior-architecture.ts`, `contact-forms.ts` | ناوبری و محتوای فرم‌ها/خدمات | تنظیمات/صفحات CMS | مرحله‌ی بعدی |
 
 ## اجرای مهاجرت روی سرور
 
