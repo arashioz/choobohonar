@@ -2,10 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm config set registry https://mirror-npm.runflare.com
+ARG NPM_REGISTRY=https://mirror-npm.runflare.com
+RUN npm config set registry "$NPM_REGISTRY"
 
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --no-audit --no-fund || (npm config set registry https://registry.npmjs.org && npm ci --no-audit --no-fund)
 
 COPY . .
 

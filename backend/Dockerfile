@@ -2,11 +2,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN npm config set registry https://mirror-npm.runflare.com
+ARG NPM_REGISTRY=https://mirror-npm.runflare.com
+RUN npm config set registry "$NPM_REGISTRY"
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --no-audit --no-fund || (npm config set registry https://registry.npmjs.org && npm install --no-audit --no-fund)
 
 COPY . .
 

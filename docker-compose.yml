@@ -22,7 +22,7 @@ services:
       - ./backend/.env
     environment:
       MONGODB_URI: mongodb://mongo:27017/choob-va-honar
-      FRONTEND_URL: http://95.38.165.133
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
     volumes:
@@ -76,7 +76,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - '95.38.165.133:80:80'
+      - '${HTTP_PORT:-80}:80'
     volumes:
       - ./backend/uploads:/var/www/uploads:ro
     depends_on:
