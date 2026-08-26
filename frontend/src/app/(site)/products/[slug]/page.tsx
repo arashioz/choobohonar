@@ -20,6 +20,7 @@ import CommerceProductEditorial from "@/components/commerce/CommerceProductEdito
 import AddToCartButton from "@/components/shop/AddToCartButton";
 import { getProductEditorialContent } from "@/lib/product-editorial";
 import { getApiBase } from "@/lib/api-base";
+import { normalizeStorefrontProduct } from "@/lib/storefront-products";
 
 export const dynamicParams = true;
 
@@ -35,6 +36,10 @@ type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const backendProduct = await getAdminProduct(slug);
+  if (backendProduct?.status === "published") {
+    return { title: `${backendProduct.name} | قیمت، مشخصات و خرید | خانه چوب و هنر`, description: backendProduct.shortDescription || backendProduct.longDescription };
+  }
   const product = getCatalogProduct(slug);
   if (!product) {
     const shopProduct = await getAdminProduct(slug);
@@ -60,6 +65,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  const backendProduct = await getAdminProduct(slug);
+  if (backendProduct?.status === "published") {
+    return <CommerceProductDetail product={normalizeStorefrontProduct(backendProduct)} />;
+  }
   const product = getCatalogProduct(slug);
   if (!product) {
     const shopProduct = await getAdminProduct(slug);
@@ -166,7 +175,7 @@ export default async function ProductPage({ params }: PageProps) {
   );
 }
 
-type AdminProduct = { _id?: string; name: string; category: string; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
+type AdminProduct = { _id?: string; slug?: string; name: string; category: string; room?: import("@/data/products").ProductRoom; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
 async function getAdminProduct(slug: string): Promise<AdminProduct | null> {
   try {
     const response = await fetch(`${getApiBase()}/shop/products/slug/${encodeURIComponent(slug)}`, { cache: "no-store" });

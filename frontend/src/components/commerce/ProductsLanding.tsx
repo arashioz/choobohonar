@@ -7,9 +7,11 @@ import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 import { commerceCategories, getFeaturedCommerceProducts } from "@/data/commerce";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 
-export default function ProductsLanding() {
-  const featured = getFeaturedCommerceProducts(8);
+export default async function ProductsLanding() {
+  const backendProducts = await fetchStorefrontProducts();
+  const featured = backendProducts.length ? backendProducts.filter((product) => product.image).slice(0, 8) : getFeaturedCommerceProducts(8);
   const stories = getFeaturedCommerceProducts(10).map((product) => ({
     label: product.category,
     title: product.name,

@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -27,11 +28,19 @@ type CatalogSeedRow = {
 };
 
 @Injectable()
-export class ShopService {
+export class ShopService implements OnModuleInit {
   constructor(
     @InjectModel(ShopProduct.name)
     private productModel: Model<ShopProductDocument>,
   ) {}
+
+  async onModuleInit() {
+    // Bootstrap the catalog into MongoDB once. Admin-created products are
+    // preserved on subsequent restarts and can then be managed normally.
+    if ((await this.productModel.countDocuments()) === 0) {
+      await this.seedFromCatalog(false);
+    }
+  }
 
   async list(query: {
     q?: string;

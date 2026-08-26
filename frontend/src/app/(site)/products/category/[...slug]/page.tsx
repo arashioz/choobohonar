@@ -13,6 +13,7 @@ import {
   resolveCommerceCategory,
 } from "@/data/commerce";
 import { toFa } from "@/lib/utils";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 
 export const dynamicParams = false;
 
@@ -48,7 +49,14 @@ export default async function ProductCategoryPage({ params }: PageProps) {
   const { slug } = await params;
   const category = resolveCommerceCategory(slug);
   if (!category) notFound();
-  const products = getCommerceCategoryProducts(category);
+  const backendProducts = await fetchStorefrontProducts();
+  const products = backendProducts.length
+    ? backendProducts.filter((product) => {
+        if (category.root.room && product.room !== category.root.room) return false;
+        if (category.active && product.category !== category.active.label && !product.slug.includes(category.active.slug)) return false;
+        return true;
+      })
+    : getCommerceCategoryProducts(category);
   const activeLabel = category.active?.label ?? category.root.label;
 
   return (
