@@ -13,7 +13,7 @@ async function getLatestPosts(): Promise<Post[]> {
   try {
     const [settingsResponse, cmsResponse] = await Promise.all([
       fetch(`${getApiBase()}/settings/public`, { cache: "no-store" }),
-      fetch(`${getApiBase()}/cms/article`, { cache: "no-store" }),
+      fetch(`${getApiBase()}/public-cms/article`, { cache: "no-store" }),
     ]);
     const settings = settingsResponse.ok ? await settingsResponse.json() : null;
     if (settings?.magazineSource === "static" || settings?.magazineSource === "cms" || settings?.magazineSource === "both") source = settings.magazineSource;

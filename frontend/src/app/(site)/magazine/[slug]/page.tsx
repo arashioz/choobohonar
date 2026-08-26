@@ -82,7 +82,7 @@ type CmsArticle = { title: string; excerpt?: string; content?: string; images?: 
 
 async function getCmsArticle(slug: string): Promise<CmsArticle | null> {
   try {
-    const response = await fetch(`${getApiBase()}/cms/article/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const response = await fetch(`${getApiBase()}/public-cms/article/${encodeURIComponent(slug)}`, { cache: "no-store" });
     return response.ok ? response.json() : null;
   } catch { return null; }
 }

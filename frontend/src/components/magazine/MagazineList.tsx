@@ -15,7 +15,7 @@ export default function MagazineList() {
   useEffect(() => {
     Promise.all([
       fetch("/api/settings/public", { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
-      fetch("/api/cms/article", { cache: "no-store" }).then((response) => response.ok ? response.json() : []),
+      fetch("/api/public-cms/article", { cache: "no-store" }).then((response) => response.ok ? response.json() : []),
     ]).then(([settings, items]: [unknown, unknown]) => {
         if (settings && typeof settings === "object" && "magazineSource" in settings) {
           const value = (settings as { magazineSource?: string }).magazineSource;

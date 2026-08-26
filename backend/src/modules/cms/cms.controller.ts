@@ -57,3 +57,20 @@ export class CmsPublicController {
     return this.cmsService.publicList(kind, slug);
   }
 }
+
+// Public storefront alias kept separate from /cms, which is reserved by the
+// admin proxy in production nginx.
+@Controller('public-cms')
+export class CmsStorefrontController {
+  constructor(private readonly cmsService: CmsService) {}
+
+  @Get(':kind')
+  list(@Param('kind') kind: string) {
+    return this.cmsService.publicList(kind);
+  }
+
+  @Get(':kind/:slug')
+  get(@Param('kind') kind: string, @Param('slug') slug: string) {
+    return this.cmsService.publicList(kind, slug);
+  }
+}
