@@ -91,7 +91,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
     const files = Array.from(event.target.files || []); if (!files.length) return;
     setUploading(true); setNotice(null);
     try {
-      const uploaded = await Promise.all(files.map(async (file) => { const form = new FormData(); form.append("file", file); const response = await fetch("/api/media", { method: "POST", body: form }); const result = await response.json(); if (!response.ok) throw new Error(result.message || `آپلود ${file.name} ناموفق بود`); return result.url as string; }));
+      const uploaded = await Promise.all(files.map(async (file) => { const form = new FormData(); form.append("file", file); const response = await fetch("/api/media", { method: "POST", body: form }); const text = await response.text(); let result: { url?: string; message?: string } = {}; try { result = JSON.parse(text) as typeof result; } catch { throw new Error(`آپلود ${file.name} ناموفق بود (پاسخ سرور: ${response.status})`); } if (!response.ok || !result.url) throw new Error(result.message || `آپلود ${file.name} ناموفق بود`); return result.url; }));
       setField("images", [...(entry.images || []), ...uploaded]);
     }
     catch (err) { setNotice({ tone: "error", text: err instanceof Error ? err.message : "آپلود انجام نشد" }); }

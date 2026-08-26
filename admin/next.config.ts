@@ -1,11 +1,16 @@
 import type { NextConfig } from "next";
 
+const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined;
+
 const nextConfig: NextConfig = {
   output: "standalone",
   // Admin routes stay at /admin, while its generated JS/CSS is namespaced so
   // nginx never serves storefront assets to the admin application.
-  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined,
+  assetPrefix,
   images: {
+    // Image optimization does not automatically inherit assetPrefix. Keep it
+    // below /admin so nginx sends brandbook images to the admin Next server.
+    path: assetPrefix ? `${assetPrefix}/_next/image` : "/_next/image",
     remotePatterns: [
       {
         protocol: "https",
