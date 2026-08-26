@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { CmsEntry, CmsEntryDocument, CmsEntryKind, CmsEntryStatus } from './schemas/cms-entry.schema';
 
 type EntryInput = Partial<CmsEntry> & { title?: string; slug?: string };
@@ -12,8 +14,7 @@ export class CmsService implements OnModuleInit {
   constructor(@InjectModel(CmsEntry.name) private readonly entryModel: Model<CmsEntryDocument>) {}
 
   async onModuleInit() {
-    if ((await this.entryModel.countDocuments()) > 0) return;
-    await this.entryModel.insertMany([
+    if ((await this.entryModel.countDocuments()) === 0) await this.entryModel.insertMany([
       { kind: 'article', title: 'راهنمای انتخاب چوب برای فضای داخلی', slug: 'wood-selection-guide', status: 'published', excerpt: 'چطور میان گونه‌های مختلف چوب، انتخابی متناسب با فضا و سبک زندگی داشته باشیم.', content: 'هر گونه چوب، زبان و رفتار خاص خودش را دارد. در انتخاب چوب باید علاوه بر رنگ و رگه، به میزان استفاده، نور محیط و شیوه نگهداری توجه کرد.', tags: ['چوب', 'راهنمای خرید'], data: { author: 'تحریریه چوب و هنر', category: 'معرفی متریال', readingTime: '۶ دقیقه' }, publishedAt: new Date('2026-07-21') },
       { kind: 'article', title: 'مراقبت از مبلمان چوبی در تابستان', slug: 'summer-furniture-care', status: 'draft', excerpt: 'راهنمای ساده نگهداری از سطوح چوبی در برابر نور و خشکی هوا.', content: 'پیش‌نویس مقاله مراقبت فصلی از مبلمان چوبی.', tags: ['نگهداری'], data: { author: 'تحریریه چوب و هنر', category: 'نگهداری مبلمان', readingTime: '۴ دقیقه' } },
       { kind: 'product', title: 'میز ناهارخوری سرو', slug: 'sarv-dining-table', status: 'published', excerpt: 'میز ناهارخوری شش‌نفره با صفحه چوب طبیعی.', description: 'فرم آرام و ساختار مستحکم برای استفاده روزمره.', images: [], tags: ['میز', 'ناهارخوری'], data: { sku: 'CH-DT-101', category: 'میز و صندلی', price: 48500000, comparePrice: 0, currency: 'IRR', inventory: 4, manageStock: true, availability: 'in_stock', materials: ['چوب گردو'], dimensions: { width: 180, depth: 90, height: 76 }, leadTime: '۳ تا ۵ هفته' }, publishedAt: new Date('2026-07-18') },
@@ -21,6 +22,7 @@ export class CmsService implements OnModuleInit {
       { kind: 'project', title: 'ویلای لواسان', slug: 'lavasan-villa', status: 'published', excerpt: 'طراحی و اجرای مبلمان سفارشی یک ویلای معاصر.', description: 'روایت هماهنگی چوب طبیعی با نور و معماری پروژه.', data: { client: 'خصوصی', location: 'لواسان', year: '۱۴۰۴', area: 480, services: ['طراحی داخلی', 'ساخت سفارشی'] }, publishedAt: new Date('2026-07-10') },
       { kind: 'collection', title: 'کالکشن زیست', slug: 'zist-collection', status: 'draft', excerpt: 'مجموعه‌ای با تمرکز بر فرم‌های طبیعی و متریال صادق.', description: 'داستان کالکشن زیست از طبیعت و ریتم زندگی روزمره الهام می‌گیرد.', data: { season: 'پاییز ۱۴۰۵', productIds: [], featured: true } },
     ]);
+    await this.seedEditorialArticles();
   }
 
   assertKind(kind: string): CmsEntryKind {
@@ -99,6 +101,32 @@ export class CmsService implements OnModuleInit {
     const kind = this.assertKind(kindValue);
     if (slug) return this.getPublished(kind, slug);
     return this.entryModel.find({ kind, status: 'published' }).sort({ publishedAt: -1 }).lean().exec();
+  }
+
+  async taxonomy(kindValue: string) {
+    const kind = this.assertKind(kindValue);
+    const [categories, tags] = await Promise.all([
+      this.entryModel.aggregate([{ $match: { kind } }, { $project: { value: '$data.category' } }, { $match: { value: { $type: 'string', $ne: '' } } }, { $group: { _id: '$value' } }, { $sort: { _id: 1 } }]),
+      this.entryModel.aggregate([{ $match: { kind } }, { $unwind: '$tags' }, { $match: { tags: { $type: 'string', $ne: '' } } }, { $group: { _id: '$tags' } }, { $sort: { _id: 1 } }]),
+    ]);
+    return { categories: categories.map((item) => item._id), tags: tags.map((item) => item._id) };
+  }
+
+  private async seedEditorialArticles() {
+    const filePath = join(process.cwd(), 'src/modules/cms/data/editorial-posts.json');
+    try {
+      const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<Record<string, any>>;
+      const operations = rows.filter((row) => row.slug && row.title).map((row) => ({
+        updateOne: {
+          filter: { kind: 'article', slug: row.slug },
+          update: { $setOnInsert: { kind: 'article', title: row.title, slug: row.slug, status: 'published', excerpt: row.excerpt || '', content: Array.isArray(row.content) ? row.content.map((block: { text?: string }) => block.text || '').filter(Boolean).join('\n\n') : String(row.content || ''), images: row.coverImage ? [row.coverImage] : [], seo: { title: row.title, description: row.metaDescription || '' }, data: { author: row.author || 'تحریریه خانه چوب و هنر', category: row.category || 'مقالات آموزشی', readingTime: row.readingTime || '' }, tags: row.tags || [], publishedAt: new Date() } },
+          upsert: true,
+        },
+      }));
+      if (operations.length) await this.entryModel.bulkWrite(operations as never);
+    } catch (error) {
+      console.warn('[cms] editorial seed skipped:', error instanceof Error ? error.message : error);
+    }
   }
 
   private async getPublished(kind: CmsEntryKind, slug: string) {

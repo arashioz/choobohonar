@@ -12,6 +12,11 @@ export class CmsAdminController {
     return this.cmsService.list(kind, query, status, limit);
   }
 
+  @Get(':kind/meta')
+  taxonomy(@Param('kind') kind: string) {
+    return this.cmsService.taxonomy(kind);
+  }
+
   @Post(':kind')
   create(@Param('kind') kind: string, @Body() body: Record<string, unknown>) {
     return this.cmsService.create(kind, body);

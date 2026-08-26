@@ -32,6 +32,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   const [slugTouched, setSlugTouched] = useState(Boolean(entryId));
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [relations, setRelations] = useState<{ materials: CmsEntry[]; collections: CmsEntry[] }>({ materials: [], collections: [] });
+  const [articleTaxonomy, setArticleTaxonomy] = useState<{ categories: string[]; tags: string[] }>({ categories: [], tags: [] });
 
   useEffect(() => {
     if (!entryId) return;
@@ -44,6 +45,13 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
     if (kind !== "product") return;
     Promise.all([cmsRequest<{ items: CmsEntry[] }>("material"), cmsRequest<{ items: CmsEntry[] }>("collection")])
       .then(([materials, collections]) => setRelations({ materials: materials.items, collections: collections.items }))
+      .catch(() => undefined);
+  }, [kind]);
+
+  useEffect(() => {
+    if (kind !== "article") return;
+    cmsRequest<{ categories: string[]; tags: string[] }>("article/meta")
+      .then(setArticleTaxonomy)
       .catch(() => undefined);
   }, [kind]);
 
@@ -130,7 +138,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
         <aside className="space-y-5 lg:col-span-4">
           <Panel title="گالری رسانه" description="چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? "در حال آپلود فایل‌ها…" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">انتخاب هم‌زمان · حداکثر ۲۰۰ مگابایت برای هر فایل</span><input type="file" accept="image/*,video/*" multiple onChange={upload} disabled={uploading} className="hidden" /></label><MediaList images={entry.images || []} onChange={(images) => setField("images", images)} /></Panel>
 
-          {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه چوب و هنر" /></Field><Field label="دسته‌بندی"><input value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass} placeholder="مقالات آموزشی" /></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} /></Panel>}
+          {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه چوب و هنر" /></Field><Field label="دسته‌بندی"><select value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass}><option value="">انتخاب دسته‌بندی</option>{articleTaxonomy.categories.map((category) => <option key={category} value={category}>{category}</option>)}</select><span className="mt-1 block text-[9px] text-forest/35">دسته‌ها از مقالات ثبت‌شده در دیتابیس خوانده می‌شوند.</span></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} hint={articleTaxonomy.tags.length ? `برچسب‌های موجود: ${articleTaxonomy.tags.slice(0, 8).join("، ")}` : undefined} /></Panel>}
 
           {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
         </aside>

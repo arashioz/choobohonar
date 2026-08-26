@@ -12,7 +12,7 @@ import { fetchStorefrontProducts } from "@/lib/storefront-products";
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
   const featured = backendProducts.length ? backendProducts.filter((product) => product.image).slice(0, 8) : getFeaturedCommerceProducts(8);
-  const stories = getFeaturedCommerceProducts(10).map((product) => ({
+  const stories = (backendProducts.length ? backendProducts : getFeaturedCommerceProducts(10)).slice(0, 10).map((product) => ({
     label: product.category,
     title: product.name,
     image: product.image,

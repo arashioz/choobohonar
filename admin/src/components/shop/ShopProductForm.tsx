@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -84,6 +84,11 @@ export default function ShopProductForm({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    shopApi.categories().then((rows) => setCategoryOptions(Array.from(new Set(rows.map((row) => row.category).filter(Boolean))))).catch(() => undefined);
+  }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -224,12 +229,14 @@ export default function ShopProductForm({
               />
             </Field>
             <Field label="دسته" required>
-              <input
+              <input list="shop-category-options"
                 className={fieldClass}
                 value={form.category}
                 onChange={(e) => set("category", e.target.value)}
                 required
               />
+              <datalist id="shop-category-options">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist>
+              <span className="mt-1 block text-[9px] text-forest/35">دسته‌بندی‌ها از محصولات موجود در دیتابیس پیشنهاد می‌شوند.</span>
             </Field>
             <Field label="فضا / اتاق">
               <select

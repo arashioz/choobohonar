@@ -24,6 +24,10 @@ type CatalogSeedRow = {
   room: string;
   shortDescription?: string;
   image?: string;
+  gallery?: string[];
+  categories?: { id: number; name: string; slug: string }[];
+  attributes?: unknown[];
+  prices?: { value?: string | null; regularValue?: string | null } | null;
   shopUrl?: string;
 };
 
@@ -309,16 +313,6 @@ export class ShopService implements OnModuleInit {
   }
 
   async seedFromCatalog(force = false) {
-    const count = await this.productModel.countDocuments();
-    if (count > 0 && !force) {
-      return {
-        ok: true,
-        skipped: true,
-        message: 'دیتابیس محصول خالی نیست؛ برای بازنویسی force=true بفرستید.',
-        total: count,
-      };
-    }
-
     if (force) {
       await this.productModel.deleteMany({ source: 'catalog' });
     }
@@ -329,7 +323,9 @@ export class ShopService implements OnModuleInit {
     );
     const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
 
-    const docs = rows.map((row, index) => ({
+    const protectedProducts = await this.productModel.find({ source: { $ne: 'catalog' } }).select('slug').lean().exec();
+    const protectedSlugs = new Set(protectedProducts.map((product) => product.slug));
+    const docs = rows.filter((row) => !protectedSlugs.has(row.slug)).map((row, index) => ({
       slug: row.slug,
       name: row.name,
       category: row.category,
@@ -345,8 +341,10 @@ export class ShopService implements OnModuleInit {
       shortDescription: row.shortDescription || '',
       longDescription: '',
       image: row.image || '',
-      gallery: row.image ? [row.image] : [],
+      gallery: row.gallery || (row.image ? [row.image] : []),
       shopUrl: row.shopUrl,
+      price: row.prices?.value ? Number(row.prices.value) : undefined,
+      compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
       finishes: [] as string[],
       status: 'published' as const,
       featured: false,
