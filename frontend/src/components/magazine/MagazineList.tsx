@@ -10,11 +10,17 @@ import PostCard from "@/components/magazine/PostCard";
 export default function MagazineList() {
   const [active, setActive] = useState("همه");
   const [cmsPosts, setCmsPosts] = useState<Post[]>([]);
+  const [source, setSource] = useState<"static" | "cms" | "both">("both");
 
   useEffect(() => {
-    fetch("/api/cms/article", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : [])
-      .then((items: unknown) => {
+    Promise.all([
+      fetch("/api/settings/public", { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
+      fetch("/api/cms/article", { cache: "no-store" }).then((response) => response.ok ? response.json() : []),
+    ]).then(([settings, items]: [unknown, unknown]) => {
+        if (settings && typeof settings === "object" && "magazineSource" in settings) {
+          const value = (settings as { magazineSource?: string }).magazineSource;
+          if (value === "static" || value === "cms" || value === "both") setSource(value);
+        }
         if (!Array.isArray(items)) return;
         setCmsPosts(items.map((item: any) => ({
           slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
@@ -23,13 +29,15 @@ export default function MagazineList() {
           readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""),
           content: [], tags: Array.isArray(item.tags) ? item.tags : [], metaDescription: item.seo?.description,
         })));
-      }).catch(() => undefined);
+      })).catch(() => undefined);
   }, []);
 
   const allPosts = useMemo(() => {
     const serverSlugs = new Set(cmsPosts.map((post) => post.slug));
+    if (source === "cms") return cmsPosts;
+    if (source === "static") return posts;
     return [...cmsPosts, ...posts.filter((post) => !serverSlugs.has(post.slug))];
-  }, [cmsPosts]);
+  }, [cmsPosts, source]);
   const postCategories = useMemo(() => ["همه", ...Array.from(new Set(allPosts.map((post) => post.category)))], [allPosts]);
 
   const filtered = useMemo(
