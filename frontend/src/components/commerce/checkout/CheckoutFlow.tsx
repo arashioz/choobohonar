@@ -370,9 +370,6 @@ export default function CheckoutFlow() {
                 <div className="mt-5 flex items-end justify-between gap-4 border-t border-forest/10 pt-5"><dt className="text-forest/55">جمع محصولات</dt><dd className="text-xl font-light text-forest">{formatMoney(subtotal, currency)}</dd></div>
               </dl>
             </div>
-            <div className="mt-4 bg-peach/30 p-5 text-xs leading-6 text-forest/60">
-              سفارش پس از ثبت، مستقیماً در بخش «سفارش‌ها»ی پنل مدیریت قرار می‌گیرد.
-            </div>
           </aside>
         </div>
       </Container>

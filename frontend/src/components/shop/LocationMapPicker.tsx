@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export type MapPoint = { lat: number; lng: number };
@@ -18,6 +18,8 @@ export default function LocationMapPicker({ value, onChange, className }: Props)
   const mapRef = useRef<import("leaflet").Map | null>(null);
   const markerRef = useRef<import("leaflet").Marker | null>(null);
   const onChangeRef = useRef(onChange);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -96,15 +98,39 @@ export default function LocationMapPicker({ value, onChange, className }: Props)
     mapRef.current.panTo([value.lat, value.lng]);
   }, [value.lat, value.lng]);
 
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("مرورگر شما موقعیت مکانی را پشتیبانی نمی‌کند.");
+      return;
+    }
+    setLocating(true);
+    setLocationError("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        onChange({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setLocating(false);
+      },
+      () => {
+        setLocationError("دسترسی به موقعیت مکانی مجاز نشد؛ نقطه را روی نقشه انتخاب کنید.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }
+
   return (
     <div className={cn("overflow-hidden rounded-2xl border border-forest/10", className)}>
       <div ref={containerRef} className="h-72 w-full bg-forest/5 sm:h-80" />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-forest/10 bg-white/80 px-3 py-2 text-[11px] text-forest/50">
         <span>روی نقشه کلیک کنید یا پین را بکشید</span>
+        <button type="button" onClick={useCurrentLocation} disabled={locating} className="rounded-lg border border-forest/15 px-2.5 py-1 text-[10px] text-forest transition-colors hover:border-forest/40 disabled:opacity-50">
+          {locating ? "در حال دریافت…" : "دریافت موقعیت فعلی"}
+        </button>
         <span dir="ltr">
           {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
         </span>
       </div>
+      {locationError ? <p className="border-t border-brick/10 bg-brick/5 px-3 py-2 text-[10px] text-brick">{locationError}</p> : null}
     </div>
   );
 }
