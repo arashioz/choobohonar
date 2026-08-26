@@ -29,7 +29,7 @@ export default function MagazineList() {
           readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""),
           content: [], tags: Array.isArray(item.tags) ? item.tags : [], metaDescription: item.seo?.description,
         })));
-      })).catch(() => undefined);
+      }).catch(() => undefined);
   }, []);
 
   const allPosts = useMemo(() => {
