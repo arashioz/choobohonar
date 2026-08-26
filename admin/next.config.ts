@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    // In production nginx owns the /api routing. Keeping this rewrite in the
+    // standalone build would bake a build-time value (often localhost:3001)
+    // into Next and make the admin container proxy to itself. The CMS route
+    // handlers use API_URL at request time, so they can reach backend:3001.
+    if (process.env.NODE_ENV === "production") return [];
+
     const api =
       process.env.API_PROXY_TARGET ||
       process.env.API_URL ||
