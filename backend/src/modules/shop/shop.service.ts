@@ -359,13 +359,15 @@ export class ShopService implements OnModuleInit {
     const ops = docs.map((doc) => {
       // `slug` is the upsert key and must only be present in $setOnInsert;
       // MongoDB rejects updating the same path in both operators.
-      const { slug: _slug, image: _image, gallery: _gallery, ...catalogFields } = doc;
+      const { slug: _slug, image: seedImage, gallery: seedGallery, ...catalogFields } = doc;
       return {
       updateOne: {
         filter: { slug: doc.slug },
         // Keep image URLs edited by admin or localized by the media migration.
         // New catalog rows still receive the complete seed document.
-        update: { $set: catalogFields, $setOnInsert: doc },
+        // Every other field is already present in `$set`; repeating it in
+        // `$setOnInsert` makes MongoDB reject the operation as a path conflict.
+        update: { $set: catalogFields, $setOnInsert: { slug: doc.slug, image: seedImage, gallery: seedGallery } },
         upsert: true,
       },
       };
