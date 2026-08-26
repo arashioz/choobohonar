@@ -9,7 +9,7 @@ import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type Resou
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
 
 const copy: Record<CmsKind, { title: string; singular: string }> = {
-  product: { title: "محصولات", singular: "محصول" }, material: { title: "متریال‌ها", singular: "متریال" }, project: { title: "پروژه‌ها", singular: "پروژه" }, collection: { title: "کالکشن‌ها", singular: "کالکشن" }, article: { title: "مقالات", singular: "مقاله" },
+  product: { title: "محصولات", singular: "محصول" }, material: { title: "متریال‌ها", singular: "متریال" }, project: { title: "پروژه‌ها", singular: "پروژه" }, collection: { title: "کالکشن‌ها", singular: "کالکشن" }, article: { title: "مقالات", singular: "مقاله" }, page: { title: "صفحات", singular: "صفحه" },
 };
 
 const blankEntry: Omit<CmsEntryInput, "title"> & { title: string } = { title: "", slug: "", status: "draft", excerpt: "", description: "", content: "", images: [], seo: {}, data: {}, tags: [] };

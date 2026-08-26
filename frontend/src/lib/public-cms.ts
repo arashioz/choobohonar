@@ -8,6 +8,7 @@ export type PublicCmsEntry = {
   images?: string[];
   data?: Record<string, unknown>;
   tags?: string[];
+  items?: unknown[];
 };
 
 /** Return CMS records with their migrated legacy fields flattened for pages. */

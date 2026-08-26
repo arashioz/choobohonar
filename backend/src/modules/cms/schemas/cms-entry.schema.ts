@@ -2,12 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type CmsEntryDocument = HydratedDocument<CmsEntry>;
-export type CmsEntryKind = 'product' | 'material' | 'project' | 'collection' | 'article';
+export type CmsEntryKind = 'product' | 'material' | 'project' | 'collection' | 'article' | 'page';
 export type CmsEntryStatus = 'draft' | 'published' | 'archived';
 
 @Schema({ timestamps: true, collection: 'cms_entries' })
 export class CmsEntry {
-  @Prop({ required: true, enum: ['product', 'material', 'project', 'collection', 'article'], index: true })
+  @Prop({ required: true, enum: ['product', 'material', 'project', 'collection', 'article', 'page'], index: true })
   kind: CmsEntryKind;
 
   @Prop({ required: true, trim: true })

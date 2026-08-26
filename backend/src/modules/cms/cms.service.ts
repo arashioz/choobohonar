@@ -7,7 +7,7 @@ import { CmsEntry, CmsEntryDocument, CmsEntryKind, CmsEntryStatus } from './sche
 
 type EntryInput = Partial<CmsEntry> & { title?: string; slug?: string };
 
-const validKinds: CmsEntryKind[] = ['product', 'material', 'project', 'collection', 'article'];
+const validKinds: CmsEntryKind[] = ['product', 'material', 'project', 'collection', 'article', 'page'];
 
 @Injectable()
 export class CmsService implements OnModuleInit {
@@ -26,6 +26,9 @@ export class CmsService implements OnModuleInit {
     await this.seedLegacyContent('project', 'legacy-projects.json');
     await this.seedLegacyContent('material', 'legacy-materials.json');
     await this.seedLegacyContent('collection', 'legacy-collections.json');
+    await this.seedPageData('stores', 'legacy-stores.json', 'شعب و نمایندگی‌ها');
+    await this.seedPageData('work-areas', 'legacy-work-areas.json', 'حوزه‌های کاری');
+    await this.seedPageData('gallery', 'legacy-gallery.json', 'گالری');
   }
 
   assertKind(kind: string): CmsEntryKind {
@@ -144,6 +147,20 @@ export class CmsService implements OnModuleInit {
       if (operations.length) await this.entryModel.bulkWrite(operations as never);
     } catch (error) {
       console.warn(`[cms] ${kind} seed skipped:`, error instanceof Error ? error.message : error);
+    }
+  }
+
+  private async seedPageData(slug: string, filename: string, title: string) {
+    const filePath = join(process.cwd(), `src/modules/cms/data/${filename}`);
+    try {
+      const data = JSON.parse(readFileSync(filePath, 'utf8'));
+      await this.entryModel.updateOne(
+        { kind: 'page', slug },
+        { $setOnInsert: { kind: 'page', slug, title, status: 'published', content: '', data: { items: data }, tags: [], publishedAt: new Date() } },
+        { upsert: true },
+      ).exec();
+    } catch (error) {
+      console.warn(`[cms] page seed skipped (${slug}):`, error instanceof Error ? error.message : error);
     }
   }
 

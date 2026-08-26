@@ -1,0 +1,334 @@
+[
+  {
+    "id": "proj-aknoon-living",
+    "src": "/images/projects/aknoon-residence/04.jpg",
+    "alt": "نشیمن اقامتگاه آکنون",
+    "caption": "نشیمن آکنون با مبلمان سفارشی و پالت چوب گرم.",
+    "tag": "project",
+    "href": "/projects/aknoon-residence",
+    "relatedIds": [
+      "proj-aknoon-detail",
+      "bts-aknoon-install",
+      "mat-wood-grain"
+    ],
+    "bento": "hero"
+  },
+  {
+    "id": "proj-aknoon-detail",
+    "src": "/images/projects/aknoon-residence/09.jpg",
+    "alt": "جزئیات چوب اقامتگاه آکنون",
+    "caption": "جزئیات روکش و اتصال در فضای خصوصی اقامتگاه.",
+    "tag": "project",
+    "href": "/projects/aknoon-residence",
+    "relatedIds": [
+      "proj-aknoon-living",
+      "mat-veneer",
+      "bts-finish-check"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "proj-shenaj-villa",
+    "src": "/images/projects/shenaj-villa/05.jpg",
+    "alt": "ویلای شناژ",
+    "caption": "ارتباط فضا با منظره در ویلای شناژ شمال.",
+    "tag": "project",
+    "href": "/projects/shenaj-villa",
+    "relatedIds": [
+      "proj-shenaj-terrace",
+      "bts-shenaj-site",
+      "mat-wood-grain"
+    ],
+    "bento": "wide"
+  },
+  {
+    "id": "proj-shenaj-terrace",
+    "src": "/images/projects/shenaj-villa/13.jpg",
+    "alt": "تراس ویلای شناژ",
+    "caption": "تراس و مبلمان بیرونی هماهنگ با معماری ویلا.",
+    "tag": "project",
+    "href": "/projects/shenaj-villa",
+    "relatedIds": [
+      "proj-shenaj-villa",
+      "event-showroom-tour"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "proj-armon-lobby",
+    "src": "/images/projects/armon-hotel/24.jpg",
+    "alt": "لابی هتل آرمون",
+    "caption": "لابی هتل آرمون با متریال مقاوم و پالت چوب روشن.",
+    "tag": "project",
+    "href": "/projects/armon-hotel",
+    "relatedIds": [
+      "proj-armon-suite",
+      "bts-armon-assembly",
+      "exhibition-hotel-suite"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "proj-armon-suite",
+    "src": "/images/projects/armon-hotel/41.jpg",
+    "alt": "سوئیت هتل آرمون",
+    "caption": "سوئیت اقامتی با مبلمان یکپارچه و نور کنترل‌شده.",
+    "tag": "project",
+    "href": "/projects/armon-hotel",
+    "relatedIds": [
+      "proj-armon-lobby",
+      "proj-araz",
+      "mat-fabric"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "proj-araz",
+    "src": "/images/projects/araz-suite/06.jpg",
+    "alt": "سوئیت آراز",
+    "caption": "سوئیت آراز؛ مقیاس کوچک‌تر با همان زبان متریال.",
+    "tag": "project",
+    "href": "/projects/araz-suite",
+    "relatedIds": [
+      "proj-armon-suite",
+      "mat-metal",
+      "bts-finish-check"
+    ],
+    "bento": "wide"
+  },
+  {
+    "id": "event-showroom-tour",
+    "src": "/images/projects/aknoon-residence/15.jpg",
+    "alt": "بازدید شوروم",
+    "caption": "بازدید گروهی از شوروم و گفت‌وگو درباره نمونه‌های متریال.",
+    "tag": "event",
+    "href": "/contact",
+    "relatedIds": [
+      "event-design-talk",
+      "exhibition-material-wall",
+      "bts-workshop"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "event-design-talk",
+    "src": "/images/projects/armon-hotel/61.jpg",
+    "alt": "نشست طراحی",
+    "caption": "نشست کوتاه درباره انتخاب متریال برای فضاهای اقامتی.",
+    "tag": "event",
+    "relatedIds": [
+      "event-showroom-tour",
+      "exhibition-hotel-suite",
+      "bts-workshop"
+    ],
+    "bento": "wide"
+  },
+  {
+    "id": "event-client-review",
+    "src": "/images/projects/shenaj-villa/23.jpg",
+    "alt": "بازبینی پروژه با کارفرما",
+    "caption": "بازبینی نهایی چیدمان و پرداخت‌ها پیش از تحویل.",
+    "tag": "event",
+    "relatedIds": [
+      "proj-shenaj-villa",
+      "bts-shenaj-site",
+      "mat-wood-grain"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "exhibition-material-wall",
+    "src": "/images/projects/aknoon-residence/19.jpg",
+    "alt": "دیوار نمونه متریال",
+    "caption": "دیوار نمونه‌های چوب، روکش و پارچه در نمایشگاه داخلی.",
+    "tag": "exhibition",
+    "href": "/materials",
+    "relatedIds": [
+      "mat-wood-grain",
+      "mat-fabric",
+      "mat-veneer",
+      "exhibition-hotel-suite"
+    ],
+    "bento": "hero"
+  },
+  {
+    "id": "exhibition-hotel-suite",
+    "src": "/images/projects/armon-hotel/76.jpg",
+    "alt": "نمایش سوئیت هتلی",
+    "caption": "چیدمان نمایشی سوئیت برای بازدیدکنندگان صنعت هتلداری.",
+    "tag": "exhibition",
+    "relatedIds": [
+      "proj-armon-lobby",
+      "event-design-talk",
+      "mat-fabric"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "exhibition-solo-set",
+    "src": "https://choobohonar.com/wp-content/uploads/2025/11/کاناپه-سولو-خانه-چوب-و-هنر-1.jpg",
+    "alt": "نمایش کالکشن سولو",
+    "caption": "چیدمان کالکشن سولو در فضای نمایشگاهی شوروم.",
+    "tag": "exhibition",
+    "href": "/collection/solo",
+    "relatedIds": [
+      "col-solo-sofa",
+      "col-solo-dining",
+      "event-showroom-tour"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "bts-workshop",
+    "src": "/images/projects/aknoon-residence/23.jpg",
+    "alt": "کارگاه ساخت",
+    "caption": "ساخت اسکلت و آماده‌سازی پنل‌ها در کارگاه.",
+    "tag": "behind-scenes",
+    "relatedIds": [
+      "bts-finish-check",
+      "bts-aknoon-install",
+      "mat-wood-grain"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "bts-finish-check",
+    "src": "/images/projects/aknoon-residence/28.jpg",
+    "alt": "کنترل کیفیت پرداخت",
+    "caption": "کنترل کیفیت پرداخت مات و یکنواختی رنگ سطح.",
+    "tag": "behind-scenes",
+    "href": "/materials/wood",
+    "relatedIds": [
+      "bts-workshop",
+      "mat-wood-grain",
+      "mat-veneer"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "bts-aknoon-install",
+    "src": "/images/projects/aknoon-residence/32.jpg",
+    "alt": "نصب در محل آکنون",
+    "caption": "نصب و تنظیم نهایی مبلمان در محل اقامتگاه آکنون.",
+    "tag": "behind-scenes",
+    "href": "/projects/aknoon-residence",
+    "relatedIds": [
+      "proj-aknoon-living",
+      "bts-workshop",
+      "event-client-review"
+    ],
+    "bento": "wide"
+  },
+  {
+    "id": "bts-armon-assembly",
+    "src": "/images/projects/armon-hotel/91.jpg",
+    "alt": "مونتاژ مبلمان هتل",
+    "caption": "مونتاژ قطعات بزرگ برای فضاهای عمومی هتل.",
+    "tag": "behind-scenes",
+    "href": "/projects/armon-hotel",
+    "relatedIds": [
+      "proj-armon-lobby",
+      "bts-workshop",
+      "mat-metal"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "bts-shenaj-site",
+    "src": "/images/projects/shenaj-villa/31.jpg",
+    "alt": "بازدید کارگاهی ویلا",
+    "caption": "هماهنگی اجرا با نور و رطوبت اقلیم شمال در سایت.",
+    "tag": "behind-scenes",
+    "href": "/projects/shenaj-villa",
+    "relatedIds": [
+      "proj-shenaj-villa",
+      "bts-finish-check",
+      "mat-veneer"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "col-solo-sofa",
+    "src": "https://choobohonar.com/wp-content/uploads/2025/11/کاناپه-سولو-خانه-چوب-و-هنر-1.jpg",
+    "alt": "کالکشن سولو",
+    "caption": "خطوط آرام کالکشن سولو برای نشیمن معاصر.",
+    "tag": "collection",
+    "href": "/collection/solo",
+    "relatedIds": [
+      "col-solo-dining",
+      "exhibition-solo-set",
+      "mat-fabric"
+    ],
+    "bento": "wide"
+  },
+  {
+    "id": "col-solo-dining",
+    "src": "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    "alt": "میز غذاخوری سولو",
+    "caption": "میز و صندلی غذاخوری سولو در یک زبان طراحی.",
+    "tag": "collection",
+    "href": "/collection/solo",
+    "relatedIds": [
+      "col-solo-sofa",
+      "exhibition-solo-set",
+      "mat-wood-grain"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "mat-wood-grain",
+    "src": "/images/aknoon-16.jpg",
+    "alt": "متریال چوب",
+    "caption": "رگه طبیعی چوب سخت پس از پرداخت مات.",
+    "tag": "material",
+    "href": "/materials/wood",
+    "relatedIds": [
+      "mat-veneer",
+      "bts-finish-check",
+      "exhibition-material-wall"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "mat-fabric",
+    "src": "/images/aknoon-02.jpg",
+    "alt": "متریال پارچه",
+    "caption": "نمونه پارچه رویه در کنار پالت چوب شوروم.",
+    "tag": "material",
+    "href": "/materials/fabric",
+    "relatedIds": [
+      "mat-wood-grain",
+      "col-solo-sofa",
+      "exhibition-material-wall"
+    ],
+    "bento": "tall"
+  },
+  {
+    "id": "mat-veneer",
+    "src": "/images/aknoon-18.jpg",
+    "alt": "متریال روکش",
+    "caption": "روکش اصیل برای سطوح وسیع با رگه‌ای یکدست.",
+    "tag": "material",
+    "href": "/materials/veneer",
+    "relatedIds": [
+      "mat-wood-grain",
+      "bts-finish-check",
+      "proj-aknoon-detail"
+    ],
+    "bento": "square"
+  },
+  {
+    "id": "mat-metal",
+    "src": "/images/aknoon-09.jpg",
+    "alt": "متریال فلز",
+    "caption": "جزئیات فلزی برای اتصال و تأکید بصری ظریف.",
+    "tag": "material",
+    "href": "/materials/metal",
+    "relatedIds": [
+      "mat-wood-grain",
+      "bts-armon-assembly",
+      "proj-araz"
+    ],
+    "bento": "wide"
+  }
+]

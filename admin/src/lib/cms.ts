@@ -1,4 +1,4 @@
-export type CmsKind = "product" | "material" | "project" | "collection" | "article";
+export type CmsKind = "product" | "material" | "project" | "collection" | "article" | "page";
 export type CmsStatus = "draft" | "published" | "archived";
 
 export type CmsEntry = {

@@ -5,6 +5,8 @@ import { getGalleryItems } from "@/data/gallery";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import GalleryExperience from "@/components/gallery/GalleryExperience";
+import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import type { GalleryItem } from "@/data/gallery";
 
 export const metadata: Metadata = {
   title: "گالری | خانه چوب و هنر",
@@ -12,8 +14,10 @@ export const metadata: Metadata = {
     "گالری ترکیبی از پروژه‌ها، رویدادها، نمایشگاه‌ها، پشت‌صحنه ساخت، کالکشن‌ها و متریال‌های خانه چوب و هنر.",
 };
 
-export default function GalleryPage() {
-  const items = getGalleryItems();
+export default async function GalleryPage() {
+  const pages = await fetchPublicCmsEntries("page");
+  const migratedItems = pages.find((page) => page.slug === "gallery")?.items;
+  const items = Array.isArray(migratedItems) && migratedItems.length ? migratedItems as GalleryItem[] : getGalleryItems();
 
   return (
     <section className="bg-paper pt-32 pb-24 md:pt-40 md:pb-32">

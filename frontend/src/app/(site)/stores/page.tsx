@@ -7,6 +7,8 @@ import Button from "@/components/ui/Button";
 import { brand } from "@/data/nav";
 import { stores, storesHero, storeKindLabel } from "@/data/stores";
 import { toFa } from "@/lib/utils";
+import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import type { Store } from "@/data/stores";
 
 export const metadata: Metadata = {
   title: "فروشگاه‌ها | خانه چوب و هنر",
@@ -14,9 +16,12 @@ export const metadata: Metadata = {
     "آدرس شعب تهران و نمایندگی‌های خانه چوب و هنر در شیراز، بندرعباس و تبریز. برای اخذ نمایندگی با ما در تماس باشید.",
 };
 
-export default function StoresPage() {
-  const branches = stores.filter((store) => store.kind === "branch");
-  const agencies = stores.filter((store) => store.kind === "agency");
+export default async function StoresPage() {
+  const pages = await fetchPublicCmsEntries("page");
+  const migratedStores = pages.find((page) => page.slug === "stores")?.items;
+  const visibleStores = Array.isArray(migratedStores) ? migratedStores as unknown as Store[] : stores;
+  const branches = visibleStores.filter((store) => store.kind === "branch");
+  const agencies = visibleStores.filter((store) => store.kind === "agency");
 
   return (
     <>
@@ -121,7 +126,7 @@ function StoreRow({
   store,
   index,
 }: {
-  store: (typeof stores)[number];
+  store: Store;
   index: number;
 }) {
   return (
