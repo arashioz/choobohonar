@@ -36,10 +36,23 @@ const baseMetadata: Metadata = {
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const response = await fetch(`${getApiBase()}/settings/public`, { cache: "no-store" });
-    const settings = response.ok ? await response.json() as { googleSearchConsoleVerification?: string } : null;
+    const [settingsResponse, navResponse] = await Promise.all([
+      fetch(`${getApiBase()}/settings/public`, { cache: "no-store" }),
+      fetch(`${getApiBase()}/public-cms/page`, { cache: "no-store" }),
+    ]);
+    const settings = settingsResponse.ok ? await settingsResponse.json() as { googleSearchConsoleVerification?: string } : null;
+    const pages = navResponse.ok ? await navResponse.json() as Array<{ slug?: string; data?: { items?: { brand?: Partial<typeof brand> } } }> : [];
+    const cmsBrand = pages.find((page) => page.slug === "nav")?.data?.items?.brand;
+    const siteName = cmsBrand?.nameFa || brand.nameFa;
+    const slogan = cmsBrand?.sloganFa || brand.sloganFa;
     const token = settings?.googleSearchConsoleVerification?.trim();
-    return token ? { ...baseMetadata, verification: { google: token } } : baseMetadata;
+    const metadata: Metadata = {
+      ...baseMetadata,
+      title: `${siteName} | ${slogan}`,
+      openGraph: { ...baseMetadata.openGraph, title: `${siteName} | ${slogan}`, siteName },
+      twitter: { ...baseMetadata.twitter, title: `${siteName} | ${slogan}` },
+    };
+    return token ? { ...metadata, verification: { google: token } } : metadata;
   } catch { return baseMetadata; }
 }
 
