@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { toFa } from "@/lib/utils";
+import { isUploadedMedia } from "@/lib/media";
 
 export type ProductStory = {
   label: string;
@@ -118,6 +119,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
               src={story.image}
               alt={story.title}
               fill
+              unoptimized={isUploadedMedia(story.image)}
               sizes="(max-width: 640px) 76vw, (max-width: 1024px) 47vw, 27vw"
               className="object-cover transition-transform duration-[1400ms] ease-out-expo group-hover:scale-[1.045]"
             />
