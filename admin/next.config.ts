@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   // Admin routes stay at /admin, while its generated JS/CSS is namespaced so
   // nginx never serves storefront assets to the admin application.
   assetPrefix,
+  basePath:"/admin",
   images: {
     // Image optimization does not automatically inherit assetPrefix. Keep it
     // below /admin so nginx sends brandbook images to the admin Next server.
