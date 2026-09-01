@@ -71,7 +71,7 @@ services:
       API_PROXY_TARGET: http://backend:3001/api
       NEXT_PUBLIC_BASE_URL: /admin
     expose:
-      - '3000'
+      - '3003'
     depends_on:
       - backend
 
