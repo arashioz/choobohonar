@@ -8,27 +8,27 @@ export class CollectionsAdminController {
   constructor(private readonly collections: CollectionsService) {}
 
   @Get()
-  list(@Query('q') q?: string, @Query('status') status?: string) {
+  list(@Query('q') q?: string, @Query('status') status?: string): Promise<{ items: Record<string, unknown>[]; total: number }> {
     return this.collections.list(q, status);
   }
 
   @Get(':id')
-  get(@Param('id') id: string) {
+  get(@Param('id') id: string): Promise<Record<string, unknown>> {
     return this.collections.get(id);
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
+  create(@Body() body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.collections.create(body);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+  update(@Param('id') id: string, @Body() body: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.collections.update(id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): Promise<{ ok: boolean }> {
     return this.collections.remove(id);
   }
 }
@@ -38,12 +38,12 @@ export class CollectionsPublicController {
   constructor(private readonly collections: CollectionsService) {}
 
   @Get()
-  list() {
+  list(): Promise<Record<string, unknown>[]> {
     return this.collections.publicList();
   }
 
   @Get(':slug')
-  async get(@Param('slug') slug: string) {
+  async get(@Param('slug') slug: string): Promise<Record<string, unknown>> {
     const collection = await this.collections.getBySlug(slug);
     return collection;
   }

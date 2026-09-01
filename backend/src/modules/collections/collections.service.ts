@@ -30,11 +30,11 @@ export class CollectionsService {
     return item;
   }
 
-  async getBySlug(slug: string) {
+  async getBySlug(slug: string): Promise<Record<string, unknown>> {
     const item = await this.model.findOne({ slug, status: 'published' }).lean().exec();
     if (!item) throw new NotFoundException('کالکشن منتشر‌شده پیدا نشد');
     const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
-    return { ...item, products };
+    return { ...item, products } as Record<string, unknown>;
   }
 
   async getProductsForCollection(collection: Record<string, unknown>): Promise<Record<string, unknown>[]> {
@@ -48,7 +48,8 @@ export class CollectionsService {
     if (!data['name']) throw new BadRequestException('نام کالکشن الزامی است');
     if (!data['slug']) data['slug'] = this.normalizeSlug(String(data['name']));
     try {
-      return (await this.model.create(data)).toObject();
+      const doc = await this.model.create(data);
+      return doc.toObject() as unknown as Record<string, unknown>;
     } catch (error: any) {
       if (error?.code === 11000) throw new BadRequestException('نام یا اسلاگ تکراری است');
       throw error;
