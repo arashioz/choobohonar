@@ -12,7 +12,7 @@ RUN npm config set registry "$NPM_REGISTRY" \
 
 COPY package*.json ./
 
-RUN npm install --registry="$NPM_REGISTRY" --no-audit --no-fund
+RUN npm install  --no-audit --no-fund
 
 COPY . .
 
