@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -51,6 +52,12 @@ export class LeadsController {
     return this.leadsService.updateLeadStatus(id, dto);
   }
 
+  @Delete('lead/:id')
+  @UseGuards(JwtAuthGuard)
+  removeLead(@Param('id') id: string) {
+    return this.leadsService.removeLead(id);
+  }
+
   @Get('interior-brief')
   @UseGuards(JwtAuthGuard)
   listInteriorBriefs(@Query('status') status?: string) {
@@ -70,5 +77,11 @@ export class LeadsController {
     @Body() dto: UpdateLeadStatusDto,
   ) {
     return this.leadsService.updateInteriorBriefStatus(id, dto);
+  }
+
+  @Delete('interior-brief/:id')
+  @UseGuards(JwtAuthGuard)
+  removeInteriorBrief(@Param('id') id: string) {
+    return this.leadsService.removeInteriorBrief(id);
   }
 }

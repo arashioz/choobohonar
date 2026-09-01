@@ -63,6 +63,12 @@ export class LeadsService {
     return updated;
   }
 
+  async removeLead(id: string): Promise<{ ok: true }> {
+    const removed = await this.leadModel.findByIdAndDelete(id).exec();
+    if (!removed) throw new NotFoundException(`Lead ${id} not found`);
+    return { ok: true };
+  }
+
   async createInteriorBrief(
     dto: CreateInteriorBriefDto,
   ): Promise<{ id: string; ok: true }> {
@@ -114,5 +120,11 @@ export class LeadsService {
       .exec();
     if (!updated) throw new NotFoundException(`Interior brief ${id} not found`);
     return updated;
+  }
+
+  async removeInteriorBrief(id: string): Promise<{ ok: true }> {
+    const removed = await this.briefModel.findByIdAndDelete(id).exec();
+    if (!removed) throw new NotFoundException(`Interior brief ${id} not found`);
+    return { ok: true };
   }
 }

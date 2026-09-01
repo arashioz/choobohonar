@@ -37,6 +37,6 @@ export const brand = {
   phoneIntl: "54169",
   email: "info@choobohonar.com",
   instagram: "https://instagram.com/choobohonar",
-  // addressFa: "تهران، شوروم خانه چوب و هنر",
-  // showroomHoursFa: "شنبه تا پنج‌شنبه، ۱۰ تا ۲۰",
+  addressFa: "تهران، شوروم خانه چوب و هنر",
+  showroomHoursFa: "شنبه تا پنج‌شنبه، ۱۰ تا ۲۰",
 };
