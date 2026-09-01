@@ -30,11 +30,11 @@ export class CollectionsService {
     return item;
   }
 
-  async getBySlug(slug: string): Promise<Record<string, unknown>> {
+  async getBySlug(slug: string): Promise<any> {
     const item = await this.model.findOne({ slug, status: 'published' }).lean().exec();
     if (!item) throw new NotFoundException('کالکشن منتشر‌شده پیدا نشد');
     const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
-    return { ...item, products } as Record<string, unknown>;
+    return { ...item, products };
   }
 
   async getProductsForCollection(collection: Record<string, unknown>): Promise<Record<string, unknown>[]> {
@@ -43,13 +43,13 @@ export class CollectionsService {
     return this.products.find({ series, status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
   }
 
-  async create(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(input: Record<string, unknown>): Promise<any> {
     const data = this.clean(input, true);
     if (!data['name']) throw new BadRequestException('نام کالکشن الزامی است');
     if (!data['slug']) data['slug'] = this.normalizeSlug(String(data['name']));
     try {
       const doc = await this.model.create(data);
-      return doc.toObject() as unknown as Record<string, unknown>;
+      return doc.toObject();
     } catch (error: any) {
       if (error?.code === 11000) throw new BadRequestException('نام یا اسلاگ تکراری است');
       throw error;
@@ -70,6 +70,57 @@ export class CollectionsService {
 
   async publicList() {
     return this.model.find({ status: 'published' }).sort({ updatedAt: -1 }).lean().exec();
+  }
+
+  async seedFromProducts(): Promise<{ created: number; series: string[] }> {
+    const results = await this.products.aggregate<{ _id: string }>([
+      { $match: { series: { $type: 'string', $ne: '' } } },
+      { $group: { _id: '$series' } },
+      { $sort: { _id: 1 } },
+    ]).exec();
+
+    const seriesList = results.map((r) => r._id).filter(Boolean);
+    let created = 0;
+
+    for (const series of seriesList) {
+      const existing = await this.model.findOne({ series }).lean().exec();
+      if (existing) continue;
+
+      const name = series.charAt(0).toUpperCase() + series.slice(1);
+      const slug = this.normalizeSlug(series);
+      const productCount = await this.products.countDocuments({ series, status: 'published' }).exec();
+
+      await this.model.create({
+        name: `کالکشن ${name}`,
+        slug,
+        series,
+        status: 'published',
+        excerpt: `مجموعه محصولات سری ${name} — ${productCount} محصول`,
+        description: `کالکشن ${name} شامل تمام محصولات این سری است.`,
+        publishedAt: new Date(),
+      });
+      created++;
+    }
+
+    return { created, series: seriesList };
+  }
+
+  async updateProductSeries(productId: string, series: string): Promise<Record<string, unknown>> {
+    const product = await this.products.findByIdAndUpdate(
+      productId,
+      { $set: { series: series.trim() } },
+      { new: true, runValidators: true },
+    ).lean().exec();
+    if (!product) throw new NotFoundException('محصول پیدا نشد');
+    return product as Record<string, unknown>;
+  }
+
+  async getProductsBySeries(series: string): Promise<Record<string, unknown>[]> {
+    return this.products.find({ series: series.trim(), status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
+  }
+
+  async getAllProducts(): Promise<Record<string, unknown>[]> {
+    return this.products.find({ status: 'published' }).sort({ series: 1, sortOrder: 1 }).lean().exec();
   }
 
   private clean(input: Record<string, unknown>, required: boolean) {

@@ -16,6 +16,18 @@ type Collection = {
   createdAt?: string;
 };
 
+type Product = {
+  _id: string;
+  slug: string;
+  name: string;
+  image: string;
+  category: string;
+  series?: string;
+  room?: string;
+  shortDescription: string;
+  status: string;
+};
+
 const statusLabels: Record<string, string> = { draft: "پیش‌نویس", published: "منتشر‌شده", archived: "آرشیو" };
 const statusColors: Record<string, string> = { draft: "bg-yellow-100 text-yellow-800", published: "bg-green-100 text-green-800", archived: "bg-gray-100 text-gray-600" };
 const input = "w-full rounded-xl border border-forest/10 bg-[#faf8f5] px-3 py-2.5 text-xs text-forest outline-none focus:border-forest/30";
@@ -28,6 +40,9 @@ export default function CollectionsWorkspace() {
   const [notice, setNotice] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Collection | null>(null);
+  const [showProducts, setShowProducts] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" as "draft" | "published" | "archived",
@@ -51,7 +66,22 @@ export default function CollectionsWorkspace() {
     }
   }, [q, statusFilter]);
 
+  const loadProducts = useCallback(async () => {
+    setProductsLoading(true);
+    try {
+      const r = await fetch("/api/collections/products");
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message);
+      setAllProducts(data || []);
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "دریافت محصولات ناموفق بود");
+    } finally {
+      setProductsLoading(false);
+    }
+  }, []);
+
   useEffect(() => { const timer = setTimeout(load, 250); return () => clearTimeout(timer); }, [load]);
+  useEffect(() => { if (showProducts && !allProducts.length) loadProducts(); }, [showProducts, allProducts.length, loadProducts]);
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -102,6 +132,51 @@ export default function CollectionsWorkspace() {
     await load();
   }
 
+  async function seedFromProducts() {
+    if (!confirm("آیا می‌خواهید کالکشن‌ها را از سری محصولات موجود بسازید؟")) return;
+    setNotice("");
+    try {
+      const r = await fetch("/api/collections/seed");
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message);
+      setNotice(`✅ ${data.created} کالکشن جدید ساخته شد از ${data.series.length} سری محصول`);
+      await load();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "ساخت خودکار ناموفق بود");
+    }
+  }
+
+  async function updateProductSeries(productId: string, series: string) {
+    try {
+      const r = await fetch(`/api/shop/products/${productId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ series }),
+      });
+      if (!r.ok) {
+        const data = await r.json();
+        throw new Error(data.message);
+      }
+      await loadProducts();
+      setNotice("✅ سری محصول به‌روزرسانی شد");
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "به‌روزرسانی ناموفق بود");
+    }
+  }
+
+  const productsBySeries = useMemo(() => {
+    const map: Record<string, Product[]> = {};
+    allProducts.forEach((p) => {
+      const s = p.series || "";
+      if (!s) return;
+      if (!map[s]) map[s] = [];
+      map[s].push(p);
+    });
+    return map;
+  }, [allProducts]);
+
+  const productsWithoutSeries = useMemo(() => allProducts.filter((p) => !p.series), [allProducts]);
+
   return (
     <main className="min-h-screen bg-[#f6f3ee]">
       <div className="mx-auto max-w-[1400px] px-5 py-7 sm:px-8 lg:px-10">
@@ -111,9 +186,17 @@ export default function CollectionsWorkspace() {
             <h1 className="mt-2 text-3xl font-medium text-forest">کالکشن‌ها (سری محصولات)</h1>
             <p className="mt-2 text-xs text-forest/45">مدیریت کالکشن‌ها، تصاویر و سری محصولات. محصولات با سری مشترک خودکار در کالکشن قرار می‌گیرند.</p>
           </div>
-          <button onClick={() => { setCreating(!creating); setEditing(null); setForm({ name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" }); }} className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
-            {creating ? "بستن فرم" : "+ کالکشن جدید"}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setShowProducts(!showProducts)} className="rounded-xl border border-forest/20 bg-white px-4 py-3 text-xs font-medium text-forest">
+              {showProducts ? "بستن محصولات" : "📦 مدیریت محصولات"}
+            </button>
+            <button onClick={seedFromProducts} className="rounded-xl bg-sage/40 px-4 py-3 text-xs font-medium text-forest">
+              🔄 ساخت خودکار از سری محصولات
+            </button>
+            <button onClick={() => { setCreating(!creating); setEditing(null); setForm({ name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" }); }} className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
+              {creating ? "بستن فرم" : "+ کالکشن جدید"}
+            </button>
+          </div>
         </header>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -141,6 +224,59 @@ export default function CollectionsWorkspace() {
           </form>
         )}
 
+        {showProducts && (
+          <section className="mt-5 overflow-hidden rounded-2xl border border-forest/10 bg-white/75">
+            <div className="border-b border-forest/10 p-4">
+              <h3 className="text-sm font-medium text-forest">مدیریت محصولات و سری‌ها</h3>
+              <p className="mt-1 text-[10px] text-forest/45">برای افزودن محصول به یک کالکشن، فیلد سری (series) آن را ویرایش کنید.</p>
+            </div>
+            {productsLoading ? (
+              <p className="p-10 text-center text-xs text-forest/40">در حال دریافت…</p>
+            ) : (
+              <div className="divide-y divide-forest/[.07]">
+                {productsWithoutSeries.length > 0 && (
+                  <div className="bg-peach/10 p-4">
+                    <h4 className="mb-2 text-xs font-medium text-brick">محصولات بدون سری ({productsWithoutSeries.length})</h4>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {productsWithoutSeries.slice(0, 12).map((p) => (
+                        <div key={p._id} className="flex items-center gap-2 rounded-lg bg-white p-2">
+                          <div className="h-10 w-10 shrink-0 rounded bg-forest/5 bg-cover bg-center" style={{ backgroundImage: p.image ? `url(${p.image})` : undefined }} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[10px] text-forest">{p.name}</p>
+                            <input
+                              className="mt-1 w-full rounded border border-forest/10 px-1.5 py-0.5 text-[9px]"
+                              placeholder="سری محصول..."
+                              onBlur={(e) => { if (e.target.value.trim()) updateProductSeries(p._id, e.target.value.trim()); }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {Object.entries(productsBySeries).map(([series, products]) => (
+                  <div key={series} className="p-4">
+                    <h4 className="mb-2 text-xs font-medium text-forest">
+                      سری "{series}" ({products.length} محصول)
+                    </h4>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      {products.map((p) => (
+                        <div key={p._id} className="flex items-center gap-2 rounded-lg border border-forest/5 p-2">
+                          <div className="h-10 w-10 shrink-0 rounded bg-forest/5 bg-cover bg-center" style={{ backgroundImage: p.image ? `url(${p.image})` : undefined }} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[10px] text-forest">{p.name}</p>
+                            <p className="text-[9px] text-forest/40">{p.category}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         <section className="mt-5 overflow-hidden rounded-2xl border border-forest/10 bg-white/75">
           <div className="flex flex-wrap gap-3 border-b border-forest/10 p-4">
             <input className={`${input} max-w-sm`} placeholder="جست‌وجوی نام، سری، اسلاگ…" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -150,13 +286,13 @@ export default function CollectionsWorkspace() {
             </select>
           </div>
 
-          {notice && <p className="m-4 rounded-xl bg-peach/30 px-3 py-2 text-xs text-brick">{notice}</p>}
+          {notice && <p className="m-4 rounded-xl bg-sage/20 px-3 py-2 text-xs text-forest">{notice}</p>}
 
           <div className="divide-y divide-forest/[.07]">
             {loading ? (
               <p className="p-10 text-center text-xs text-forest/40">در حال دریافت…</p>
             ) : !items.length ? (
-              <p className="p-10 text-center text-xs text-forest/40">کالکشنی ثبت نشده است.</p>
+              <p className="p-10 text-center text-xs text-forest/40">کالکشنی ثبت نشده است. از دکمه «ساخت خودکار» استفاده کنید.</p>
             ) : (
               items.map((item) => (
                 <article key={item._id} className="flex flex-wrap items-center gap-3 px-5 py-4">
@@ -166,6 +302,9 @@ export default function CollectionsWorkspace() {
                   </div>
                   <span className={`rounded-full px-2.5 py-1 text-[9px] text-forest ${statusColors[item.status] || "bg-gray-100 text-gray-600"}`}>
                     {statusLabels[item.status] || item.status}
+                  </span>
+                  <span className="text-[10px] text-forest/45">
+                    {productsBySeries[item.series]?.length || 0} محصول
                   </span>
                   <div className="flex gap-2">
                     <button onClick={() => startEdit(item)} className="text-[10px] text-forest/50 underline">ویرایش</button>

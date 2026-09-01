@@ -12,6 +12,16 @@ export class CollectionsAdminController {
     return this.collections.list(q, status);
   }
 
+  @Get('seed')
+  seed(): Promise<{ created: number; series: string[] }> {
+    return this.collections.seedFromProducts();
+  }
+
+  @Get('products')
+  getAllProducts(): Promise<Record<string, unknown>[]> {
+    return this.collections.getAllProducts();
+  }
+
   @Get(':id')
   get(@Param('id') id: string): Promise<Record<string, unknown>> {
     return this.collections.get(id);
@@ -43,7 +53,7 @@ export class CollectionsPublicController {
   }
 
   @Get(':slug')
-  async get(@Param('slug') slug: string): Promise<Record<string, unknown>> {
+  async get(@Param('slug') slug: string): Promise<any> {
     const collection = await this.collections.getBySlug(slug);
     return collection;
   }
