@@ -257,7 +257,7 @@ export default function CollectionsWorkspace() {
                 {Object.entries(productsBySeries).map(([series, products]) => (
                   <div key={series} className="p-4">
                     <h4 className="mb-2 text-xs font-medium text-forest">
-                      سری "{series}" ({products.length} محصول)
+                      سری &quot;{series}&quot; ({products.length} محصول)
                     </h4>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                       {products.map((p) => (
