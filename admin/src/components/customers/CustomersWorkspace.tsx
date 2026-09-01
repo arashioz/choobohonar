@@ -229,8 +229,8 @@ export default function CustomersWorkspace() {
                         <p className="mt-1 text-[10px] text-forest/45" dir="ltr">{item.phone}{item.email ? ` · ${item.email}` : ""}</p>
                       </div>
                       <span className="text-[10px] text-forest/45">{item.city || "—"}</span>
-                      <span className={badge + ` ${tierColors[item.tier || "null"]}`}>
-                        {item.tier ? tierLabels[item.tier] : "بدون دسته"}
+                      <span className={badge + ` ${tierColorFor(item.tier)}`}>
+                        {tierLabelFor(item.tier)}
                       </span>
                       <span className="rounded-full bg-sage/25 px-2.5 py-1 text-[9px] text-forest">{statusLabels[item.status]}</span>
                     </article>
@@ -263,8 +263,8 @@ export default function CustomersWorkspace() {
                       )}
                     </div>
                     {!editingTier ? (
-                      <span className={`inline-block ${badge} ${tierColors[selectedCustomer.tier || "null"]}`}>
-                        {tierLabels[selectedCustomer.tier || "null"]}
+                      <span className={`inline-block ${badge} ${tierColorFor(selectedCustomer.tier)}`}>
+                        {tierLabelFor(selectedCustomer.tier)}
                       </span>
                     ) : (
                       <div className="flex gap-2">
