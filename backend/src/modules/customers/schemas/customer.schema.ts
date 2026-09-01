@@ -12,8 +12,8 @@ export class Customer {
   @Prop({ trim: true, lowercase: true }) email?: string;
   @Prop({ default: '' }) city: string;
   @Prop({ enum: ['lead', 'active', 'inactive'], default: 'lead', index: true }) status: CustomerStatus;
-  @Prop({ enum: ['vip', 'silver', 'gold'], default: null, index: true }) tier: CustomerTier | null;
-  @Prop({ unique: true, sparse: true, index: true }) referralSlug: string | null;
+  @Prop({ enum: ['vip', 'silver', 'gold'], type: String, default: null, index: true }) tier: CustomerTier | null;
+  @Prop({ type: String, unique: true, sparse: true, index: true }) referralSlug: string | null;
   @Prop({ type: Object, default: () => ({ enabled: false }) }) smsOptions: { enabled: boolean };
   @Prop({ type: [String], default: [] }) tags: string[];
   @Prop({ default: '' }) source: string;
