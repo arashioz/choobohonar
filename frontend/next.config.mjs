@@ -98,20 +98,23 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    // Only in local/dev. In production nginx already proxies /api → backend.
-    if (process.env.NODE_ENV === "production") return [];
+    // The image optimizer runs inside the frontend container. Unlike browser
+    // requests, it cannot use nginx's /uploads location, so proxy uploads to
+    // the backend service from both development and production.
+    const api = process.env.API_PROXY_TARGET || process.env.API_URL || "http://localhost:3001/api";
+    const uploadsRewrite = {
+      source: "/uploads/:path*",
+      destination: `${api.replace(/\/api\/?$/, "")}/uploads/:path*`,
+    };
 
-    const api =
-      process.env.API_PROXY_TARGET || "http://localhost:3001/api";
+    if (process.env.NODE_ENV === "production") return [uploadsRewrite];
+
     return [
       {
         source: "/api/:path*",
         destination: `${api.replace(/\/$/, "")}/:path*`,
       },
-      {
-        source: "/uploads/:path*",
-        destination: `${api.replace(/\/api\/?$/, "")}/uploads/:path*`,
-      },
+      uploadsRewrite,
     ];
   },
 };

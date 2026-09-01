@@ -26,8 +26,7 @@ export default function DiversitySection() {
             <span className="text-brick">چوب، نور و دستِ هنرمند</span> است.
           </FadeUp>
           <FadeUp as="p" delay={0.1} className="mt-8 max-w-xl text-lg leading-relaxed text-forest/70">
-            نزدیک به پنجاه سال است که خانه‌ها را با مبلمانی می‌سازیم که برای زندگی واقعی طراحی شده‌اند؛ متین، ماندگار و انسانی.
-          </FadeUp>
+            نزدیک به پنجاه سال است که خانه‌ها را با مبلمانی می‌سازیم که برای زندگی واقعی طراحی شده‌اند؛.          </FadeUp>
         </div>
 
         <div className="pointer-events-none relative mt-20 hidden h-[52rem] md:block">

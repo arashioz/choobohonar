@@ -80,8 +80,8 @@ export default async function Footer() {
           <div data-footer-column className="lg:col-span-3">
             <h3 className="eyebrow text-peach">ارتباط با ما</h3>
             <ul className="mt-4 space-y-2 text-sm text-paper/80">
-              <li>{brand.addressFa}</li>
-              <li>{brand.showroomHoursFa}</li>
+              {/* <li>{brand.}</li> */}
+              {/* <li>{brand.showroomHoursFa}</li> */}
               <li dir="ltr" className="text-right">
                 {brand.phone}
               </li>
