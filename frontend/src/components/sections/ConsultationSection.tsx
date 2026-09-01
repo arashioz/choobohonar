@@ -102,7 +102,7 @@ export default function ConsultationSection() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">
             <FadeUp as="p" className="eyebrow text-brick">
-              مشاوره رایگان
+              مشاوره
             </FadeUp>
             <FadeUp
               as="h2"
@@ -112,7 +112,7 @@ export default function ConsultationSection() {
               بیایید خانه‌ای که دوستش دارید را بسازیم.
             </FadeUp>
             <FadeUp as="p" delay={0.1} className="mt-6 max-w-md text-lg leading-relaxed text-forest/70">
-              برای مشاوره رایگان فرم زیر را تکمیل کنید؛ یا برای ثبت سفارش طراحی داخلی، فرم هوشمند را
+              برای مشاوره فرم زیر را تکمیل کنید؛ یا برای ثبت سفارش طراحی داخلی، فرم هوشمند را
               شروع کنید تا سلیقه و جزئیات فنی فضای خود را با تیم معماری داخلی به اشتراک بگذارید.
             </FadeUp>
             <FadeUp delay={0.14} className="mt-10 flex flex-wrap gap-4">
