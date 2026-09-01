@@ -26,7 +26,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=3003
 ENV HOSTNAME=0.0.0.0
 # The admin's server-side proxy must use the Docker service name.  Compose may
 # override this value, but keeping a safe image default prevents it from
