@@ -12,6 +12,7 @@ import {
   ShopProduct,
   ShopProductDocument,
 } from './schemas/shop-product.schema';
+import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 import {
   CreateShopProductDto,
   UpdateShopProductDto,
@@ -31,17 +32,53 @@ type CatalogSeedRow = {
   shopUrl?: string;
 };
 
+type CatalogCollectionTerm = { name: string; slug?: string };
+type CatalogAttribute = { taxonomy?: string; name?: string; terms?: CatalogCollectionTerm[] };
+
+const SERIES_ALIASES: Record<string, string> = {
+  alder: 'آلدر',
+};
+
+function normalizeSeriesValue(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[آأإ]/g, 'ا')
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function canonicalSeriesName(value: string): string {
+  return SERIES_ALIASES[normalizeSeriesValue(value)] || value.trim();
+}
+
+function getSeriesFromProduct(row: CatalogSeedRow): CatalogCollectionTerm | undefined {
+  const attributes = (row.attributes || []) as CatalogAttribute[];
+  const terms = attributes
+    .filter((attribute) => attribute.taxonomy === 'pa_collection' || attribute.name === 'کالکشن')
+    .flatMap((attribute) => attribute.terms || []);
+  const normalizedName = normalizeSeriesValue(row.name);
+
+  // Product titles are the authority here. Some legacy products carry extra
+  // collection terms that do not appear in their names.
+  return terms.find((term) => normalizedName.includes(normalizeSeriesValue(canonicalSeriesName(term.name))));
+}
+
 @Injectable()
 export class ShopService implements OnModuleInit {
   constructor(
     @InjectModel(ShopProduct.name)
     private productModel: Model<ShopProductDocument>,
+    @InjectModel(CmsEntry.name)
+    private collectionModel: Model<CmsEntryDocument>,
   ) {}
 
   async onModuleInit() {
     // Bootstrap the catalog into MongoDB once. Admin-created products are
     // preserved on subsequent restarts and can then be managed normally.
     await this.seedFromCatalog(false);
+    await this.seedCollectionsFromCatalog();
   }
 
   async list(query: {
@@ -341,6 +378,7 @@ export class ShopService implements OnModuleInit {
       image: row.image || '',
       gallery: row.gallery || (row.image ? [row.image] : []),
       shopUrl: row.shopUrl,
+      series: getSeriesFromProduct(row)?.name ? canonicalSeriesName(getSeriesFromProduct(row)!.name) : undefined,
       price: row.prices?.value ? Number(row.prices.value) : undefined,
       compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
       finishes: [] as string[],
@@ -381,6 +419,67 @@ export class ShopService implements OnModuleInit {
       upserted: result.upsertedCount,
       modified: result.modifiedCount,
       total,
+    };
+  }
+
+  async seedCollectionsFromCatalog() {
+    const filePath = join(process.cwd(), 'src/modules/shop/data/shop-catalog.json');
+    const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
+    const groups = new Map<string, { name: string; slug: string; products: CatalogSeedRow[] }>();
+
+    for (const row of rows) {
+      const term = getSeriesFromProduct(row);
+      if (!term?.name) continue;
+      const name = canonicalSeriesName(term.name);
+      const key = normalizeSeriesValue(name);
+      const group = groups.get(key) || { name, slug: term.slug || key, products: [] };
+      group.products.push(row);
+      groups.set(key, group);
+    }
+
+    // A collection is a shared product series. Single-product names remain
+    // product attributes but do not create an empty-looking collection page.
+    const sharedGroups = [...groups.values()].filter((group) => group.products.length >= 2);
+    const operations = sharedGroups.map((group) => {
+      const productSlugs = group.products.map((product) => product.slug);
+      const slug = `series-${group.slug}`;
+      return {
+        updateOne: {
+          filter: { kind: 'collection', slug },
+          update: {
+            $setOnInsert: {
+              kind: 'collection',
+              slug,
+              title: `کالکشن ${group.name}`,
+              status: 'published',
+              excerpt: `${productSlugs.length} محصول از سری ${group.name}`,
+              description: '',
+              images: group.products[0]?.image ? [group.products[0].image] : [],
+              tags: [group.name],
+              publishedAt: new Date(),
+            },
+            $set: {
+              'data.productSlugs': productSlugs,
+              'data.productIds': productSlugs,
+              'data.productCount': productSlugs.length,
+              'data.seriesName': group.name,
+              'data.source': 'catalog-series',
+            },
+          },
+          upsert: true,
+        },
+      };
+    });
+
+    const result = operations.length
+      ? await this.collectionModel.bulkWrite(operations as never)
+      : { upsertedCount: 0, modifiedCount: 0 };
+
+    return {
+      ok: true,
+      collections: sharedGroups.length,
+      upserted: result.upsertedCount,
+      modified: result.modifiedCount,
     };
   }
 

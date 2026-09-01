@@ -80,6 +80,12 @@ export class ShopController {
     return this.shopService.seedFromCatalog(Boolean(body?.force));
   }
 
+  @Post('collections/seed')
+  @UseGuards(JwtAuthGuard)
+  seedCollections() {
+    return this.shopService.seedCollectionsFromCatalog();
+  }
+
   @Get('products/:id')
   get(@Param('id') id: string) {
     return this.shopService.get(id);
