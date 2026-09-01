@@ -20,13 +20,14 @@ type Customer = {
 };
 
 const statusLabels: Record<Status, string> = { lead: "سرنخ", active: "فعال", inactive: "غیرفعال" };
-const tierLabels: Record<Tier, string> = { vip: "ویژه (VIP)", silver: "نقره‌ای", gold: "طلایی", null: "بدون دسته‌بندی" };
-const tierColors: Record<Tier, string> = {
+const tierLabelsMap: Record<"vip" | "silver" | "gold", string> = { vip: "ویژه (VIP)", silver: "نقره‌ای", gold: "طلایی" };
+const tierColorsMap: Record<"vip" | "silver" | "gold", string> = {
   vip: "bg-amber-100 text-amber-800 ring-amber-200",
   silver: "bg-gray-100 text-gray-700 ring-gray-300",
   gold: "bg-yellow-50 text-[#9a7e3f] ring-yellow-200",
-  null: "bg-forest/[.04] text-forest/40 ring-transparent",
 };
+const tierLabelFor = (tier: Tier) => tier ? tierLabelsMap[tier] : "بدون دسته‌بندی";
+const tierColorFor = (tier: Tier) => tier ? tierColorsMap[tier] : "bg-forest/[.04] text-forest/40 ring-transparent";
 const input = "w-full rounded-xl border border-forest/10 bg-[#faf8f5] px-3 py-2.5 text-xs text-forest outline-none focus:border-forest/30";
 const badge = "rounded-lg px-2.5 py-0.5 text-[9px] font-medium ring-1";
 
