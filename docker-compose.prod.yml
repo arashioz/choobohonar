@@ -84,8 +84,10 @@ services:
     ports:
       # bind nginx to the specified host IP (public IP)
       - '${HTTP_PORT:-80}:80'
+      - '443:443'
     volumes:
       - ./backend/uploads:/var/www/uploads:ro
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - frontend
       - backend
