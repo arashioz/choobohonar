@@ -8,10 +8,31 @@ export type ProductCollection = {
   shortDescription: string;
   longDescription: string;
   image: string;
-  /** Match shop/editorial products whose name or slug contains any of these tokens. */
   matchTokens: string[];
-  /** Explicit product slugs to always include (optional). */
   productSlugs?: string[];
+};
+
+export type ApiCollection = {
+  _id: string;
+  name: string;
+  slug: string;
+  status: string;
+  excerpt: string;
+  description: string;
+  image: string;
+  gallery: string[];
+  series: string;
+  tags: string[];
+  products: Array<{
+    slug: string;
+    name: string;
+    image: string;
+    category: string;
+    shortDescription: string;
+    series?: string;
+    room?: string;
+    price?: number;
+  }>;
 };
 
 export const collections: ProductCollection[] = [
@@ -55,4 +76,24 @@ export function getCollectionProducts(slug: string): AnyProduct[] {
 
 export function getCollectionProductCount(slug: string): number {
   return getCollectionProducts(slug).length;
+}
+
+export async function fetchApiCollections(): Promise<ApiCollection[]> {
+  try {
+    const r = await fetch("/api/public/collections", { next: { revalidate: 60 } });
+    if (!r.ok) return [];
+    return await r.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchApiCollection(slug: string): Promise<ApiCollection | null> {
+  try {
+    const r = await fetch(`/api/public/collections/${slug}`, { next: { revalidate: 60 } });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
 }

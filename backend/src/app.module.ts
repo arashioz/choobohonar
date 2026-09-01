@@ -13,6 +13,7 @@ import { ShopModule } from './modules/shop/shop.module';
 import { CmsModule } from './modules/cms/cms.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { CollectionsModule } from './modules/collections/collections.module';
 
 @Module({
   imports: [
@@ -26,8 +27,6 @@ import { CustomersModule } from './modules/customers/customers.module';
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        // Prefer a Redis URL (REDIS_URL) when provided (docker-compose uses
-        // this). Fall back to host/port variables for flexibility.
         connection: config.get<string>('REDIS_URL')
           ? { url: config.get<string>('REDIS_URL') }
           : {
@@ -47,6 +46,8 @@ import { CustomersModule } from './modules/customers/customers.module';
     CmsModule,
     SettingsModule,
     CustomersModule,
+    CollectionsModule,
   ],
 })
 export class AppModule {}
+

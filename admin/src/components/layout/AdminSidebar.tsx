@@ -6,13 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "settings" | "customers" | "leads" | "logout";
+type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "settings" | "customers" | "leads" | "collections" | "logout";
 
 const navItems: { label: string; description: string; href: string; icon: IconName }[] = [
   { label: "نمای کلی", description: "صفحه اصلی پنل", href: "/admin", icon: "home" },
   { label: "فروشگاه", description: "محصولات، سفارش‌ها و فاکتورها", href: "/admin/shop", icon: "shop" },
   { label: "مقالات", description: "ایجاد، ویرایش و انتشار", href: "/admin/articles", icon: "article" },
   { label: "صفحات سایت", description: "ناوبری، برند و فرم‌ها", href: "/admin/pages", icon: "book" },
+  { label: "کالکشن‌ها", description: "سری محصولات", href: "/admin/collections", icon: "collections" },
   { label: "مشتریان", description: "CRM و پیگیری ارتباط", href: "/admin/customers", icon: "customers" },
   { label: "درخواست‌ها", description: "فرم‌های سایت و بریف معماری", href: "/admin/leads", icon: "leads" },
   { label: "چوب‌نویس", description: "دستیار هوشمند محتوا", href: "/admin/content", icon: "bot" },
@@ -42,6 +43,7 @@ function NavIcon({ name, size = 20 }: { name: IconName; size?: number }) {
   if (name === "book") return <svg {...common}><path d="M4.5 5.5A2.5 2.5 0 0 1 7 3h12.5v17H7a2.5 2.5 0 0 0-2.5 2Z" /><path d="M4.5 5.5V22" /><path d="M9 8h6M9 12h7" /></svg>;
   if (name === "settings") return <svg {...common}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.1 2.1-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56v.1h-3v-.1A1.7 1.7 0 0 0 10.7 18.6a1.7 1.7 0 0 0-1.88.34l-.06.06-2.1-2.1.06-.06A1.7 1.7 0 0 0 7.06 15a1.7 1.7 0 0 0-1.56-1.03h-.1v-3h.1A1.7 1.7 0 0 0 7.06 9.94a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.1-2.1.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.1 2.1-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.1v3h-.1A1.7 1.7 0 0 0 19.4 15Z" /></svg>;
   if (name === "customers") return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3.5 20c.5-3.3 2.3-5 5.5-5s5 1.7 5.5 5M16 5.5a3 3 0 0 1 0 5.8M17 15.2c2.1.3 3.3 1.9 3.7 4.8" /></svg>;
+  if (name === "collections") return <svg {...common}><path d="M4 7h16v13H4z" /><path d="M4 7l8-3 8 3" /><path d="M9 11h6M9 15h4" /></svg>;
   if (name === "leads") return <svg {...common}><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h4" /><path d="m16.5 16.5 1.2 1.2 2.8-3" /></svg>;
   return <svg {...common}><path d="M10 4H5v16h5" /><path d="M14 8l4 4-4 4M18 12H9" /></svg>;
 }
