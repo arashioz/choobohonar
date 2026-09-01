@@ -11,7 +11,7 @@ RUN npm config set registry "$NPM_REGISTRY" \
   && npm config set fetch-timeout 120000
 
 COPY package.json package-lock.json ./
-RUN npm ci --registry="$NPM_REGISTRY" --no-audit --no-fund
+RUN npm ci  --no-audit --no-fund
 
 COPY . .
 
