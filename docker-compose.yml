@@ -38,11 +38,12 @@ services:
   frontend:
     image: ${REGISTRY_PREFIX:-choobohonar}/frontend:${IMAGE_TAG:-latest}
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: /api
+        NEXT_TELEMETRY_DISABLED: '1'
         NPM_REGISTRY: https://mirror-npm.runflare.com
+      context: ./frontend
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
