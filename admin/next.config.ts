@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
     // below /admin so nginx sends brandbook images to the admin Next server.
-    path: assetPrefix ? `${assetPrefix}/_next/image` : "/_next/image",
+    // path: assetPrefix ? `${assetPrefix}/_next/image` : "/_next/image",
     remotePatterns: [
       {
         protocol: "https",
