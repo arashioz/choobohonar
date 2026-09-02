@@ -60,7 +60,7 @@ export default function AdminSidebar() {
   async function logout() {
     setLoggingOut(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/admin/api/auth/logout", { method: "POST" });
       router.replace("/login");
       router.refresh();
     } finally {

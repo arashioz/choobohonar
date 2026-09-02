@@ -54,7 +54,7 @@ export default function CustomersWorkspace() {
       const params = new URLSearchParams();
       if (q.trim()) params.set("q", q.trim());
       if (statusFilter !== "all") params.set("status", statusFilter);
-      const r = await fetch(`/api/customers?${params}`);
+      const r = await fetch(`/admin/api/customers?${params}`);
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
       setItems(data.items || []);
@@ -81,7 +81,7 @@ export default function CustomersWorkspace() {
   async function create(event: React.FormEvent) {
     event.preventDefault(); setNotice("");
     try {
-      const r = await fetch("/api/customers", {
+      const r = await fetch("/admin/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,7 +102,7 @@ export default function CustomersWorkspace() {
 
   async function updateTier(customerId: string, tier: Tier) {
     try {
-      const r = await fetch(`/api/customers/${customerId}/tier`, {
+      const r = await fetch(`/admin/api/customers/${customerId}/tier`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tier: tier || null }),
@@ -118,7 +118,7 @@ export default function CustomersWorkspace() {
 
   async function generateReferralLink(customerId: string) {
     try {
-      const r = await fetch(`/api/customers/${customerId}/referral`, { method: "POST" });
+      const r = await fetch(`/admin/api/customers/${customerId}/referral`, { method: "POST" });
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
       setItems(prev => prev.map(c => c._id === customerId ? { ...c, referralSlug: data.referralSlug } : c));
@@ -302,7 +302,7 @@ export default function CustomersWorkspace() {
                         onChange={async (e) => {
                           const newVal = e.target.checked;
                           setItems(prev => prev.map(c => c._id === selectedCustomer._id ? {...c, smsOptions: { enabled: newVal }} : c));
-                          await fetch(`/api/customers/${selectedCustomer._id}`, {
+                          await fetch(`/admin/api/customers/${selectedCustomer._id}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ smsOptions: { enabled: newVal } }),
@@ -365,7 +365,7 @@ export default function CustomersWorkspace() {
                   <button
                     onClick={async () => {
                       if (!confirm("آیا از حذف این مشتری مطمئن هستید؟")) return;
-                      await fetch(`/api/customers/${selectedCustomer._id}`, { method: "DELETE" }).then(() => load());
+                      await fetch(`/admin/api/customers/${selectedCustomer._id}`, { method: "DELETE" }).then(() => load());
                       setSelectedId(null);
                     }}
                     className="text-xs text-red-400 hover:text-red-500"

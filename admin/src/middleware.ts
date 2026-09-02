@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
-  const isAuthApi = pathname.startsWith("/api/auth/");
+  const isAuthApi = pathname.startsWith("/admin/api/auth/");
 
   if (isAuthApi) {
     return NextResponse.next();

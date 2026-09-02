@@ -33,7 +33,7 @@ export const resourceToKind = {
 export type ResourcePath = keyof typeof resourceToKind;
 
 export async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api/cms/${path.replace(/^\//, "")}`, {
+  const response = await fetch(`/admin/api/cms/${path.replace(/^\//, "")}`, {
     ...init,
     credentials: "include",
     headers: {

@@ -55,7 +55,7 @@ export default function CollectionsWorkspace() {
       const params = new URLSearchParams();
       if (q.trim()) params.set("q", q.trim());
       if (statusFilter !== "all") params.set("status", statusFilter);
-      const r = await fetch(`/api/collections?${params}`);
+      const r = await fetch(`/admin/api/collections?${params}`);
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
       setItems(data.items || []);
@@ -69,7 +69,7 @@ export default function CollectionsWorkspace() {
   const loadProducts = useCallback(async () => {
     setProductsLoading(true);
     try {
-      const r = await fetch("/api/collections/products");
+      const r = await fetch("/admin/api/collections/products");
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
       setAllProducts(data || []);
@@ -93,7 +93,7 @@ export default function CollectionsWorkspace() {
     event.preventDefault();
     setNotice("");
     try {
-      const url = editing ? `/api/collections/${editing._id}` : "/api/collections";
+      const url = editing ? `/admin/api/collections/${editing._id}` : "/admin/api/collections";
       const method = editing ? "PATCH" : "POST";
       const r = await fetch(url, {
         method,
@@ -128,7 +128,7 @@ export default function CollectionsWorkspace() {
 
   async function remove(id: string) {
     if (!confirm("آیا از حذف این کالکشن مطمئن هستید؟")) return;
-    await fetch(`/api/collections/${id}`, { method: "DELETE" });
+    await fetch(`/admin/api/collections/${id}`, { method: "DELETE" });
     await load();
   }
 
@@ -136,7 +136,7 @@ export default function CollectionsWorkspace() {
     if (!confirm("آیا می‌خواهید کالکشن‌ها را از سری محصولات موجود بسازید؟")) return;
     setNotice("");
     try {
-      const r = await fetch("/api/collections/seed");
+      const r = await fetch("/admin/api/collections/seed");
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
       setNotice(`✅ ${data.created} کالکشن جدید ساخته شد از ${data.series.length} سری محصول`);
@@ -148,7 +148,7 @@ export default function CollectionsWorkspace() {
 
   async function updateProductSeries(productId: string, series: string) {
     try {
-      const r = await fetch(`/api/shop/products/${productId}`, {
+      const r = await fetch(`/admin/api/shop/products/${productId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ series }),

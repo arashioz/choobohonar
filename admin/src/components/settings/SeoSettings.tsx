@@ -51,7 +51,7 @@ export default function SeoSettings() {
   const [activeTab, setActiveTab] = useState<"seo" | "sms" | "landing">("seo");
 
   useEffect(() => {
-    fetch("/api/settings")
+    fetch("/admin/api/settings")
       .then(async (r) => {
         const data = await r.json();
         if (!r.ok) throw new Error(data.message);
@@ -67,7 +67,7 @@ export default function SeoSettings() {
     setSaving(true);
     setNotice("");
     try {
-      const r = await fetch("/api/settings", {
+      const r = await fetch("/admin/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

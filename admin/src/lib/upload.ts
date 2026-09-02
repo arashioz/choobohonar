@@ -11,7 +11,7 @@ export function uploadMedia(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open("POST", "/api/media");
+    request.open("POST", "/admin/api/media");
     request.withCredentials = true;
 
     request.upload.addEventListener("progress", (event) => {

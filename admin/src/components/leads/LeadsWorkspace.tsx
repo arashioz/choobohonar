@@ -76,7 +76,7 @@ export default function LeadsWorkspace() {
     try {
       const params = new URLSearchParams({ kind });
       if (status !== "all") params.set("status", status);
-      const response = await fetch(`/api/leads?${params}`, { cache: "no-store" });
+      const response = await fetch(`/admin/api/leads?${params}`, { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "دریافت درخواست‌ها ناموفق بود");
       setItems(data);
@@ -108,7 +108,7 @@ export default function LeadsWorkspace() {
     setSaving(true);
     setNotice("");
     try {
-      const response = await fetch(`/api/leads/${selected._id}?kind=${kind}`, {
+      const response = await fetch(`/admin/api/leads/${selected._id}?kind=${kind}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus, adminNote: note.trim() }),
@@ -130,7 +130,7 @@ export default function LeadsWorkspace() {
     setSaving(true);
     setNotice("");
     try {
-      const response = await fetch(`/api/leads/${selected._id}?kind=${kind}`, { method: "DELETE" });
+      const response = await fetch(`/admin/api/leads/${selected._id}?kind=${kind}`, { method: "DELETE" });
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "حذف درخواست ناموفق بود");

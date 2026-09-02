@@ -79,7 +79,7 @@ export const STATUS_LABELS: Record<ShopProductStatus, string> = {
 };
 
 async function shopFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `/api/shop${path}`;
+  const url = `/admin/api/shop${path}`;
   const res = await fetch(url, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
