@@ -51,7 +51,7 @@ type OptionalToolConfig = {
   mode: BrandMode;
 };
 
-const API_BASE = "/api";
+const API_BASE = "/admin/api";
 const API_TIMEOUT_MS = 18000;
 
 const OPTIONAL_TOOLS: OptionalToolConfig[] = [
