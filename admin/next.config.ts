@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   basePath: "/admin",
   // API clients must not be redirected from POST /api/... to /api/.../;
   // redirects can turn the request into a route that does not exist.
-  // trailingSlash: false,
+  trailingSlash: false,
   images: {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
