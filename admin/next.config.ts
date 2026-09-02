@@ -4,6 +4,10 @@ const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined;
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Keep the standalone server inside this app directory. The repository also
+  // has a lockfile in its parent workspace, which can otherwise make Next.js
+  // trace from the wrong root and leave Docker without server.js.
+  outputFileTracingRoot: __dirname,
   // Admin routes stay at /admin, while its generated JS/CSS is namespaced so
   // nginx never serves storefront assets to the admin application.
   assetPrefix,
