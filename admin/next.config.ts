@@ -12,7 +12,9 @@ const nextConfig: NextConfig = {
   // nginx never serves storefront assets to the admin application.
   assetPrefix,
   basePath: "/admin",
-  trailingSlash: true,
+  // API clients must not be redirected from POST /api/... to /api/.../;
+  // redirects can turn the request into a route that does not exist.
+  // trailingSlash: false,
   images: {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
