@@ -22,6 +22,11 @@ export class CollectionsAdminController {
     return this.collections.getAllProducts();
   }
 
+  @Post('sync-products')
+  syncProducts() {
+    return this.collections.syncProductSeriesFromNames();
+  }
+
   @Get(':id')
   get(@Param('id') id: string): Promise<Record<string, unknown>> {
     return this.collections.get(id);

@@ -146,6 +146,20 @@ export default function CollectionsWorkspace() {
     }
   }
 
+  async function syncProductsFromCollectionNames() {
+    if (!confirm("محصولاتی که نام کالکشن در عنوانشان است به همان کالکشن متصل شوند؟ موارد مبهم تغییر نمی‌کنند.")) return;
+    setNotice("");
+    try {
+      const r = await fetch("/admin/api/collections/sync-products", { method: "POST" });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message);
+      setNotice(`✅ ${data.updated} محصول به‌روزرسانی شد؛ ${data.alreadyCorrect} مورد از قبل درست بود${data.ambiguous?.length ? `؛ ${data.ambiguous.length} مورد مبهم باقی ماند` : ""}`);
+      await loadProducts();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "همگام‌سازی محصولات ناموفق بود");
+    }
+  }
+
   async function updateProductSeries(productId: string, series: string) {
     try {
       const r = await fetch(`/admin/api/shop/products/${productId}`, {
@@ -192,6 +206,9 @@ export default function CollectionsWorkspace() {
             </button>
             <button onClick={seedFromProducts} className="rounded-xl bg-sage/40 px-4 py-3 text-xs font-medium text-forest">
               🔄 ساخت خودکار از سری محصولات
+            </button>
+            <button onClick={syncProductsFromCollectionNames} className="rounded-xl border border-sage/60 bg-white px-4 py-3 text-xs font-medium text-forest">
+              ✦ اتصال محصولات از نام
             </button>
             <button onClick={() => { setCreating(!creating); setEditing(null); setForm({ name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" }); }} className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
               {creating ? "بستن فرم" : "+ کالکشن جدید"}

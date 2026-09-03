@@ -7,6 +7,7 @@ import { ShopProduct, ShopProductSchema } from './schemas/shop-product.schema';
 import { ShopOrder, ShopOrderSchema } from './schemas/shop-order.schema';
 import { ShopInvoice, ShopInvoiceSchema } from './schemas/shop-invoice.schema';
 import { CmsEntry, CmsEntrySchema } from '../cms/schemas/cms-entry.schema';
+import { Collection, CollectionSchema } from '../collections/schemas/collection.schema';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CmsEntry, CmsEntrySchema } from '../cms/schemas/cms-entry.schema';
       { name: ShopOrder.name, schema: ShopOrderSchema },
       { name: ShopInvoice.name, schema: ShopInvoiceSchema },
       { name: CmsEntry.name, schema: CmsEntrySchema },
+      { name: Collection.name, schema: CollectionSchema },
     ]),
   ],
   controllers: [ShopController],

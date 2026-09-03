@@ -13,6 +13,7 @@ import {
   ShopProductDocument,
 } from './schemas/shop-product.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
+import { Collection, CollectionDocument } from '../collections/schemas/collection.schema';
 import {
   CreateShopProductDto,
   UpdateShopProductDto,
@@ -72,6 +73,8 @@ export class ShopService implements OnModuleInit {
     private productModel: Model<ShopProductDocument>,
     @InjectModel(CmsEntry.name)
     private collectionModel: Model<CmsEntryDocument>,
+    @InjectModel(Collection.name)
+    private readonly namedCollectionModel: Model<CollectionDocument>,
   ) {}
 
   async onModuleInit() {
@@ -147,8 +150,10 @@ export class ShopService implements OnModuleInit {
     const exists = await this.productModel.exists({ slug: dto.slug });
     if (exists) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
 
+    const autoSeries = dto.series === undefined ? await this.seriesFromProductName(dto.name) : undefined;
     return this.productModel.create({
       ...dto,
+      ...(autoSeries ? { series: autoSeries } : {}),
       shortDescription: dto.shortDescription ?? '',
       longDescription: dto.longDescription ?? '',
       image: dto.image ?? '',
@@ -175,8 +180,9 @@ export class ShopService implements OnModuleInit {
       if (clash) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
     }
 
+    const autoSeries = dto.name !== undefined && dto.series === undefined ? await this.seriesFromProductName(dto.name) : undefined;
     const updated = await this.productModel
-      .findByIdAndUpdate(id, { $set: dto }, { new: true })
+      .findByIdAndUpdate(id, { $set: { ...dto, ...(autoSeries ? { series: autoSeries } : {}) } }, { new: true })
       .exec();
     if (!updated) throw new NotFoundException('محصول پیدا نشد');
     return updated;
@@ -498,5 +504,20 @@ export class ShopService implements OnModuleInit {
       room: r._id.room as string,
       count: r.count as number,
     }));
+  }
+
+  private async seriesFromProductName(name: string): Promise<string | undefined> {
+    const normalizedName = normalizeSeriesValue(name);
+    const collections = await this.namedCollectionModel.find({ status: { $ne: 'archived' } }).select('name series').lean().exec();
+    const matches = collections
+      .map((collection) => ({
+        name: String(collection.name || '').replace(/^کالکشن\s+/u, '').trim(),
+        series: String(collection.series || '').trim(),
+      }))
+      .filter((collection) => collection.name && normalizedName.includes(normalizeSeriesValue(collection.name)))
+      .sort((a, b) => normalizeSeriesValue(b.name).length - normalizeSeriesValue(a.name).length);
+    if (!matches.length) return undefined;
+    if (matches.length > 1 && normalizeSeriesValue(matches[0].name).length === normalizeSeriesValue(matches[1].name).length) return undefined;
+    return matches[0].series || matches[0].name;
   }
 }

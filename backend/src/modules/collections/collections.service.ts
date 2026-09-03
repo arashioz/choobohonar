@@ -38,9 +38,22 @@ export class CollectionsService {
   }
 
   async getProductsForCollection(collection: Record<string, unknown>): Promise<Record<string, unknown>[]> {
-    const series = String(collection.series || '').trim();
-    if (!series) return [];
-    return this.products.find({ series, status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
+    // A collection owns every published product whose title contains its
+    // name. This stays current automatically as products are created or
+    // renamed; no manual product-to-collection assignment is required.
+    const collectionName = this.collectionName(collection);
+    if (!collectionName) return [];
+
+    const normalizedCollectionName = this.normalizeForMatch(collectionName);
+    const products = await this.products
+      .find({ status: 'published' })
+      .sort({ sortOrder: 1, createdAt: -1 })
+      .lean()
+      .exec();
+
+    return products.filter((product) =>
+      this.normalizeForMatch(product.name || '').includes(normalizedCollectionName),
+    ) as unknown as Record<string, unknown>[];
   }
 
   async create(input: Record<string, unknown>): Promise<any> {
@@ -123,6 +136,48 @@ export class CollectionsService {
     return this.products.find({ status: 'published' }).sort({ series: 1, sortOrder: 1 }).lean().exec();
   }
 
+  /** Assign products by matching a collection name in the product title. */
+  async syncProductSeriesFromNames(): Promise<{
+    matched: number;
+    updated: number;
+    alreadyCorrect: number;
+    ambiguous: string[];
+    unmatched: number;
+  }> {
+    const [collections, products] = await Promise.all([
+      this.model.find({ status: { $ne: 'archived' } }).select('name series').lean().exec(),
+      this.products.find({}).select('name series').lean().exec(),
+    ]);
+    const rules = collections
+      .map((collection) => ({ name: this.collectionName(collection as unknown as Record<string, unknown>), series: String(collection.series || '').trim() }))
+      .filter((rule) => rule.name)
+      .sort((a, b) => this.normalizeForMatch(b.name).length - this.normalizeForMatch(a.name).length);
+
+    const operations: any[] = [];
+    const ambiguous: string[] = [];
+    let matched = 0;
+    let alreadyCorrect = 0;
+    for (const product of products) {
+      const title = this.normalizeForMatch(product.name || '');
+      const matches = rules.filter((rule) => title.includes(this.normalizeForMatch(rule.name)));
+      if (!matches.length) continue;
+      const best = matches[0];
+      if (matches.length > 1 && this.normalizeForMatch(matches[1].name).length === this.normalizeForMatch(best.name).length) {
+        ambiguous.push(product.name);
+        continue;
+      }
+      matched++;
+      const series = best.series || best.name;
+      if (this.normalizeForMatch(product.series || '') === this.normalizeForMatch(series)) {
+        alreadyCorrect++;
+        continue;
+      }
+      operations.push({ updateOne: { filter: { _id: product._id }, update: { $set: { series } } } });
+    }
+    if (operations.length) await this.products.bulkWrite(operations);
+    return { matched, updated: operations.length, alreadyCorrect, ambiguous, unmatched: products.length - matched - ambiguous.length };
+  }
+
   private clean(input: Record<string, unknown>, required: boolean) {
     const data: Record<string, unknown> = {};
     for (const key of ['name', 'slug', 'excerpt', 'description', 'image', 'series']) {
@@ -137,5 +192,20 @@ export class CollectionsService {
 
   private normalizeSlug(value: string): string {
     return value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\p{L}\p{N}-]+/gu, '').replace(/-+/g, '-').replace(/^-|-$/g, '') || `collection-${Date.now()}`;
+  }
+
+  private collectionName(collection: Record<string, unknown>): string {
+    const name = String(collection.name || collection.series || '').trim();
+    return name.replace(/^کالکشن\s+/u, '').trim();
+  }
+
+  private normalizeForMatch(value: string): string {
+    return value
+      .toLowerCase()
+      .replace(/[آأإ]/g, 'ا')
+      .replace(/[يى]/g, 'ی')
+      .replace(/ك/g, 'ک')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 }
