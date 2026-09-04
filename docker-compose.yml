@@ -79,7 +79,7 @@ services:
     image: ${REGISTRY_PREFIX:-choobohonar}/landing:${IMAGE_TAG:-latest}
     build:
       # campaign-52 is a separate project next to this repository.
-      context: ../campaign-52
+      context: ./campaign-52
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
