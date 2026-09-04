@@ -1,0 +1,7 @@
+node_modules
+.next
+.git
+*.zip
+.env
+data/leads.jsonl
+data/leads.json

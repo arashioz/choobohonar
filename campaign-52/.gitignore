@@ -1,0 +1,23 @@
+node_modules
+.next
+out
+build
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+.env
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+data/leads.jsonl
+data/leads.json
+*.zip
+
+# Heavy media — shipped separately as campaign-52-assets.zip
+public/images/*
+!public/images/.gitkeep
+public/videos/*
+!public/videos/.gitkeep
+public/fonts/*
+!public/fonts/.gitkeep
