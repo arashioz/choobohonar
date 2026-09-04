@@ -75,6 +75,23 @@ services:
     depends_on:
       - backend
 
+  landing:
+    image: ${REGISTRY_PREFIX:-choobohonar}/landing:${IMAGE_TAG:-latest}
+    build:
+      # campaign-52 is a separate project next to this repository.
+      context: ../campaign-52
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
+        NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
+      NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
+    expose:
+      - '3000'
+
   nginx:
     image: ${REGISTRY_PREFIX:-choobohonar}/nginx:${IMAGE_TAG:-latest}
     build:
@@ -90,3 +107,4 @@ services:
       - frontend
       - backend
       - admin
+      - landing

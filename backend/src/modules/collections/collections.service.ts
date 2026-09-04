@@ -51,9 +51,12 @@ export class CollectionsService {
       .lean()
       .exec();
 
-    return products.filter((product) =>
-      this.normalizeForMatch(product.name || '').includes(normalizedCollectionName),
-    ) as unknown as Record<string, unknown>[];
+    const normalizedSeries = this.normalizeForMatch(String(collection.series || collectionName));
+    return products.filter((product) => {
+      const titleMatches = this.normalizeForMatch(product.name || '').includes(normalizedCollectionName);
+      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(product.series || '') === normalizedSeries;
+      return titleMatches || seriesMatches;
+    }) as unknown as Record<string, unknown>[];
   }
 
   async create(input: Record<string, unknown>): Promise<any> {

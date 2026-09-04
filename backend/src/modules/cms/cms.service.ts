@@ -121,7 +121,7 @@ export class CmsService implements OnModuleInit {
     return { categories: categories.map((item) => item._id), tags: tags.map((item) => item._id) };
   }
 
-  private async seedEditorialArticles() {
+  async seedEditorialArticles() {
     const filePath = join(process.cwd(), 'src/modules/cms/data/editorial-posts.json');
     try {
       const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<Record<string, any>>;

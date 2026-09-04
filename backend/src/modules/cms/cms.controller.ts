@@ -7,6 +7,11 @@ import { CmsService } from './cms.service';
 export class CmsAdminController {
   constructor(private readonly cmsService: CmsService) {}
 
+  @Post('article/seed')
+  seedArticles() {
+    return this.cmsService.seedEditorialArticles().then(() => ({ ok: true }));
+  }
+
   @Get(':kind')
   list(@Param('kind') kind: string, @Query('q') query?: string, @Query('status') status?: string, @Query('limit') limit?: string) {
     return this.cmsService.list(kind, query, status, limit);
