@@ -324,6 +324,7 @@ export type ShopProduct = {
   isInStock: boolean;
   hasOptions: boolean;
   shopUrl: string;
+  variants?: { id: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; enabled: boolean }[];
 };
 
 export type AnyProduct = Product | ShopProduct;

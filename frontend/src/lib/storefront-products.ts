@@ -17,6 +17,9 @@ type BackendProduct = {
   trackInventory?: boolean;
   featured?: boolean;
   sortOrder?: number;
+  series?: string;
+  attributes?: { name: string; values: string[]; required?: boolean }[];
+  variants?: { _id?: string; sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty?: number; enabled?: boolean }[];
 };
 
 export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
@@ -33,14 +36,18 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
     image,
     gallery: item.gallery || (image ? [image] : []),
     categories: [{ id: 0, name: item.category || "محصولات خانه", slug: item.category || "all" }],
-    attributes: [],
+    attributes: [
+      ...(item.series ? [{ id: -1, name: "کالکشن", taxonomy: "pa_collection", hasVariations: false, terms: [{ id: 0, name: item.series, slug: item.series, default: true }] }] : []),
+      ...(item.attributes || []).map((attribute, index) => ({ id: index, name: attribute.name, taxonomy: null, hasVariations: true, terms: attribute.values.map((value, valueIndex) => ({ id: valueIndex, name: value, slug: value, default: valueIndex === 0 })) })),
+    ],
     prices: price ? { value: price, regularValue: price, saleValue: null, minValue: price, maxValue: price, currencyCode: "IRR", currencySymbol: "تومان", minorUnit: 0 } : null,
     averageRating: "0",
     reviewCount: 0,
     isPurchasable: true,
-    isInStock: item.trackInventory ? (item.stockQty || 0) > 0 : true,
-    hasOptions: false,
+    isInStock: item.variants?.length ? item.variants.some((variant) => variant.enabled !== false && (variant.stockQty || 0) > 0) : (item.trackInventory ? (item.stockQty || 0) > 0 : true),
+    hasOptions: Boolean(item.attributes?.length),
     shopUrl: item.shopUrl || "",
+    variants: item.variants?.map((variant, index) => ({ id: variant._id || variant.sku || String(index), options: variant.options || [], price: variant.price, compareAtPrice: variant.compareAtPrice, stockQty: variant.stockQty || 0, enabled: variant.enabled !== false })),
   };
 }
 

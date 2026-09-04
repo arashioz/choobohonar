@@ -40,6 +40,37 @@ class DimensionsDto {
   height?: number;
 }
 
+class ProductAttributeDto {
+  @IsString()
+  name: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  values: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+}
+
+class VariantOptionDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  value: string;
+}
+
+class ProductVariantDto {
+  @IsOptional() @IsString() sku?: string;
+  @IsArray() @ValidateNested({ each: true }) @Type(() => VariantOptionDto) options: VariantOptionDto[];
+  @IsOptional() @IsNumber() price?: number;
+  @IsOptional() @IsNumber() compareAtPrice?: number;
+  @IsOptional() @IsNumber() stockQty?: number;
+  @IsOptional() @IsString() image?: string;
+  @IsOptional() @IsBoolean() enabled?: boolean;
+}
+
 const ROOMS = [
   'living',
   'bedroom',
@@ -146,6 +177,12 @@ export class CreateShopProductDto {
   @Type(() => HighlightDto)
   highlights?: HighlightDto[];
 
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductAttributeDto)
+  attributes?: ProductAttributeDto[];
+
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductVariantDto)
+  variants?: ProductVariantDto[];
+
   @IsOptional()
   @IsNumber()
   sortOrder?: number;
@@ -248,6 +285,12 @@ export class UpdateShopProductDto {
   @ValidateNested({ each: true })
   @Type(() => HighlightDto)
   highlights?: HighlightDto[];
+
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductAttributeDto)
+  attributes?: ProductAttributeDto[];
+
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductVariantDto)
+  variants?: ProductVariantDto[];
 
   @IsOptional()
   @IsNumber()

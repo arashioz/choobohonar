@@ -63,7 +63,7 @@ export default function WorkAreasSection() {
                 />
                 <span className="flex min-w-0 flex-1 items-baseline gap-4 pr-4 sm:gap-5">
                   <span className={cn("font-sans text-lg transition-colors duration-300", i === active ? "text-peach" : "text-paper/55")}>
-                    {toFa(`0${i + 1}`)}
+                    {/* {toFa(`0${i + 1}`)} */}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span

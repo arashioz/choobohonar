@@ -40,6 +40,8 @@ type FormState = {
   height: string;
   specs: { label: string; value: string }[];
   highlights: { title: string; description: string }[];
+  attributes: { name: string; values: string }[];
+  variants: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[];
 };
 
 function fromProduct(p?: ShopProduct): FormState {
@@ -68,6 +70,8 @@ function fromProduct(p?: ShopProduct): FormState {
     height: p?.dimensions?.height != null ? String(p.dimensions.height) : "",
     specs: p?.specs || [],
     highlights: p?.highlights || [],
+    attributes: (p?.attributes || []).map((attribute) => ({ name: attribute.name, values: attribute.values.join("، ") })),
+    variants: (p?.variants || []).map((variant) => ({ sku: variant.sku || "", options: variant.options.map((option) => `${option.name}: ${option.value}`).join("، "), price: variant.price != null ? formatPrice(String(variant.price)) : "", compareAtPrice: variant.compareAtPrice != null ? formatPrice(String(variant.compareAtPrice)) : "", stockQty: String(variant.stockQty ?? 0), enabled: variant.enabled !== false })),
   };
 }
 
@@ -128,6 +132,8 @@ export default function ShopProductForm({
       dimensions: compactDimensions(form),
       specs: form.specs.filter((item) => item.label.trim() && item.value.trim()),
       highlights: form.highlights.filter((item) => item.title.trim() && item.description.trim()),
+      attributes: form.attributes.filter((attribute) => attribute.name.trim() && attribute.values.trim()).map((attribute) => ({ name: attribute.name.trim(), values: attribute.values.split(/[،,]/).map((value) => value.trim()).filter(Boolean), required: true })),
+      variants: form.variants.map((variant) => ({ sku: variant.sku.trim() || undefined, options: variant.options.split(/[،,]/).map((item) => item.trim()).filter(Boolean).map((item) => { const [name, ...value] = item.split(":"); return { name: name.trim(), value: value.join(":").trim() }; }).filter((option) => option.name && option.value), price: variant.price ? parsePrice(variant.price) : undefined, compareAtPrice: variant.compareAtPrice ? parsePrice(variant.compareAtPrice) : undefined, stockQty: Number(variant.stockQty) || 0, enabled: variant.enabled })),
     };
 
     try {
@@ -349,6 +355,7 @@ export default function ShopProductForm({
           </section>
 
           <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs.map((item) => ({ label: item.label || "", value: item.value || "" })))} left="عنوان مشخصه" right="مقدار" />
+          <VariantsEditor attributes={form.attributes} variants={form.variants} onAttributes={(attributes) => set("attributes", attributes)} onVariants={(variants) => set("variants", variants)} />
           <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights.map((item) => ({ title: item.title || "", description: item.description || "" })))} left="عنوان" right="توضیح کوتاه" />
 
           <ProductMediaGallery images={form.gallery} uploading={uploading} uploadProgress={uploadProgress} onUpload={uploadImages} onChange={setGallery} />
@@ -430,6 +437,16 @@ function ProductDetailsEditor({ label, description, rows, onChange, left, right 
   const isHighlight = rows.some((row) => "title" in row) || label.includes("نقاط");
   const normalized = rows.length ? rows : [isHighlight ? { title: "", description: "" } : { label: "", value: "" }];
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
+}
+
+function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { attributes: { name: string; values: string }[]; variants: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; onAttributes: (value: { name: string; values: string }[]) => void; onVariants: (value: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
+  const nextAttribute = () => onAttributes([...attributes, { name: "", values: "" }]);
+  const nextVariant = () => onVariants([...variants, { sku: "", options: "", price: "", compareAtPrice: "", stockQty: "0", enabled: true }]);
+  return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-5">
+    <div><h2 className="text-sm font-medium text-forest">ویژگی‌ها و متغیرها</h2><p className="mt-1 text-[10px] leading-5 text-forest/40">مثل وردپرس: ابتدا ویژگی را تعریف کنید (رنگ: گردویی، کرم) و سپس برای هر ترکیب، قیمت و موجودی جداگانه ثبت کنید.</p></div>
+    <div className="space-y-2"><p className="text-xs font-medium text-forest/60">ویژگی‌ها</p>{attributes.map((attribute, index) => <div key={index} className="grid grid-cols-[1fr_1.6fr_36px] gap-2"><input className={fieldClass} placeholder="مثلاً رنگ" value={attribute.name} onChange={(e) => onAttributes(attributes.map((item, i) => i === index ? { ...item, name: e.target.value } : item))} /><input className={fieldClass} placeholder="گردویی، کرم، مشکی" value={attribute.values} onChange={(e) => onAttributes(attributes.map((item, i) => i === index ? { ...item, values: e.target.value } : item))} /><button type="button" className="rounded-xl border border-forest/10 text-brick" onClick={() => onAttributes(attributes.filter((_, i) => i !== index))}>×</button></div>)}<button type="button" onClick={nextAttribute} className="text-[10px] font-medium text-brick">+ افزودن ویژگی</button></div>
+    <div className="space-y-3"><p className="text-xs font-medium text-forest/60">ترکیب‌ها / متغیرها</p>{variants.map((variant, index) => <div key={index} className="rounded-xl border border-forest/10 p-3"><div className="grid gap-2 sm:grid-cols-2"><input className={fieldClass} placeholder="ویژگی‌ها: رنگ: گردویی، سایز: ۳ نفره" value={variant.options} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, options: e.target.value } : item))} /><input className={fieldClass} dir="ltr" placeholder="SKU (اختیاری)" value={variant.sku} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, sku: e.target.value } : item))} /><input className={fieldClass} inputMode="numeric" placeholder="قیمت تومان" value={variant.price} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, price: formatPrice(e.target.value) } : item))} /><input className={fieldClass} inputMode="numeric" placeholder="قیمت قبل از تخفیف" value={variant.compareAtPrice} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, compareAtPrice: formatPrice(e.target.value) } : item))} /><input className={fieldClass} type="number" placeholder="موجودی" value={variant.stockQty} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, stockQty: e.target.value } : item))} /><label className="flex items-center gap-2 text-xs text-forest"><input type="checkbox" checked={variant.enabled} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, enabled: e.target.checked } : item))} />قابل فروش</label></div><button type="button" onClick={() => onVariants(variants.filter((_, i) => i !== index))} className="mt-2 text-[10px] text-brick">حذف این ترکیب</button></div>)}<button type="button" onClick={nextVariant} className="text-[10px] font-medium text-brick">+ افزودن ترکیب</button></div>
+  </section>;
 }
 
 function ProductMediaGallery({ images, uploading, uploadProgress, onUpload, onChange }: { images: string[]; uploading: boolean; uploadProgress: number; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onChange: (images: string[]) => void }) {

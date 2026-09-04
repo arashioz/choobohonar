@@ -89,6 +89,14 @@ export class ShopProduct {
   @Prop({ type: [{ title: String, description: String }], default: [] })
   highlights: { title: string; description: string }[];
 
+  /** گزینه‌های قابل انتخاب، مانند رنگ و ابعاد. */
+  @Prop({ type: [{ name: String, values: [String], required: Boolean }], default: [] })
+  attributes: { name: string; values: string[]; required: boolean }[];
+
+  /** هر ترکیبِ قابل فروش با قیمت و موجودی مستقل. */
+  @Prop({ type: [{ sku: String, options: [{ name: String, value: String }], price: Number, compareAtPrice: Number, stockQty: Number, image: String, enabled: Boolean }], default: [] })
+  variants: { sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; image?: string; enabled: boolean }[];
+
   @Prop({ default: 0 })
   sortOrder: number;
 

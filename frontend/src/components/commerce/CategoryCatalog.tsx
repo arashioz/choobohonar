@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
@@ -32,6 +32,8 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   const [sort, setSort] = useState<SortMode>((searchParams.get("sort") as SortMode) ?? "featured");
   const [filterOpen, setFilterOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
+  const catalogRef = useRef<HTMLElement>(null);
+  const scrollToProductsAfterSync = useRef(false);
 
   const typeOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -76,11 +78,23 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
     if (collection !== "all") params.set("collection", collection);
     if (stockOnly) params.set("stock", "1");
     if (sort !== "featured") params.set("sort", sort);
+    const nextUrl = params.size ? `${pathname}?${params}` : pathname;
+    const currentUrl = `${pathname}${searchParams.size ? `?${searchParams}` : ""}`;
+    // Avoid a no-op navigation on mount: preserving an old scroll position
+    // can otherwise place a short, filtered catalog at the footer.
+    if (nextUrl === currentUrl) return;
     const timeout = window.setTimeout(() => {
-      router.replace(params.size ? `${pathname}?${params}` : pathname, { scroll: false });
+      router.replace(nextUrl, { scroll: false });
+      if (scrollToProductsAfterSync.current) {
+        scrollToProductsAfterSync.current = false;
+        window.requestAnimationFrame(() => {
+          const top = catalogRef.current?.getBoundingClientRect().top;
+          if (top !== undefined) window.scrollTo({ top: Math.max(0, window.scrollY + top - 92), behavior: "auto" });
+        });
+      }
     }, 180);
     return () => window.clearTimeout(timeout);
-  }, [collection, pathname, query, router, sort, stockOnly, type]);
+  }, [collection, pathname, query, router, searchParams, sort, stockOnly, type]);
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -95,6 +109,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   const activeFilterCount = Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
 
   const clearFilters = () => {
+    scrollToProductsAfterSync.current = true;
     setType("all");
     setCollection("all");
     setStockOnly(false);
@@ -114,9 +129,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
       <fieldset>
         <legend className="text-sm font-medium text-forest">نوع محصول</legend>
         <div className="mt-4 max-h-64 space-y-2.5 overflow-y-auto pl-2">
-          <FilterRadio label="همه" count={products.length} active={type === "all"} onClick={() => setType("all")} />
+          <FilterRadio label="همه" count={products.length} active={type === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} />
           {typeOptions.map(([label, count]) => (
-            <FilterRadio key={label} label={label} count={count} active={type === label} onClick={() => setType(label)} />
+            <FilterRadio key={label} label={label} count={count} active={type === label} onClick={() => { scrollToProductsAfterSync.current = true; setType(label); }} />
           ))}
         </div>
       </fieldset>
@@ -125,14 +140,14 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         <fieldset>
           <legend className="text-sm font-medium text-forest">کالکشن</legend>
           <div className="mt-4 max-h-56 space-y-2.5 overflow-y-auto pl-2">
-            <FilterRadio label="همه کالکشن‌ها" count={products.length} active={collection === "all"} onClick={() => setCollection("all")} />
+            <FilterRadio label="همه کالکشن‌ها" count={products.length} active={collection === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} />
             {collectionOptions.map(([label, count]) => (
               <FilterRadio
                 key={label}
                 label={label}
                 count={count}
                 active={collection === label}
-                onClick={() => setCollection(label)}
+                onClick={() => { scrollToProductsAfterSync.current = true; setCollection(label); }}
               />
             ))}
           </div>
@@ -142,7 +157,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
       <label className="flex cursor-pointer items-center justify-between gap-4 border-y border-forest/10 py-5 text-sm text-forest">
         <span>فقط محصولات موجود</span>
         <span className={cn("relative h-6 w-11 rounded-full transition-colors", stockOnly ? "bg-forest" : "bg-forest/15")}>
-          <input type="checkbox" checked={stockOnly} onChange={(event) => setStockOnly(event.target.checked)} className="sr-only" />
+          <input type="checkbox" checked={stockOnly} onChange={(event) => { scrollToProductsAfterSync.current = true; setStockOnly(event.target.checked); }} className="sr-only" />
           <span
             className={cn(
               "absolute top-1 h-4 w-4 rounded-full bg-paper transition-all",
@@ -155,7 +170,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   );
 
   return (
-    <section className="bg-paper py-20 md:py-28">
+    <section ref={catalogRef} className="bg-paper py-20 md:py-28">
       <div className="mx-auto w-full max-w-container px-6 md:px-10 lg:px-16">
         <div className="sticky top-[68px] z-30 -mx-6 border-y border-forest/10 bg-paper/95 px-6 py-4 backdrop-blur-xl md:-mx-10 md:px-10 lg:-mx-16 lg:px-16">
           <div className="mx-auto flex max-w-container flex-col gap-3 sm:flex-row sm:items-center">
@@ -209,9 +224,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
             <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-forest/10 pb-5 text-sm text-forest/55">
               <p>{toFa(filtered.length)} نتیجه</p>
               <div className="flex flex-wrap gap-2">
-                {type !== "all" ? <ActiveChip label={type} onRemove={() => setType("all")} /> : null}
-                {collection !== "all" ? <ActiveChip label={`کالکشن ${collection}`} onRemove={() => setCollection("all")} /> : null}
-                {stockOnly ? <ActiveChip label="موجود" onRemove={() => setStockOnly(false)} /> : null}
+                {type !== "all" ? <ActiveChip label={type} onRemove={() => { scrollToProductsAfterSync.current = true; setType("all"); }} /> : null}
+                {collection !== "all" ? <ActiveChip label={`کالکشن ${collection}`} onRemove={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} /> : null}
+                {stockOnly ? <ActiveChip label="موجود" onRemove={() => { scrollToProductsAfterSync.current = true; setStockOnly(false); }} /> : null}
               </div>
             </div>
 
@@ -240,7 +255,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
               <div className="border border-dashed border-forest/20 px-6 py-20 text-center">
                 <p className="text-2xl font-light text-forest">محصولی پیدا نشد</p>
                 <p className="mt-3 text-sm text-forest/55">عبارت جستجو یا فیلترها را تغییر دهید.</p>
-                <button type="button" onClick={() => { setQuery(""); clearFilters(); }} className="mt-6 text-sm text-brick">
+                <button type="button" onClick={() => { setQuery(""); clearFilters(); setSort("featured"); router.replace(pathname, { scroll: false }); }} className="mt-6 text-sm text-brick">
                   نمایش همه محصولات
                 </button>
               </div>

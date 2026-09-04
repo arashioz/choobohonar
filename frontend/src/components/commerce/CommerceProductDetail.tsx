@@ -21,7 +21,7 @@ const roomCategoryPaths = {
 } as const;
 
 export default function CommerceProductDetail({ product }: { product: ShopProduct }) {
-  const { addProduct } = useCart();
+  const { addProduct, addItem } = useCart();
   const gallery = product.gallery.length ? product.gallery : [product.image];
   const [activeImage, setActiveImage] = useState(gallery[0]);
   const attributes = useMemo(() => getProductAttributeOptions(product).slice(0, 5), [product]);
@@ -35,8 +35,12 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
   );
   const [added, setAdded] = useState(false);
   const collection = getCollectionName(product);
-  const priceValue = Number(product.prices?.value ?? 0);
-  const canAddToCart = product.isPurchasable && Number.isFinite(priceValue) && priceValue > 0;
+  const selectedVariant = useMemo(() => product.variants?.find((variant) => variant.enabled && variant.options.every((option) => {
+    const attribute = attributes.find((item) => item.name === option.name);
+    return attribute?.options.find((item) => item.id === selected[attribute.id])?.label === option.value;
+  })), [attributes, product.variants, selected]);
+  const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
+  const canAddToCart = product.isPurchasable && Number.isFinite(priceValue) && priceValue > 0 && (!product.variants?.length || Boolean(selectedVariant && selectedVariant.stockQty > 0));
 
   const handleAddToCart = () => {
     const options: CartOption[] = attributes
@@ -47,7 +51,9 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
           : null;
       })
       .filter((option): option is CartOption => Boolean(option));
-    addProduct(product, options);
+    if (selectedVariant?.price) {
+      addItem({ productId: product.id, slug: product.slug, name: product.name, category: product.category, image: product.image, unitPrice: selectedVariant.price, currencySymbol: product.prices?.currencySymbol || "تومان", options: [...options, { id: "variant", label: "ترکیب", valueId: selectedVariant.id, value: selectedVariant.options.map((option) => option.value).join(" / ") }] });
+    } else addProduct(product, options);
     setAdded(true);
   };
 
@@ -126,7 +132,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
               <div className="mt-8 flex items-end justify-between gap-6 border-y border-forest/10 py-6">
                 <div>
                   <p className="text-xs text-forest/45">قیمت</p>
-                  <p className="mt-2 text-2xl font-light text-forest">{formatCatalogPrice(product)}</p>
+                  <p className="mt-2 text-2xl font-light text-forest">{selectedVariant?.price ? `${selectedVariant.price.toLocaleString("fa-IR")} تومان` : formatCatalogPrice(product)}</p>
                 </div>
                 {product.reviewCount > 0 ? (
                   <div className="text-left">

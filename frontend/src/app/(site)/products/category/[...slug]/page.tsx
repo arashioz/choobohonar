@@ -50,13 +50,15 @@ export default async function ProductCategoryPage({ params }: PageProps) {
   const category = resolveCommerceCategory(slug);
   if (!category) notFound();
   const backendProducts = await fetchStorefrontProducts();
-  const products = backendProducts.length
+  const products = (backendProducts.length
     ? backendProducts.filter((product) => {
         if (category.root.room && product.room !== category.root.room) return false;
         if (category.active && product.category !== category.active.label && !product.slug.includes(category.active.slug)) return false;
         return true;
       })
-    : getCommerceCategoryProducts(category);
+    : getCommerceCategoryProducts(category)).filter((product) =>
+      category.root.slug !== "decor" || !/دراور|قاب\s*آینه\s*آلدر/u.test(product.name),
+    );
   const activeLabel = category.active?.label ?? category.root.label;
 
   return (

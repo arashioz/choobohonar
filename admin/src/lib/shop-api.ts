@@ -34,6 +34,8 @@ export type ShopProduct = {
   dimensions?: { width?: number; depth?: number; height?: number };
   specs: { label: string; value: string }[];
   highlights: { title: string; description: string }[];
+  attributes: { name: string; values: string[]; required: boolean }[];
+  variants: { sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; image?: string; enabled: boolean }[];
   sortOrder: number;
   source?: string;
   createdAt?: string;

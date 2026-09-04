@@ -57,14 +57,7 @@ export default function CommerceProductCard({
             ) : (
               <span />
             )}
-            <span
-              className={cn(
-                "rounded-full px-3 py-1.5 text-[11px] font-medium backdrop-blur-md",
-                product.isInStock ? "bg-forest/85 text-paper" : "bg-paper/90 text-brick",
-              )}
-            >
-              {product.isInStock ? "موجود" : "سفارش تولید"}
-            </span>
+            {!product.isInStock ? <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-brick backdrop-blur-md">ناموجود</span> : null}
           </div>
 
           <span className="absolute bottom-4 left-4 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-peach text-xl text-forest opacity-0 transition-[transform,opacity] duration-500 ease-out-expo group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
