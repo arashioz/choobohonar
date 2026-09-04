@@ -87,10 +87,11 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      PORT: 5005
       NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
       NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
     expose:
-      - '3000'
+      - '5005'
 
   nginx:
     image: ${REGISTRY_PREFIX:-choobohonar}/nginx:${IMAGE_TAG:-latest}
