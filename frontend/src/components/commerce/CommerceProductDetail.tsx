@@ -36,7 +36,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
   const [added, setAdded] = useState(false);
   const collection = getCollectionName(product);
   const selectedVariant = useMemo(() => product.variants?.find((variant) => variant.enabled && variant.options.every((option) => {
-    const attribute = attributes.find((item) => item.name === option.name);
+    const attribute = attributes.find((item) => item.label === option.name);
     return attribute?.options.find((item) => item.id === selected[attribute.id])?.label === option.value;
   })), [attributes, product.variants, selected]);
   const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
