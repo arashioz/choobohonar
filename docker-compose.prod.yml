@@ -52,6 +52,7 @@ services:
       API_URL: http://backend:3001/api
     volumes:
       # Large storefront media is managed on the host and must survive image rebuilds.
+      - ./frontend/public/brand:/app/public/brand:ro
       - ./frontend/public/images:/app/public/images:ro
       - ./frontend/public/videos:/app/public/videos:ro
     expose:

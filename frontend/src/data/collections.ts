@@ -84,7 +84,7 @@ export async function fetchApiCollections(): Promise<ApiCollection[]> {
     // Server Components run inside the frontend container, where a relative
     // URL has no origin. Use API_URL (backend service) there and preserve
     // same-origin /api calls in the browser.
-    const r = await fetch(`${getApiBase()}/public/collections`, { next: { revalidate: 60 } });
+    const r = await fetch(`${getApiBase()}/public/collections`, { cache: "no-store" });
     if (!r.ok) return [];
     return await r.json();
   } catch {
@@ -94,7 +94,7 @@ export async function fetchApiCollections(): Promise<ApiCollection[]> {
 
 export async function fetchApiCollection(slug: string): Promise<ApiCollection | null> {
   try {
-    const r = await fetch(`${getApiBase()}/public/collections/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
+    const r = await fetch(`${getApiBase()}/public/collections/${encodeURIComponent(slug)}`, { cache: "no-store" });
     if (!r.ok) return null;
     return await r.json();
   } catch {

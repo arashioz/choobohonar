@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Collection, CollectionDocument, CollectionStatus } from './schemas/collection.schema';
 import { ShopProduct, ShopProductDocument } from '../shop/schemas/shop-product.schema';
+import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 
 const statuses: CollectionStatus[] = ['draft', 'published', 'archived'];
 
@@ -11,6 +12,7 @@ export class CollectionsService {
   constructor(
     @InjectModel(Collection.name) private readonly model: Model<CollectionDocument>,
     @InjectModel(ShopProduct.name) private readonly products: Model<ShopProductDocument>,
+    @InjectModel(CmsEntry.name) private readonly cmsEntries: Model<CmsEntryDocument>,
   ) {}
 
   async list(q?: string, status?: string): Promise<{ items: Record<string, unknown>[]; total: number }> {
@@ -31,10 +33,18 @@ export class CollectionsService {
   }
 
   async getBySlug(slug: string): Promise<any> {
-    const item = await this.model.findOne({ slug, status: 'published' }).lean().exec();
-    if (!item) throw new NotFoundException('کالکشن منتشر‌شده پیدا نشد');
-    const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
-    return { ...item, products };
+    const item = await this.model.findOne({ slug, status: { $ne: 'archived' } }).lean().exec();
+    if (item) {
+      const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
+      return { ...item, products };
+    }
+
+    // Collections created from «مدیریت آثار» live in cms_entries, not in the
+    // standalone collections table. Expose them through the same storefront
+    // API so the admin and frontend never diverge.
+    const cmsItem = await this.cmsEntries.findOne({ kind: 'collection', slug, status: { $ne: 'archived' } }).lean().exec();
+    if (!cmsItem) throw new NotFoundException('کالکشن پیدا نشد');
+    return this.toPublicCmsCollection(cmsItem as unknown as Record<string, unknown>);
   }
 
   async getProductsForCollection(collection: Record<string, unknown>): Promise<Record<string, unknown>[]> {
@@ -100,7 +110,63 @@ export class CollectionsService {
         products: await this.getProductsForCollection(collection as unknown as Record<string, unknown>),
       })),
     );
-    return withProducts.filter((collection) => collection.products.length > 0);
+    const cmsCollections = await this.cmsEntries
+      .find({ kind: 'collection', status: { $ne: 'archived' } })
+      .sort({ updatedAt: -1 })
+      .lean()
+      .exec();
+    const cmsWithProducts = await Promise.all(
+      cmsCollections.map((collection) => this.toPublicCmsCollection(collection as unknown as Record<string, unknown>)),
+    );
+
+    // CMS is the source used by «مدیریت آثار»; when a legacy standalone
+    // collection has the same slug, keep the CMS version and its membership.
+    const result = new Map<string, Record<string, unknown>>();
+    for (const collection of cmsWithProducts) {
+      if ((collection.products as Record<string, unknown>[]).length) result.set(String(collection.slug), collection);
+    }
+    for (const collection of withProducts) {
+      if (collection.products.length && !result.has(String(collection.slug))) result.set(String(collection.slug), collection);
+    }
+    return [...result.values()];
+  }
+
+  private async toPublicCmsCollection(collection: Record<string, unknown>): Promise<Record<string, unknown> & { products: Record<string, unknown>[] }> {
+    const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
+    const title = String(collection.title || '').trim();
+    const series = String(data.seriesName || data.series || title.replace(/^کالکشن\s+/u, '')).trim();
+    const products = await this.getProductsForCmsCollection(collection, series);
+    const images = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
+    return {
+      _id: String(collection._id || ''),
+      name: title,
+      slug: String(collection.slug || ''),
+      status: String(collection.status || 'draft'),
+      excerpt: String(collection.excerpt || ''),
+      description: String(collection.description || collection.content || ''),
+      image: images[0] || '',
+      gallery: images,
+      series,
+      tags: Array.isArray(collection.tags) ? collection.tags.map(String) : [],
+      products,
+    };
+  }
+
+  private async getProductsForCmsCollection(collection: Record<string, unknown>, series: string): Promise<Record<string, unknown>[]> {
+    const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
+    const references = new Set(
+      [data.productSlugs, data.productIds]
+        .flatMap((value) => Array.isArray(value) ? value : [])
+        .map((value) => String(value).trim())
+        .filter(Boolean),
+    );
+    const normalizedSeries = this.normalizeForMatch(series);
+    const products = await this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
+    return products.filter((product) => {
+      const explicitlyAssigned = references.has(String(product.slug)) || references.has(String(product._id));
+      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(product.series || '') === normalizedSeries;
+      return explicitlyAssigned || seriesMatches;
+    }) as unknown as Record<string, unknown>[];
   }
 
   async seedFromProducts(): Promise<{ created: number; series: string[] }> {
