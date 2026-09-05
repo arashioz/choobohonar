@@ -135,6 +135,7 @@ function HeritageTimeline() {
                     alt={`تصویر ${heritage.founderQuote.author}`}
                     fill
                     sizes="112px"
+                    unoptimized
                     className="object-cover object-top transition-transform duration-700 ease-out-expo group-hover:scale-[1.03]"
                     priority
                   />
