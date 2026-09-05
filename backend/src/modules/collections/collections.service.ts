@@ -84,8 +84,23 @@ export class CollectionsService {
     return { ok: true };
   }
 
-  async publicList() {
-    return this.model.find({ status: 'published' }).sort({ updatedAt: -1 }).lean().exec();
+  async publicList(): Promise<Record<string, unknown>[]> {
+    // The storefront should mirror the collection manager: return every
+    // active collection that actually owns products, including collections
+    // whose membership is inferred from their series or product names.
+    const collections = (await this.model
+      .find({ status: { $ne: 'archived' } })
+      .sort({ updatedAt: -1 })
+      .lean()
+      .exec()) as unknown as Record<string, unknown>[];
+
+    const withProducts: Array<Record<string, unknown> & { products: Record<string, unknown>[] }> = await Promise.all(
+      collections.map(async (collection) => ({
+        ...collection,
+        products: await this.getProductsForCollection(collection as unknown as Record<string, unknown>),
+      })),
+    );
+    return withProducts.filter((collection) => collection.products.length > 0);
   }
 
   async seedFromProducts(): Promise<{ created: number; series: string[] }> {
