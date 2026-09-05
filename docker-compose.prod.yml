@@ -70,6 +70,10 @@ services:
       NODE_ENV: production
       API_URL: http://backend:3001/api
       API_PROXY_TARGET: http://backend:3001/api
+    volumes:
+      # Raster brandbook assets are delivered outside Git. Keep them on the
+      # host so an admin-image rebuild never removes them.
+      - ./admin/public/brand:/app/public/brand:ro
     expose:
       - '3003'
     depends_on:
