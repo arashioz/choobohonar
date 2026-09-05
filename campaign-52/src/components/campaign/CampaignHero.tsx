@@ -30,7 +30,9 @@ export default function CampaignHero() {
     lockIntro();
     const el = video.current;
     if (!el) return;
-    const src = window.matchMedia("(min-width: 768px)").matches ? "/videos/hero-desktop.mp4" : "/videos/hero-mobile.mp4";
+    // Native video URLs do not receive Next.js' basePath automatically.
+    // Keep them below /landing so nginx forwards them to the landing app.
+    const src = window.matchMedia("(min-width: 768px)").matches ? "/landing/videos/hero-desktop.mp4" : "/landing/videos/hero-mobile.mp4";
     if (el.getAttribute("data-src") !== src) {
       el.src = src;
       el.setAttribute("data-src", src);
@@ -198,8 +200,8 @@ export default function CampaignHero() {
           className="absolute inset-0 h-full max-h-full w-full max-w-full object-cover"
           webkit-playsinline="true"
         >
-          <source src="/videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 768px)" />
-          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
+          <source src="/landing/videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 768px)" />
+          <source src="/landing/videos/hero-mobile.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/35" />
         <div className="commerce-grain absolute inset-0 opacity-40" />

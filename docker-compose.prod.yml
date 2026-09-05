@@ -93,6 +93,10 @@ services:
       PORT: 5005
       NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-https://choobohonar.com/landing}
       NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-https://choobohonar.com}
+    volumes:
+      # Campaign media is supplied outside Git; preserve it between image builds.
+      - ../campaign-52/public/images:/app/public/images:ro
+      - ../campaign-52/public/videos:/app/public/videos:ro
     expose:
       - '5005'
 
