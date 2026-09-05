@@ -49,6 +49,10 @@ services:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_ENV: production
       API_URL: http://backend:3001/api
+    volumes:
+      # Large storefront media is managed on the host and must survive image rebuilds.
+      - ./frontend/public/images:/app/public/images:ro
+      - ./frontend/public/videos:/app/public/videos:ro
     expose:
       - '3000'
     depends_on:
@@ -95,8 +99,9 @@ services:
       NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
       NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
     volumes:
-      # Campaign media is supplied outside Git; preserve it between image builds.
-      - ./campaign-52/public/images:/app/public/images:ro
+      # Share storefront images with the campaign. Both applications serve
+      # the same host directory under their own public URL prefixes.
+      - ./frontend/public/images:/app/public/images:ro
       - ./campaign-52/public/videos:/app/public/videos:ro
     expose:
       - '5005'
