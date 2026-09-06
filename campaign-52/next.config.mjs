@@ -6,6 +6,9 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // This application is mounted by the main reverse proxy at /landing.
+  // Next applies this prefix to routes, links and generated _next assets.
+  basePath: "/landing",
   outputFileTracingRoot: dir,
   poweredByHeader: false,
   serverExternalPackages: ["gsap"],

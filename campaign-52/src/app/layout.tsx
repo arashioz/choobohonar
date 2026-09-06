@@ -5,6 +5,7 @@ import SmoothScroll from "@/components/motion/SmoothScroll";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ScrollProgress from "@/components/motion/ScrollProgress";
+import { landingPublicPath } from "@/lib/brand-assets";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   title: `${campaign.slogan} | ${brand.nameFa}`,
   description: `${campaign.definition}. ${campaign.definitionLong}`,
   metadataBase: new URL(site),
-  icons: { icon: "/brand/downloads/choobohonar-monogram-black.svg" },
+  icons: { icon: landingPublicPath("/brand/downloads/choobohonar-monogram-black.svg") },
   openGraph: {
     title: campaign.slogan,
     description: campaign.definition,
@@ -27,13 +28,13 @@ export const metadata: Metadata = {
     locale: "fa_IR",
     url: site,
     siteName: brand.nameFa,
-    images: [{ url: "/images/heritage.jpg", alt: campaign.slogan }],
+    images: [{ url: landingPublicPath("/images/heritage.jpg"), alt: campaign.slogan }],
   },
   twitter: {
     card: "summary_large_image",
     title: campaign.slogan,
     description: campaign.definition,
-    images: ["/images/heritage.jpg"],
+    images: [landingPublicPath("/images/heritage.jpg")],
   },
 };
 

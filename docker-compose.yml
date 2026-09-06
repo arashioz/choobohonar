@@ -49,6 +49,11 @@ services:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_ENV: production
       API_URL: http://backend:3001/api
+    volumes:
+      # Large storefront media is managed on the host and must survive image rebuilds.
+      - ./frontend/public/brand:/app/public/brand:ro
+      - ./frontend/public/images:/app/public/images:ro
+      - ./frontend/public/videos:/app/public/videos:ro
     expose:
       - '3000'
     depends_on:
@@ -70,10 +75,37 @@ services:
       API_URL: http://backend:3001/api
       API_PROXY_TARGET: http://backend:3001/api
       NEXT_PUBLIC_BASE_URL: /admin
+    volumes:
+      # Raster brandbook assets are delivered outside Git. Keep them on the
+      # host so an admin-image rebuild never removes them.
+      - ./admin/public/brand:/app/public/brand:ro
     expose:
       - '3003'
     depends_on:
       - backend
+
+  landing:
+    image: ${REGISTRY_PREFIX:-choobohonar}/landing:${IMAGE_TAG:-latest}
+    build:
+      # campaign-52 is a separate project next to this repository.
+      context: ./campaign-52
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
+        NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5005
+      NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
+      NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
+    volumes:
+      # Share storefront images with the campaign. Both applications serve
+      # the same host directory under their own public URL prefixes.
+      - ./frontend/public/images:/app/public/images:ro
+      - ./campaign-52/public/videos:/app/public/videos:ro
+    expose:
+      - '5005'
 
   nginx:
     image: ${REGISTRY_PREFIX:-choobohonar}/nginx:${IMAGE_TAG:-latest}
@@ -90,3 +122,4 @@ services:
       - frontend
       - backend
       - admin
+      - landing

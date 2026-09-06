@@ -13,3 +13,11 @@ export const brandAssets = {
   },
   sloganFa: "/brand/downloads/choobohonar-slogan-fa.svg",
 } as const;
+
+/**
+ * Native <img>, <video>, favicon and metadata URLs do not receive Next's
+ * basePath automatically. The campaign is mounted at /landing in production.
+ */
+export function landingPublicPath(path: string): string {
+  return path.startsWith("/landing/") ? path : `/landing${path.startsWith("/") ? path : `/${path}`}`;
+}

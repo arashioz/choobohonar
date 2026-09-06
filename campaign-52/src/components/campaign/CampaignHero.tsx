@@ -45,6 +45,22 @@ export default function CampaignHero() {
 
   useEffect(() => {
     lockIntro();
+    const el = video.current;
+    if (!el) return;
+    // Native video URLs do not receive Next.js' basePath automatically.
+    // Keep them below /landing so nginx forwards them to the landing app.
+    const src = window.matchMedia("(min-width: 768px)").matches ? "/landing/videos/hero-desktop.mp4" : "/landing/videos/hero-mobile.mp4";
+    if (el.getAttribute("data-src") !== src) {
+      el.src = src;
+      el.setAttribute("data-src", src);
+      el.load();
+    }
+    el.pause();
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
@@ -127,20 +143,45 @@ export default function CampaignHero() {
   }, []);
 
   return (
-    <section ref={root} id="top" className="relative isolate h-[100dvh] w-full overflow-hidden bg-forest [overflow-anchor:none]">
-      <h1 className="sr-only">{campaign.slogan}</h1>
+    <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest [overflow-anchor:none]">
+      <div ref={media} className="absolute inset-0 will-change-transform">
+        <Image src="/images/heritage.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+        <video
+          ref={video}
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden
+          className="absolute inset-0 h-full max-h-full w-full max-w-full object-cover"
+          webkit-playsinline="true"
+        >
+          <source src="/landing/videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 768px)" />
+          <source src="/landing/videos/hero-mobile.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/35" />
+        <div className="commerce-grain absolute inset-0 opacity-40" />
+      </div>
 
-      <div ref={media} className="hero-stage will-change-transform">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={heroImg}
-          src="/images/campaign/hero-poster.webp"
-          alt=""
-          width={1600}
-          height={2000}
-          decoding="async"
-          className="hero-fit"
-        />
+      <div className="relative z-10 mx-auto flex h-full min-h-0 max-w-container flex-col justify-end px-5 pb-[max(4.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-20 md:px-10 md:pb-24 lg:px-16">
+        <p data-hero-intro className="eyebrow mb-5 text-peach">
+          {campaign.rangeFa}
+        </p>
+        <h1 className="display-title max-w-4xl text-[clamp(2.1rem,5.6vw,5rem)] text-paper">
+          <span className="block overflow-hidden py-[0.04em]">
+            <span data-hero-line className="block will-change-transform">
+              خانه چوب و هنر،
+            </span>
+          </span>
+          <span className="block overflow-hidden py-[0.04em]">
+            <span data-hero-line className="block will-change-transform">
+              {toFa(52)}ساله شد
+            </span>
+          </span>
+        </h1>
+        <p data-hero-intro className="mt-6 max-w-xl text-lg font-light leading-8 text-paper/80 md:text-xl">
+          {campaign.definition}
+        </p>
       </div>
 
       <div

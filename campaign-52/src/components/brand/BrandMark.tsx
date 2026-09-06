@@ -1,5 +1,5 @@
 import { brand } from "@/data/campaign";
-import { brandAssets } from "@/lib/brand-assets";
+import { brandAssets, landingPublicPath } from "@/lib/brand-assets";
 import { cn } from "@/lib/utils";
 
 type BrandMarkProps = {
@@ -37,7 +37,7 @@ export default function BrandMark({
       <span className="relative block h-[var(--brand-x)] w-[var(--brand-word)] shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={brandAssets.wordmarkFa.white}
+          src={landingPublicPath(brandAssets.wordmarkFa.white)}
           alt=""
           aria-hidden
           width={260}
@@ -49,7 +49,7 @@ export default function BrandMark({
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={brandAssets.wordmarkFa.black}
+          src={landingPublicPath(brandAssets.wordmarkFa.black)}
           alt={showBlack ? brand.nameFa : ""}
           width={260}
           height={110}
@@ -67,7 +67,7 @@ function Layer({ src, visible }: { src: string; visible: boolean }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
+      src={landingPublicPath(src)}
       alt=""
       aria-hidden
       width={175}
