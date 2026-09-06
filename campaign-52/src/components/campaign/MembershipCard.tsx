@@ -50,7 +50,7 @@ export default function MembershipCard({
       </div>
       <span aria-hidden className={cn("card-gleam", tier.tone === "vip" && "card-gleam-soft")} />
       <div className="relative flex h-full flex-col justify-between">
-        <ClubTag tier={tier} invert={tier.tone === "vip"} size={compact ? "sm" : "md"} />
+        {tier.club ? <ClubTag tier={tier} invert={tier.tone === "vip"} size={compact ? "sm" : "md"} /> : null}
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0 text-start">
             <p className="text-[10px] tracking-[0.2em] opacity-45">MEMBER</p>

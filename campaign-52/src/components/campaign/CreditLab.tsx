@@ -74,8 +74,8 @@ export default function CreditLab() {
                 <p className="mt-2 text-[1.65rem] font-light leading-none tracking-tight text-peach">{current.labelFa}</p>
                 <p className="mt-2 text-[11px] text-paper/35">
                   {result.units > 0
-                    ? `${toFa(result.units)} × ${toFa(result.creditPerUnit)}`
-                    : `تا ${toFa(PURCHASE_UNIT)}`}
+                    ? `${toFa(result.units)} × ${toFa(result.creditPerUnit)} میلیون تومان`
+                    : `تا ${toFa(PURCHASE_UNIT)} میلیون تومان`}
                 </p>
               </div>
               <div className="text-left">
@@ -87,6 +87,7 @@ export default function CreditLab() {
                 >
                   {toFa(result.credit)}
                 </p>
+                <p className="mt-2 text-[11px] text-paper/35">میلیون تومان</p>
               </div>
             </div>
           </FadeUp>

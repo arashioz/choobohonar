@@ -41,12 +41,6 @@ export default function StorySection() {
               rounded={false}
               className="rounded-none"
             />
-            <FadeUp delay={0.08} className="mt-10 max-w-xl">
-              <p className="eyebrow text-brick">{campaign.tributeTitle}</p>
-              <p className="mt-5 text-[17px] font-light leading-9 text-forest md:text-xl md:leading-10">
-                {campaign.tribute}
-              </p>
-            </FadeUp>
           </div>
         </div>
       </Container>
