@@ -1,4 +1,4 @@
-import { clubTiers, campaign } from "@/data/campaign";
+import { clubDisplayTiers, campaign } from "@/data/campaign";
 import { toFa, toFaMoney } from "@/lib/utils";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
@@ -25,23 +25,30 @@ export default function TiersSection() {
           <p className="mt-5 text-[15px] leading-8 text-forest/65 md:text-base">{campaign.tiersLead}</p>
         </FadeUp>
 
-        <Stagger className="mt-14 grid gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-12 xl:grid-cols-4 xl:gap-x-10" amount={0.4}>
-          {clubTiers.map((tier) => (
+        <Stagger className="mt-14 grid gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-12 xl:grid-cols-3 xl:gap-x-10" amount={0.4}>
+          {clubDisplayTiers.map((tier) => (
             <div key={tier.id} className="flex flex-col gap-3">
               <MembershipCard tier={tier} />
               <div className="flex items-end justify-between gap-4 px-1">
                 <p className="max-w-[11rem] text-sm leading-6 text-forest/60">{tier.blurb}</p>
                 <p className="shrink-0 text-end">
-                  <span className="block text-[11px] text-forest/40">هر {toFa(200)} میلیون</span>
+                  <span className="block text-[11px] text-forest/40">هر {toFa(200)} میلیون تومان</span>
                   <span className="mt-0.5 block text-[1.65rem] font-light leading-none tracking-tight text-forest">
                     {toFa(tier.creditPerUnit)}
-                    <span className="ms-1 text-sm text-forest/45">میلیون</span>
+                    <span className="ms-1 text-sm text-forest/45">میلیون تومان</span>
                   </span>
                 </p>
               </div>
             </div>
           ))}
         </Stagger>
+
+        <FadeUp delay={0.08} className="mt-16 max-w-3xl border-t border-forest/10 pt-12">
+          <p className="eyebrow text-brick">{campaign.tributeTitle}</p>
+          <p className="mt-5 text-[17px] font-light leading-9 text-forest md:text-xl md:leading-10">
+            {campaign.tribute}
+          </p>
+        </FadeUp>
 
         <FadeUp className="mt-16 hidden overflow-hidden rounded-3xl bg-paper md:block">
           <table className="w-full min-w-[760px] border-separate border-spacing-0 text-right">
@@ -55,7 +62,7 @@ export default function TiersSection() {
               </tr>
             </thead>
             <tbody>
-              {clubTiers.map((tier) => (
+              {clubDisplayTiers.map((tier) => (
                 <tr key={tier.id} className={rowTone[tier.tone]}>
                   <td className="px-6 py-5 text-sm opacity-75 first:rounded-s-2xl">{tier.groupFa}</td>
                   <td className="px-6 py-5">

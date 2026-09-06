@@ -22,8 +22,7 @@ export function tierFromPurchase(purchaseMillion: number): TierId {
   const units = Math.floor(Math.max(0, Number(purchaseMillion) || 0) / PURCHASE_UNIT);
   if (units >= 4) return "vip";
   if (units >= 3) return "gold";
-  if (units >= 2) return "silver";
-  return "guest";
+  return "silver";
 }
 
 export function computeShare(purchaseMillion: number): CreditResult {

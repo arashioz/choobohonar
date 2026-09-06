@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { eligibleGoods, campaign, stores, googleMapsUrl } from "@/data/campaign";
+import { eligibleGoods, campaign, stores } from "@/data/campaign";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import ClipReveal from "@/components/motion/ClipReveal";
@@ -81,15 +81,15 @@ export default function GoodsAndScope() {
                 <h3 className="mt-2 text-lg font-light text-forest">{store.name}</h3>
                 <p className="mt-2 text-sm leading-7 text-forest/60">{store.address}</p>
                 {store.hours ? <p className="mt-1 text-xs text-forest/40">{store.hours}</p> : null}
-                <a
-                  href={googleMapsUrl(store.mapsQuery)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-sm text-brick transition-colors hover:text-forest"
-                >
-                  مسیریابی در گوگل‌مپ
-                  <span aria-hidden>←</span>
-                </a>
+                {store.phone ? (
+                  <a
+                    href={`tel:${store.phone.replace(/\s/g, "")}`}
+                    dir="ltr"
+                    className="mt-3 block min-h-11 py-2 text-right text-sm font-semibold text-forest/70"
+                  >
+                    {store.phone}
+                  </a>
+                ) : null}
               </div>
             ))}
           </Stagger>

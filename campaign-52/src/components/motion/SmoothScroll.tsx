@@ -22,13 +22,16 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   useLayoutEffect(() => {
     lockIntro();
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    if (window.location.hash) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
     window.scrollTo(0, 0);
 
     registerGsap();
     document.documentElement.classList.add("motion-enabled");
     const unlockTimer = window.setTimeout(() => {
       if (isIntroLocked()) unlockIntro();
-    }, 5600);
+    }, 9000);
 
     if (prefersReducedMotion()) {
       registerLenisInstance(null);

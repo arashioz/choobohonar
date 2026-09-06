@@ -6,7 +6,7 @@ import Container from "@/components/layout/Container";
 import { toFa } from "@/lib/utils";
 
 export default function Footer() {
-  const year = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
+  const year = campaign.yearFa;
 
   return (
     <footer className="relative overflow-hidden bg-forest text-paper">

@@ -23,9 +23,9 @@ export default function BrandMark({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-[calc(var(--brand-x)*0.28)]",
+        "inline-flex max-w-full items-center gap-[calc(var(--brand-x)*0.28)]",
         size === "header" &&
-          "[--brand-x:2.25rem] sm:[--brand-x:2.5rem] [--brand-word:5.75rem] sm:[--brand-word:6.5rem]",
+          "[--brand-x:1.7rem] min-[400px]:[--brand-x:2.1rem] sm:[--brand-x:2.5rem] [--brand-word:4.4rem] min-[400px]:[--brand-word:5.4rem] sm:[--brand-word:6.5rem]",
         size === "footer" && "[--brand-x:2.75rem] [--brand-word:11.25rem]",
         className,
       )}
