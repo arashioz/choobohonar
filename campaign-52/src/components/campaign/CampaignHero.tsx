@@ -225,7 +225,7 @@ export default function CampaignHero() {
               mark.current = node;
               loaderImg.current = node;
             }}
-            src="/images/campaign/loader-52.webp?v=2"
+            src="/images/loader-52.webp?v=2"
             alt=""
             width={2000}
             height={1756}
