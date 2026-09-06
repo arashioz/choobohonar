@@ -232,6 +232,7 @@ export default function CampaignHero() {
           />
         </div>
         <CelebrationBurst delay={240} />
+        <h1>-</h1>
       </div>
     </section>
   );
