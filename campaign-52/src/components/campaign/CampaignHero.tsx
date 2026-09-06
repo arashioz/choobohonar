@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { campaign } from "@/data/campaign";
-import { cn } from "@/lib/utils";
+import { cn, toFa } from "@/lib/utils";
 import { gsap, prefersReducedMotion, registerGsap } from "@/lib/gsap";
 import { lockIntro, unlockIntro, pinScrollTop } from "@/lib/intro";
 import CelebrationBurst from "@/components/motion/CelebrationBurst";
@@ -39,6 +40,7 @@ export default function CampaignHero() {
   const loader = useRef<HTMLDivElement>(null);
   const mark = useRef<HTMLImageElement>(null);
   const media = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
   const heroImg = useRef<HTMLImageElement>(null);
   const loaderImg = useRef<HTMLImageElement>(null);
   const [loaderGone, setLoaderGone] = useState(false);
