@@ -47,14 +47,16 @@ export default function MediaFrame({
             />
           </Parallax>
         ) : (
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
-            alt={alt}
-            loading="lazy"
-            sizes={sizes}
-            className={cn("media-hover absolute inset-0 h-full w-full object-center", fit === "contain" ? "object-contain" : "object-cover", imageClassName)}
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageSrc}
+              alt={alt}
+              loading="lazy"
+              sizes={sizes}
+              className={cn("media-hover absolute inset-0 h-full w-full object-center", fit === "contain" ? "object-contain" : "object-cover", imageClassName)}
+            />
+          </>
         )}
       </div>
     </ClipReveal>
