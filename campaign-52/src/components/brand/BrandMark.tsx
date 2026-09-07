@@ -23,57 +23,29 @@ export default function BrandMark({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-[calc(var(--brand-x)*0.28)]",
-        size === "header" &&
-          "[--brand-x:1.7rem] min-[400px]:[--brand-x:2.1rem] sm:[--brand-x:2.5rem] [--brand-word:4.4rem] min-[400px]:[--brand-word:5.4rem] sm:[--brand-word:6.5rem]",
-        size === "footer" && "[--brand-x:2.75rem] [--brand-word:11.25rem]",
+        "relative inline-block max-w-full overflow-hidden",
+        size === "header" && "h-10 w-32 min-[400px]:w-36 sm:h-11 sm:w-40",
+        size === "footer" && "h-14 w-56",
         className,
       )}
     >
-      <span className="relative block h-[var(--brand-x)] w-[calc(var(--brand-x)*1.06)] shrink-0">
-        <Layer src={brandAssets.monogram.white} visible={showWhite} />
-        <Layer src={brandAssets.monogram.black} visible={showBlack} />
-      </span>
-      <span className="relative block h-[var(--brand-x)] w-[var(--brand-word)] shrink-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={landingPublicPath(brandAssets.wordmarkFa.white)}
-          alt=""
-          aria-hidden
-          width={260}
-          height={110}
-          className={cn(
-            "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
-            showWhite ? "opacity-100" : "opacity-0",
-          )}
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={landingPublicPath(brandAssets.wordmarkFa.black)}
-          alt={showBlack ? brand.nameFa : ""}
-          width={260}
-          height={110}
-          className={cn(
-            "absolute inset-0 h-full w-full object-contain object-right transition-opacity duration-300",
-            showBlack ? "opacity-100" : "opacity-0",
-          )}
-        />
-      </span>
+      <Layer src={brandAssets.logo.white} visible={showWhite} />
+      <Layer src={brandAssets.logo.black} visible={showBlack} alt={brand.nameFa} />
     </span>
   );
 }
-
-function Layer({ src, visible }: { src: string; visible: boolean }) {
+function Layer({ src, visible, alt = "" }: { src: string; visible: boolean; alt?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={landingPublicPath(src)}
-      alt=""
-      aria-hidden
-      width={175}
-      height={165}
+      alt={alt}
+      aria-hidden={!alt}
+      width={3509}
+      height={2482}
+      decoding="async"
       className={cn(
-        "absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-300",
+        "absolute left-1/2 top-1/2 w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
         visible ? "opacity-100" : "opacity-0",
       )}
     />

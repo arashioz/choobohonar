@@ -46,7 +46,7 @@ export default function MembershipCard({
       }}
     >
       <div aria-hidden className="pointer-events-none absolute -left-6 -top-10 h-36 w-36 opacity-[0.12]">
-        <Image src={tier.tone === "vip" ? brandAssets.monogram.white : brandAssets.monogram.black} alt="" fill sizes="144px" className="object-contain" />
+        <Image src={tier.tone === "vip" ? brandAssets.logo.white : brandAssets.logo.black} alt="" fill sizes="144px" className="object-contain" />
       </div>
       <span aria-hidden className={cn("card-gleam", tier.tone === "vip" && "card-gleam-soft")} />
       <div className="relative flex h-full flex-col justify-between">

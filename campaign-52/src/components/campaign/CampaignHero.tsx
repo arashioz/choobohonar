@@ -6,6 +6,7 @@ import { campaign } from "@/data/campaign";
 import { cn, toFa } from "@/lib/utils";
 import { gsap, prefersReducedMotion, registerGsap } from "@/lib/gsap";
 import { lockIntro, unlockIntro, pinScrollTop } from "@/lib/intro";
+import { landingPublicPath } from "@/lib/brand-assets";
 import CelebrationBurst from "@/components/motion/CelebrationBurst";
 
 const WHITE = {
@@ -40,32 +41,19 @@ export default function CampaignHero() {
   const loader = useRef<HTMLDivElement>(null);
   const mark = useRef<HTMLImageElement>(null);
   const media = useRef<HTMLDivElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const heroImg = useRef<HTMLImageElement>(null);
   const loaderImg = useRef<HTMLImageElement>(null);
   const [loaderGone, setLoaderGone] = useState(false);
+  const [heroRequested, setHeroRequested] = useState(false);
+  const [heroReady, setHeroReady] = useState(false);
 
   useEffect(() => {
     lockIntro();
-    const el = video.current;
-    if (!el) return;
-    // Native video URLs do not receive Next.js' basePath automatically.
-    // Keep them below /landing so nginx forwards them to the landing app.
-    const src = window.matchMedia("(min-width: 768px)").matches ? "/landing/videos/hero-desktop.mp4" : "/landing/videos/hero-mobile.mp4";
-    if (el.getAttribute("data-src") !== src) {
-      el.src = src;
-      el.setAttribute("data-src", src);
-      el.load();
-    }
-    el.pause();
-    try {
-      el.currentTime = 0;
-    } catch {
-      /* ignore */
-    }
   }, []);
 
+  useEffect(() => whenReady(loaderImg.current, () => setHeroRequested(true)), []);
+
   useEffect(() => {
+    if (!heroReady) return;
     const el = root.current;
     if (!el) return;
     const cue = el.querySelector<HTMLElement>("[data-hero-cue]");
@@ -131,36 +119,31 @@ export default function CampaignHero() {
     };
 
     const failsafe = window.setTimeout(showStatic, 7200);
-    const offLoader = whenReady(loaderImg.current, play);
-    const offHero = whenReady(heroImg.current, () => undefined);
+    play();
 
     return () => {
       cancelled = true;
-      offLoader();
-      offHero();
       ctx?.revert();
       window.clearTimeout(failsafe);
       gsap.ticker.lagSmoothing(500, 33);
     };
-  }, []);
+  }, [heroReady]);
 
   return (
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest [overflow-anchor:none]">
       <div ref={media} className="absolute inset-0 will-change-transform">
-        <Image src="/images/heritage.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
-        <video
-          ref={video}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden
-          className="absolute inset-0 h-full max-h-full w-full max-w-full object-cover"
-          webkit-playsinline="true"
-        >
-          <source src="/landing/videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 768px)" />
-          <source src="/landing/videos/hero-mobile.mp4" type="video/mp4" />
-        </video>
+        {heroRequested ? (
+          <Image
+            src="/brand/downloads/hero-poster.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+            onLoad={() => setHeroReady(true)}
+            onError={() => setHeroReady(true)}
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/35" />
         <div className="commerce-grain absolute inset-0 opacity-40" />
       </div>
@@ -225,7 +208,7 @@ export default function CampaignHero() {
               mark.current = node;
               loaderImg.current = node;
             }}
-            src="/images/loader-52.webp?v=2"
+            src={landingPublicPath("/brand/downloads/loader-52.webp")}
             alt=""
             width={2000}
             height={1756}

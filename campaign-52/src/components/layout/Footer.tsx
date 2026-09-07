@@ -11,7 +11,7 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-forest text-paper">
       <div className="pointer-events-none absolute -bottom-[8vw] -left-[5vw] h-[clamp(16rem,34vw,38rem)] w-[clamp(14rem,30vw,34rem)] opacity-[0.035]" aria-hidden>
-        <Image src={brandAssets.monogram.white} alt="" fill sizes="34vw" className="object-contain" />
+        <Image src={brandAssets.logo.white} alt="" fill sizes="34vw" className="object-contain" />
       </div>
       <Container className="relative py-20 md:py-24">
         <div className="grid gap-12 lg:grid-cols-12">

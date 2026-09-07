@@ -24,7 +24,7 @@ export default async function Footer() {
   return (
     <footer className="relative flex min-h-screen flex-col overflow-hidden bg-forest text-paper">
       <div className="pointer-events-none absolute -bottom-[8vw] -left-[5vw] h-[clamp(16rem,34vw,38rem)] w-[clamp(14rem,30vw,34rem)] opacity-[0.035]" aria-hidden>
-        <Image src={brandAssets.monogram.white} alt="" fill sizes="34vw" className="object-contain" />
+        <Image src={brandAssets.logo.white} alt="" fill sizes="34vw" className="object-contain" />
       </div>
 
       <div className="relative mx-auto flex w-full max-w-container flex-1 flex-col justify-center px-6 py-20 md:px-10 md:py-24 lg:px-16">

@@ -362,6 +362,14 @@ export const stores: CampaignStore[] = [
     hours: "شنبه تا پنجشنبه ۹ تا ۱۳:۳۰ و ۱۷ تا ۲۲",
     phone: "035-36237520",
   },
+  {
+    id: "tehran-kamard",
+    kind: "agency",
+    city: "تهران",
+    name: "نمایندگی تهران — کمرد",
+    address: "جاده آبعلی تهران، منطقه صنعتی کمرد، بعد از کوچه چمستان، پلاک ۷۷۱ و ۷۷۳",
+    hours: "۱۱:۰۰ تا ۲۰:۰۰",
+  },
 ];
 
 export const nav = [

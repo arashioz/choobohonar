@@ -102,6 +102,7 @@ services:
     volumes:
       # Share storefront images with the campaign. Both applications serve
       # the same host directory under their own public URL prefixes.
+      - ./frontend/public/brand:/app/public/brand:ro
       - ./frontend/public/images:/app/public/images:ro
       - ./campaign-52/public/videos:/app/public/videos:ro
     expose:

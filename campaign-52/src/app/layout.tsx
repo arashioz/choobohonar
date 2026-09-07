@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: `${campaign.slogan} | ${brand.nameFa}`,
   description: `${campaign.definition}. ${campaign.definitionLong}`,
   metadataBase: new URL(site),
-  icons: { icon: landingPublicPath("/brand/downloads/choobohonar-monogram-black.svg") },
+  icons: { icon: landingPublicPath("/brand/downloads/CHH-Logos-04.svg") },
   openGraph: {
     title: campaign.slogan,
     description: campaign.definition,

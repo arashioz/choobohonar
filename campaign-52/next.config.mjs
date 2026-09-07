@@ -8,7 +8,7 @@ const nextConfig = {
   output: "standalone",
   // This application is mounted by the main reverse proxy at /landing.
   // Next applies this prefix to routes, links and generated _next assets.
-  basePath: "/landing",
+  basePath: "/52",
   outputFileTracingRoot: dir,
   poweredByHeader: false,
   serverExternalPackages: ["gsap"],

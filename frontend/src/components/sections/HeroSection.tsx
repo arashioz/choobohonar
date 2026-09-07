@@ -278,8 +278,8 @@ export default function HeroSection() {
             "pointer-events-none invisible -translate-y-full opacity-0 transition-[transform,opacity,visibility] duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"
         )}
       >
-        <div ref={monogram} className="relative h-16 w-[72px] opacity-0 sm:h-20 sm:w-[90px]">
-          <Image src={brandAssets.monogram.white} alt="" fill className="object-contain" priority />
+        <div ref={monogram} className="relative h-16 w-56 opacity-0 sm:h-20 sm:w-64">
+          <Image src={brandAssets.logo.white} alt="" fill className="object-contain" priority />
         </div>
       </div>
     </section>
