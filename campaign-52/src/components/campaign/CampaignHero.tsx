@@ -135,8 +135,6 @@ export default function CampaignHero() {
             onError={() => setHeroReady(true)}
           />
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/35" />
-        <div className="commerce-grain absolute inset-0 opacity-40" />
       </div>
 
       <div

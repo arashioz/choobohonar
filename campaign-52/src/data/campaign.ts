@@ -198,21 +198,21 @@ export const eligibleGoods = [
     title: "اکسسوری",
     body: "جزئیات کوچک خانه؛ همان چیزهایی که فضا را مال شما می‌کند.",
     image: "/brand/accesory.avif",
-    href: shopUrl("/products/category/decor"),
+    href: "https://choobohonar.com/product-category/decor/",
   },
   {
     id: "sleep",
     title: "کالای خواب",
     body: "روتختی و لایه‌های نرم خواب — جایی که سهم این دوره به زندگی روزمره برمی‌گردد.",
     image: "/brand/kalakhab.avif",
-    href: shopUrl("/products/category/bedding"),
+    href: "https://choobohonar.com/product-category/bedding/bedspreads/",
   },
   {
     id: "mattress",
     title: "تشک",
     body: "تشک هم در دامنهٔ اعتبار است؛ برای خانه‌ای که شب‌ها هم با شما همراه باشد.",
-    image: "/brand/toshak.avif",
-    href: "https://choobohonar.com/wp-content/uploads/2025/01/JULIET.jpg",
+    image: "https://choobohonar.com/wp-content/uploads/2025/01/JULIET.jpg",
+    href: "https://choobohonar.com/product-category/bedding/?filter_model=%d8%aa%d8%b4%da%a9",
   },
 ];
 

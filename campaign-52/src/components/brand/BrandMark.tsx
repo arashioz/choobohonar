@@ -29,12 +29,12 @@ export default function BrandMark({
         className,
       )}
     >
-      <Layer src={brandAssets.logo.white} visible={showWhite} />
+      <Layer src={brandAssets.logo.white} visible={showWhite} inverted />
       <Layer src={brandAssets.logo.black} visible={showBlack} alt={brand.nameFa} />
     </span>
   );
 }
-function Layer({ src, visible, alt = "" }: { src: string; visible: boolean; alt?: string }) {
+function Layer({ src, visible, alt = "", inverted = false }: { src: string; visible: boolean; alt?: string; inverted?: boolean }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -46,6 +46,7 @@ function Layer({ src, visible, alt = "" }: { src: string; visible: boolean; alt?
       decoding="async"
       className={cn(
         "absolute left-1/2 top-1/2 w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
+        inverted && "brightness-0 invert",
         visible ? "opacity-100" : "opacity-0",
       )}
     />
