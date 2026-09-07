@@ -144,7 +144,6 @@ final class ParsPek_Path_Proxy {
 			CURLOPT_HEADER => false,
 			CURLOPT_CONNECTTIMEOUT => min( 30, (int) $s['timeout'] ),
 			CURLOPT_TIMEOUT => (int) $s['timeout'],
-			CURLOPT_ENCODING => '',
 			CURLOPT_WRITEFUNCTION => function( $curl, $data ) {
 				echo $data; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				return strlen( $data );

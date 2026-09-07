@@ -62,7 +62,7 @@ function Layer({
       decoding="async"
       fetchPriority={priority ? "high" : "auto"}
       className={cn(
-        "absolute left-1/2 top-1/2 w-[150%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
+        "absolute inset-0 h-full w-full object-contain transition-opacity duration-300",
         visible ? "opacity-100" : "opacity-0",
       )}
     />
