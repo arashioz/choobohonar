@@ -179,7 +179,7 @@ final class ParsPek_Path_Proxy {
 	}
 
 	private function request_headers() {
-		$blocked = array( 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'content-length', 'host' );
+		$blocked = array( 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'content-length', 'host', 'accept-encoding' );
 		$out = array();
 		foreach ( $_SERVER as $key => $value ) {
 			if ( 0 !== strpos( $key, 'HTTP_' ) || ! is_string( $value ) ) {
@@ -200,6 +200,9 @@ final class ParsPek_Path_Proxy {
 		$out[] = 'X-Forwarded-For: ' . $client;
 		$out[] = 'X-Forwarded-Proto: ' . ( is_ssl() ? 'https' : 'http' );
 		$out[] = 'X-Forwarded-Host: ' . $public_host;
+		// Some shared hosts alter Content-Encoding headers. Request an uncompressed
+		// upstream response so proxied HTML, CSS and JavaScript cannot be corrupted.
+		$out[] = 'Accept-Encoding: identity';
 		return $out;
 	}
 
