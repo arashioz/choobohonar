@@ -43,6 +43,15 @@ export default function CampaignHero() {
   const [heroRequested, setHeroRequested] = useState(false);
   const [heroReady, setHeroReady] = useState(false);
 
+  useEffect(() => {
+    const heroImage = new window.Image();
+    heroImage.src = landingPublicPath(
+      window.matchMedia("(max-width: 767px)").matches
+        ? "/brand/downloads/optimized/52nd-phone.jpg"
+        : "/brand/downloads/optimized/52nd-desktop.jpg",
+    );
+  }, []);
+
   useEffect(() => whenReady(loaderImg.current, () => setHeroRequested(true)), []);
 
   useEffect(() => {
@@ -125,10 +134,10 @@ export default function CampaignHero() {
       <div ref={media} className="absolute inset-0 will-change-transform">
         {heroRequested ? (
           <picture>
-            <source media="(max-width: 767px)" srcSet={landingPublicPath("/brand/downloads/52nd-phone.jpg")} />
+            <source media="(max-width: 767px)" srcSet={landingPublicPath("/brand/downloads/optimized/52nd-phone.jpg")} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={landingPublicPath("/brand/downloads/52nd-desktop.jpg")}
+              src={landingPublicPath("/brand/downloads/optimized/52nd-desktop.jpg")}
               alt=""
               decoding="async"
               fetchPriority="high"
