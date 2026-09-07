@@ -5,7 +5,8 @@ export const brandAssets = {
   },
 } as const;
 
-/** Public brand files are served by the main site at the root /brand path. */
+/** Native asset URLs must stay below the proxied public prefix. */
 export function landingPublicPath(path: string): string {
-  return path.startsWith("/") ? path : `/${path}`;
+  if (/^https?:\/\//i.test(path)) return path;
+  return path.startsWith("/52/") ? path : `/52${path.startsWith("/") ? path : `/${path}`}`;
 }

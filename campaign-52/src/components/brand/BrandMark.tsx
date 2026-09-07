@@ -25,7 +25,7 @@ export default function BrandMark({
       className={cn(
         "relative inline-block max-w-full overflow-hidden",
         size === "header" && "h-7 w-24 min-[400px]:h-8 min-[400px]:w-28 sm:h-10 sm:w-36",
-        size === "footer" && "h-11 w-60",
+        size === "footer" && "h-12 w-60",
         className,
       )}
     >
@@ -45,7 +45,7 @@ function Layer({ src, visible, alt = "" }: { src: string; visible: boolean; alt?
       height={2482}
       decoding="async"
       className={cn(
-        "absolute inset-0 h-full w-full object-contain transition-opacity duration-300",
+        "absolute left-1/2 top-1/2 w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
         visible ? "opacity-100" : "opacity-0",
       )}
     />

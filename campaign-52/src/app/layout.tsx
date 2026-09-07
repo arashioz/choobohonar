@@ -5,7 +5,7 @@ import SmoothScroll from "@/components/motion/SmoothScroll";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ScrollProgress from "@/components/motion/ScrollProgress";
-import { landingPublicPath } from "@/lib/brand-assets";
+import { brandAssets, landingPublicPath } from "@/lib/brand-assets";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: `${campaign.slogan} | ${brand.nameFa}`,
   description: `${campaign.definition}. ${campaign.definitionLong}`,
   metadataBase: new URL(site),
-  icons: { icon: landingPublicPath("/brand/downloads/CHH-Logos-04.svg") },
+  icons: { icon: brandAssets.logo.black },
   openGraph: {
     title: campaign.slogan,
     description: campaign.definition,

@@ -127,7 +127,7 @@ export default function CampaignHero() {
         {heroRequested ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={landingPublicPath("/brand/downloads/loader-52.webp")}
+            src={landingPublicPath("/brand/downloads/hero-poster.webp")}
             alt=""
             decoding="async"
             fetchPriority="high"

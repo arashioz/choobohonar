@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { landingPublicPath } from "@/lib/brand-assets";
 import ClipReveal from "@/components/motion/ClipReveal";
 import Parallax from "@/components/motion/Parallax";
 
@@ -26,30 +26,34 @@ export default function MediaFrame({
   fit?: "cover" | "contain";
   imageClassName?: string;
 }) {
+  const imageSrc = /^https?:\/\//i.test(src) ? src : landingPublicPath(src);
+
   return (
     <ClipReveal delay={delay} className={cn("group overflow-hidden", rounded ? "rounded-[1.75rem]" : "rounded-none", className)}>
       <div className={cn("relative overflow-hidden", fit === "contain" ? "bg-[#e7e7e8]" : "bg-sand", aspect)}>
         {parallax ? (
           <Parallax speed={32} className="absolute inset-0">
-            <Image
-              src={src}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageSrc}
               alt={alt}
-              fill
+              loading="lazy"
               sizes={sizes}
               className={cn(
-                "object-center transition-transform duration-[1400ms] ease-out-expo will-change-transform group-hover:scale-[1.03]",
+                "absolute inset-0 h-full w-full object-center transition-transform duration-[1400ms] ease-out-expo will-change-transform group-hover:scale-[1.03]",
                 fit === "contain" ? "object-contain" : "object-cover",
                 imageClassName,
               )}
             />
           </Parallax>
         ) : (
-          <Image
-            src={src}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageSrc}
             alt={alt}
-            fill
+            loading="lazy"
             sizes={sizes}
-            className={cn("media-hover object-center", fit === "contain" ? "object-contain" : "object-cover", imageClassName)}
+            className={cn("media-hover absolute inset-0 h-full w-full object-center", fit === "contain" ? "object-contain" : "object-cover", imageClassName)}
           />
         )}
       </div>

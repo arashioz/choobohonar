@@ -31,7 +31,7 @@ export default function BrandMark({
       className={cn(
         "relative inline-block overflow-hidden",
         size === "header" && "h-9 w-32 sm:h-10 sm:w-36",
-        size === "footer" && "h-11 w-60",
+        size === "footer" && "h-12 w-60",
         className,
       )}
     >

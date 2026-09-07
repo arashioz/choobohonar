@@ -186,7 +186,7 @@ export const catalogCategories: CatalogCategory[] = [
     slug: "accessory",
     label: "اکسسوری",
     body: "آخرین لایه برای کامل‌کردن ترکیب خانه.",
-    image: "/images/category-accessories.jpg",
+    image: shopUrl("/images/category-accessories.jpg"),
     href: shopUrl("/products/category/decor"),
     eligible: true,
   },
