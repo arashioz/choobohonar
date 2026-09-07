@@ -124,16 +124,19 @@ export default function CampaignHero() {
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest [overflow-anchor:none]">
       <div ref={media} className="absolute inset-0 will-change-transform">
         {heroRequested ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={landingPublicPath("/brand/downloads/hero-poster.webp")}
-            alt=""
-            decoding="async"
-            fetchPriority="high"
-            className="absolute inset-0 h-full w-full object-cover"
-            onLoad={() => setHeroReady(true)}
-            onError={() => setHeroReady(true)}
-          />
+          <picture>
+            <source media="(max-width: 767px)" srcSet={landingPublicPath("/brand/downloads/52nd-phone.jpg")} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={landingPublicPath("/brand/downloads/52nd-desktop.jpg")}
+              alt=""
+              decoding="async"
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover"
+              onLoad={() => setHeroReady(true)}
+              onError={() => setHeroReady(true)}
+            />
+          </picture>
         ) : null}
       </div>
 
