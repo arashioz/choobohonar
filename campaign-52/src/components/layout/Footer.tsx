@@ -28,11 +28,6 @@ export default function Footer() {
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 <li>{campaign.rangeFa}</li>
                 <li>
-                  <a href="#share" className="hover:text-peach">
-                    سهم ۵۲
-                  </a>
-                </li>
-                <li>
                   <a href="#scope" className="hover:text-peach">
                     شعب و نمایندگی‌ها
                   </a>

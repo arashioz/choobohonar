@@ -197,21 +197,21 @@ export const eligibleGoods = [
     id: "accessories",
     title: "اکسسوری",
     body: "جزئیات کوچک خانه؛ همان چیزهایی که فضا را مال شما می‌کند.",
-    image: "/images/category-accessories.jpg",
+    image: "/brand/accesory.avif",
     href: shopUrl("/products/category/decor"),
   },
   {
     id: "sleep",
     title: "کالای خواب",
     body: "روتختی و لایه‌های نرم خواب — جایی که سهم این دوره به زندگی روزمره برمی‌گردد.",
-    image: "/images/category-bedding.jpg",
+    image: "/brand/kalakhab.avif",
     href: shopUrl("/products/category/bedding"),
   },
   {
     id: "mattress",
     title: "تشک",
     body: "تشک هم در دامنهٔ اعتبار است؛ برای خانه‌ای که شب‌ها هم با شما همراه باشد.",
-    image: "/images/category-mattress.jpg",
+    image: "/brand/toshak.avif",
     href: shopUrl("/products/category/bedding/mattress"),
   },
 ];
@@ -375,6 +375,5 @@ export const stores: CampaignStore[] = [
 export const nav = [
   { href: "#story", label: "کمپین" },
   { href: "#tiers", label: "سطوح باشگاه" },
-  { href: "#share", label: "سهم ۵۲" },
   { href: "#scope", label: "شعب" },
 ];
