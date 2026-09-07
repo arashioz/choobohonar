@@ -30,8 +30,8 @@ export default function BrandMark({
     <span
       className={cn(
         "relative inline-block overflow-hidden",
-        size === "header" && "h-9 w-32 sm:h-10 sm:w-36",
-        size === "footer" && "h-12 w-60",
+        size === "header" && "h-7 w-32 sm:h-8 sm:w-36",
+        size === "footer" && "h-10 w-60",
         className,
       )}
     >
