@@ -30,8 +30,8 @@ export default function BrandMark({
     <span
       className={cn(
         "relative inline-block overflow-hidden",
-        size === "header" && "h-10 w-36 sm:h-11 sm:w-40",
-        size === "footer" && "h-14 w-56",
+        size === "header" && "h-9 w-32 sm:h-10 sm:w-36",
+        size === "footer" && "h-11 w-60",
         className,
       )}
     >
@@ -62,7 +62,7 @@ function Layer({
       decoding="async"
       fetchPriority={priority ? "high" : "auto"}
       className={cn(
-        "absolute left-1/2 top-1/2 w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
+        "absolute left-1/2 top-1/2 w-[150%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
         visible ? "opacity-100" : "opacity-0",
       )}
     />

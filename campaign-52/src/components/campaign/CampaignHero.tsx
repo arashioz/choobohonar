@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { campaign } from "@/data/campaign";
 import { cn, toFa } from "@/lib/utils";
 import { gsap, prefersReducedMotion, registerGsap } from "@/lib/gsap";
@@ -133,13 +132,13 @@ export default function CampaignHero() {
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest [overflow-anchor:none]">
       <div ref={media} className="absolute inset-0 will-change-transform">
         {heroRequested ? (
-          <Image
-            src="/brand/downloads/hero-poster.webp"
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={landingPublicPath("/brand/downloads/hero-poster.webp")}
             alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
+            decoding="async"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
             onLoad={() => setHeroReady(true)}
             onError={() => setHeroReady(true)}
           />
