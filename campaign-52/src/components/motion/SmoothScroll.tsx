@@ -12,7 +12,7 @@ import {
   disableLenisScroll,
 } from "@/lib/gsap";
 import { registerLenisInstance, scrollToHash, scrollToTarget } from "@/lib/lenis-control";
-import { afterIntro, isIntroLocked, lockIntro, pinScrollTop, unlockIntro } from "@/lib/intro";
+import { afterIntro, isIntroLocked, pinScrollTop, unlockIntro } from "@/lib/intro";
 
 const IGNORE_HASH = new Set(["", "top", "main-content"]);
 
@@ -20,7 +20,6 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
   useLayoutEffect(() => {
-    lockIntro();
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     if (window.location.hash) {
       history.replaceState(null, "", window.location.pathname + window.location.search);

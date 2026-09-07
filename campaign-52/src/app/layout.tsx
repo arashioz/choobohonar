@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fa" dir="rtl" className={`${peyda.variable} is-intro`}>
+    <html lang="fa" dir="rtl" className={peyda.variable}>
       <body className="font-sans antialiased">
         <noscript>
           <style>{`html.is-intro,html.is-intro body{overflow:auto!important;height:auto;touch-action:auto}.motion-reveal,.motion-clip{opacity:1 !important;transform:none !important;clip-path:none !important}.hero-loader{display:none !important}`}</style>

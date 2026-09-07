@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { campaign } from "@/data/campaign";
 import { cn, toFa } from "@/lib/utils";
 import { gsap, prefersReducedMotion, registerGsap } from "@/lib/gsap";
-import { lockIntro, unlockIntro, pinScrollTop } from "@/lib/intro";
 import { landingPublicPath } from "@/lib/brand-assets";
 import CelebrationBurst from "@/components/motion/CelebrationBurst";
 
@@ -45,10 +44,6 @@ export default function CampaignHero() {
   const [heroRequested, setHeroRequested] = useState(false);
   const [heroReady, setHeroReady] = useState(false);
 
-  useEffect(() => {
-    lockIntro();
-  }, []);
-
   useEffect(() => whenReady(loaderImg.current, () => setHeroRequested(true)), []);
 
   useEffect(() => {
@@ -64,8 +59,6 @@ export default function CampaignHero() {
 
     const finish = () => {
       if (cancelled) return;
-      pinScrollTop();
-      unlockIntro();
       setLoaderGone(true);
     };
 
@@ -134,7 +127,7 @@ export default function CampaignHero() {
         {heroRequested ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={landingPublicPath("/brand/downloads/hero-poster.webp")}
+            src={landingPublicPath("/brand/downloads/loader-52.webp")}
             alt=""
             decoding="async"
             fetchPriority="high"
@@ -216,7 +209,6 @@ export default function CampaignHero() {
           />
         </div>
         <CelebrationBurst delay={240} />
-        <h1>-</h1>
       </div>
     </section>
   );
