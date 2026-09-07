@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { campaign } from "@/data/campaign";
-import { cn, toFa } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { gsap, prefersReducedMotion, registerGsap } from "@/lib/gsap";
 import { landingPublicPath } from "@/lib/brand-assets";
 import CelebrationBurst from "@/components/motion/CelebrationBurst";
@@ -138,27 +137,6 @@ export default function CampaignHero() {
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/35" />
         <div className="commerce-grain absolute inset-0 opacity-40" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex h-full min-h-0 max-w-container flex-col justify-end px-5 pb-[max(4.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-20 md:px-10 md:pb-24 lg:px-16">
-        <p data-hero-intro className="eyebrow mb-5 text-peach">
-          {campaign.rangeFa}
-        </p>
-        <h1 className="display-title max-w-4xl text-[clamp(2.1rem,5.6vw,5rem)] text-paper">
-          <span className="block overflow-hidden py-[0.04em]">
-            <span data-hero-line className="block will-change-transform">
-              خانه چوب و هنر،
-            </span>
-          </span>
-          <span className="block overflow-hidden py-[0.04em]">
-            <span data-hero-line className="block will-change-transform">
-              {toFa(52)}ساله شد
-            </span>
-          </span>
-        </h1>
-        <p data-hero-intro className="mt-6 max-w-xl text-lg font-light leading-8 text-paper/80 md:text-xl">
-          {campaign.definition}
-        </p>
       </div>
 
       <div

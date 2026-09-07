@@ -100,10 +100,10 @@ services:
       NEXT_PUBLIC_SITE_URL: ${LANDING_PUBLIC_URL:-http://localhost/landing}
       NEXT_PUBLIC_MAIN_SITE_URL: ${FRONTEND_URL:-http://localhost}
     volumes:
-      # Share storefront images with the campaign. Both applications serve
-      # the same host directory under their own public URL prefixes.
-      - ./frontend/public/brand:/app/public/brand:ro
-      - ./frontend/public/images:/app/public/images:ro
+      # Campaign-specific public assets must remain available inside the
+      # landing container; mounting frontend directories here hides them.
+      - ./campaign-52/public/brand:/app/public/brand:ro
+      - ./campaign-52/public/images:/app/public/images:ro
       - ./campaign-52/public/videos:/app/public/videos:ro
     expose:
       - '5005'
