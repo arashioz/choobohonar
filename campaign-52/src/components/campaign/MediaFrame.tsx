@@ -14,6 +14,7 @@ export default function MediaFrame({
   rounded = true,
   fit = "cover",
   imageClassName,
+  backgroundClassName,
 }: {
   src: string;
   alt: string;
@@ -25,12 +26,13 @@ export default function MediaFrame({
   rounded?: boolean;
   fit?: "cover" | "contain";
   imageClassName?: string;
+  backgroundClassName?: string;
 }) {
   const imageSrc = /^https?:\/\//i.test(src) ? src : landingPublicPath(src);
 
   return (
     <ClipReveal delay={delay} className={cn("group overflow-hidden", rounded ? "rounded-[1.75rem]" : "rounded-none", className)}>
-      <div className={cn("relative overflow-hidden", fit === "contain" ? "bg-[#e7e7e8]" : "bg-sand", aspect)}>
+      <div className={cn("relative overflow-hidden", backgroundClassName ?? (fit === "contain" ? "bg-[#e7e7e8]" : "bg-sand"), aspect)}>
         {parallax ? (
           <Parallax speed={32} className="absolute inset-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}

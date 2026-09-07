@@ -24,8 +24,8 @@ export default function BrandMark({
     <span
       className={cn(
         "relative inline-block max-w-full overflow-hidden",
-        size === "header" && "h-5 w-20 min-[400px]:h-6 min-[400px]:w-24 sm:h-[1.6rem] sm:w-[7.2rem]",
-        size === "footer" && "h-8 w-48",
+        size === "header" && "h-7 w-20 min-[400px]:h-8 min-[400px]:w-24 sm:h-9 sm:w-[7.2rem]",
+        size === "footer" && "h-14 w-48",
         className,
       )}
     >

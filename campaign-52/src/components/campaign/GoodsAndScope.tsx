@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { eligibleGoods, campaign, stores } from "@/data/campaign";
+import { landingPublicPath } from "@/lib/brand-assets";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import ClipReveal from "@/components/motion/ClipReveal";
@@ -31,6 +31,7 @@ export default function GoodsAndScope() {
                     delay={index * 0.05}
                     fit={item.id === "mattress" ? "contain" : "cover"}
                     parallax={item.id !== "mattress"}
+                    backgroundClassName={item.id === "mattress" ? "bg-white" : undefined}
                   />
                   <div className="px-1 pt-5">
                     <h3 className="text-xl font-light tracking-tight text-forest">{item.title}</h3>
@@ -46,12 +47,13 @@ export default function GoodsAndScope() {
       <section id="scope" className="bg-paper">
         <div className="relative h-[78svh] min-h-[32rem] w-full overflow-hidden">
           <Parallax speed={56} className="absolute inset-[-10%]">
-            <Image
-              src="/images/DSC06828.JPG"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={landingPublicPath("/images/DSC06828.JPG")}
               alt="شوروم خانه چوب و هنر"
-              fill
+              loading="lazy"
               sizes="100vw"
-              className="object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </Parallax>
           <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/15" />
