@@ -212,7 +212,7 @@ export const eligibleGoods = [
     title: "تشک",
     body: "تشک هم در دامنهٔ اعتبار است؛ برای خانه‌ای که شب‌ها هم با شما همراه باشد.",
     image: "/brand/toshak.avif",
-    href: shopUrl("/products/category/bedding/mattress"),
+    href: "https://choobohonar.com/wp-content/uploads/2025/01/JULIET.jpg",
   },
 ];
 
