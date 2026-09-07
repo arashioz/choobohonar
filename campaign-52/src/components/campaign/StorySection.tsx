@@ -34,8 +34,8 @@ export default function StorySection() {
 
           <div className="lg:col-span-7">
             <MediaFrame
-              src="https://choobohonar.com/wp-content/uploads/2026/01/مبل-چدار-خانه-چوب-و-هنر-1.jpg"
-              alt="مبلمان نشیمن خانه چوب و هنر"
+              src="/images/DSC06738.JPG"
+              alt="میراث خانه چوب و هنر"
               sizes="(min-width: 1024px) 55vw, 100vw"
               aspect="aspect-[5/4] md:aspect-[16/10]"
               rounded={false}

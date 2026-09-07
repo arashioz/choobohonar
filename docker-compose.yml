@@ -107,6 +107,8 @@ services:
       - ./campaign-52/public/brand/accesory.avif:/app/public/brand/accesory.avif:ro
       - ./campaign-52/public/brand/kalakhab.avif:/app/public/brand/kalakhab.avif:ro
       - ./frontend/public/images:/app/public/images:ro
+      - ./campaign-52/public/images/DSC06738.JPG:/app/public/images/DSC06738.JPG:ro
+      - ./campaign-52/public/images/DSC06828.JPG:/app/public/images/DSC06828.JPG:ro
       - ./campaign-52/public/videos:/app/public/videos:ro
     expose:
       - '5005'

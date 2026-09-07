@@ -47,7 +47,7 @@ export default function GoodsAndScope() {
         <div className="relative h-[78svh] min-h-[32rem] w-full overflow-hidden">
           <Parallax speed={56} className="absolute inset-[-10%]">
             <Image
-              src="/images/showroom.jpg"
+              src="/images/DSC06828.JPG"
               alt="شوروم خانه چوب و هنر"
               fill
               sizes="100vw"

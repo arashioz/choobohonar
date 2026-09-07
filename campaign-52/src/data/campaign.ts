@@ -366,9 +366,9 @@ export const stores: CampaignStore[] = [
     id: "tehran-kamard",
     kind: "agency",
     city: "تهران",
-    name: "نمایندگی تهران — کمرد",
+    name: "نمایندگی جاجرود",
     address: "جاده آبعلی تهران، منطقه صنعتی کمرد، بعد از کوچه چمستان، پلاک ۷۷۱ و ۷۷۳",
-    hours: "۱۱:۰۰ تا ۲۰:۰۰",
+    hours: "۱۰:۰۰ تا ۲۲۰:۰۰",
   },
 ];
 
