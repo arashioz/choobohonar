@@ -13,6 +13,9 @@ const nextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["gsap"],
   images: {
+    // The landing is served through a reverse proxy. Serve local campaign
+    // assets directly instead of routing them through Next's image optimizer.
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86400,
   },
