@@ -24,7 +24,7 @@ export default function Footer() {
           </div>
           <div className="grid grid-cols-2 gap-8 lg:col-span-4">
             <div>
-              <h3 className="eyebrow text-peach">کمپین</h3>
+              {/* <h3 className="eyebrow text-peach">کمپین</h3> */}
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 <li>{campaign.rangeFa}</li>
                 <li>
