@@ -5,10 +5,7 @@ export const brandAssets = {
   },
 } as const;
 
-/**
- * Native <img>, <video>, favicon and metadata URLs do not receive Next's
- * basePath automatically. The campaign is mounted at /landing in production.
- */
+/** Public brand files are served by the main site at the root /brand path. */
 export function landingPublicPath(path: string): string {
-  return path.startsWith("/landing/") ? path : `/landing${path.startsWith("/") ? path : `/${path}`}`;
+  return path.startsWith("/") ? path : `/${path}`;
 }
