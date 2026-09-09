@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { peyda } from "@/lib/fonts";
 import { brand, campaign } from "@/data/campaign";
 import SmoothScroll from "@/components/motion/SmoothScroll";
@@ -41,7 +42,25 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fa" dir="rtl" className={peyda.variable}>
+      <head>
+        <Script id="google-tag-manager" strategy="beforeInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WGMHH25W');`}
+        </Script>
+      </head>
       <body className="font-sans antialiased">
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WGMHH25W"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         <noscript>
           <style>{`html.is-intro,html.is-intro body{overflow:auto!important;height:auto;touch-action:auto}.motion-reveal,.motion-clip{opacity:1 !important;transform:none !important;clip-path:none !important}.hero-loader{display:none !important}`}</style>
         </noscript>
