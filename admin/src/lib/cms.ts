@@ -1,4 +1,4 @@
-export type CmsKind = "product" | "material" | "project" | "collection" | "article" | "page";
+export type CmsKind = "product" | "material" | "project" | "collection" | "story" | "article" | "page";
 export type CmsStatus = "draft" | "published" | "archived";
 
 export type CmsEntry = {
@@ -28,6 +28,7 @@ export const resourceToKind = {
   materials: "material",
   projects: "project",
   collections: "collection",
+  stories: "story",
 } as const;
 
 export type ResourcePath = keyof typeof resourceToKind;

@@ -5,8 +5,8 @@ import ShopAdminPage from "@/components/shop/ShopAdminPage";
 import { Suspense } from "react";
 import type { ResourcePath } from "@/lib/cms";
 
-const kinds: ResourcePath[] = ["products", "materials", "projects", "collections"];
-const titles: Record<ResourcePath, string> = { products: "محصولات", materials: "متریال‌ها", projects: "پروژه‌ها", collections: "کالکشن‌ها" };
+const kinds: ResourcePath[] = ["products", "materials", "projects", "collections", "stories"];
+const titles: Record<ResourcePath, string> = { products: "محصولات", materials: "متریال‌ها", projects: "پروژه‌ها", collections: "کالکشن‌ها", stories: "ویدیوهای عمودی" };
 
 export function generateStaticParams() {
   return kinds.map((kind) => ({ kind }));

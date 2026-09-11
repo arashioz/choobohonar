@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { commerceCategories } from "@/data/commerce";
-import { toFa, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export default function WorkAreasSection() {
   const [active, setActive] = useState(0);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -35,6 +35,12 @@ export default function HeroSection() {
   const video = useRef<HTMLVideoElement>(null);
   const mobileVideo = useRef<HTMLVideoElement>(null);
   const [loaderHidden, setLoaderHidden] = useState(false);
+  const [introReady, setIntroReady] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+
+  useEffect(() => {
+    if (introReady && videoReady) setLoaderHidden(true);
+  }, [introReady, videoReady]);
 
   useEffect(() => {
     const heroVideos = [video.current, mobileVideo.current].filter(
@@ -79,7 +85,7 @@ export default function HeroSection() {
 
     const hideLoader = () => {
       if (cancelled) return;
-      setLoaderHidden(true);
+      setIntroReady(true);
     };
 
     const showStatic = () => {
@@ -131,8 +137,7 @@ export default function HeroSection() {
           { opacity: 1, scale: 1, duration: 0.65, ease: "power3.out" }
         )
           .to(monogram.current, { opacity: 0, duration: 0.32, ease: "power2.in" }, "+=0.22")
-          .to(loader.current, { yPercent: -100, duration: 0.78, ease: "power4.inOut" }, "-=0.06")
-          .fromTo(media.current, { scale: 1.12 }, { scale: 1, duration: 1.55, ease: "power2.out" }, "<")
+          .fromTo(media.current, { scale: 1.12 }, { scale: 1, duration: 1.55, ease: "power2.out" }, "-=0.06")
           .to(lines, { yPercent: 0, duration: 0.75, ease: "power4.out", stagger: 0.08 }, "-=0.45")
           .to(cta, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, "-=0.35")
           .to(cue, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, "-=0.3");
@@ -186,6 +191,11 @@ export default function HeroSection() {
     };
   }, []);
 
+  const markVideoReady = (event: SyntheticEvent<HTMLVideoElement>) => {
+    const desktop = window.matchMedia("(min-width: 1280px)").matches;
+    if (event.currentTarget === (desktop ? video.current : mobileVideo.current)) setVideoReady(true);
+  };
+
   return (
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest">
       <div ref={media} className="absolute inset-0 will-change-transform">
@@ -197,6 +207,8 @@ export default function HeroSection() {
           playsInline
           preload="auto"
           aria-hidden
+          onCanPlay={markVideoReady}
+          onError={markVideoReady}
           className="absolute inset-0 hidden h-full w-full object-cover xl:block"
         >
           <source src="/videos/anzhelik.mp4" type="video/mp4" />
@@ -212,6 +224,8 @@ export default function HeroSection() {
           playsInline
           preload="auto"
           aria-hidden
+          onCanPlay={markVideoReady}
+          onError={markVideoReady}
           className="absolute inset-0 h-full w-full object-cover xl:hidden"
         >
           <source src="/videos/hero-mobile.mp4" type="video/mp4" />

@@ -71,7 +71,7 @@ export class AdminController {
       dest: join(process.cwd(), 'uploads'),
 
       limits: {
-        fileSize: 200 * 1024 * 1024,
+        fileSize: 500 * 1024 * 1024,
       },
 
       fileFilter: (_req, file, cb) => {

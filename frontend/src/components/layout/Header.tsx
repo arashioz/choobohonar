@@ -35,7 +35,16 @@ export default function Header() {
       .then((page) => {
         const data = page?.items;
         if (!data) return;
-        if (Array.isArray(data.navItems) && data.navItems.length) setNavItems(data.navItems);
+        if (Array.isArray(data.navItems) && data.navItems.length) {
+          // Existing CMS navigation is authoritative, but older saved records
+          // predate the materials page. Keep that route discoverable until an
+          // editor saves the updated navigation in the admin.
+          const cmsNav = data.navItems;
+          const materialsItem = fallbackNavItems.find((item) => item.href === "/materials");
+          setNavItems(cmsNav.some((item) => item.href === "/materials") || !materialsItem
+            ? cmsNav
+            : [cmsNav[0], materialsItem, ...cmsNav.slice(1)]);
+        }
         if (Array.isArray(data.homeSectionLinks) && data.homeSectionLinks.length) setHomeSectionLinks(data.homeSectionLinks);
         if (data.brand) setBrand({ ...fallbackBrand, ...data.brand });
       })

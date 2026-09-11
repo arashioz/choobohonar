@@ -10,6 +10,7 @@ const sections = [
   { kind: "material", path: "materials", label: "متریال‌ها", description: "کتابخانه متریال، تامین و موجودی", code: "MT" },
   { kind: "project", path: "projects", label: "پروژه‌ها", description: "روایت، اطلاعات اجرا و گالری تصاویر", code: "PJ" },
   { kind: "collection", path: "collections", label: "کالکشن‌ها", description: "داستان مجموعه و اتصال محصولات", code: "CL" },
+  { kind: "story", path: "stories", label: "ویدیوهای عمودی", description: "آپلود و انتشار ویدیوهای بخش محصولات", code: "VD" },
 ] as const;
 
 export default function ManageOverview() {

@@ -9,15 +9,17 @@ import Stagger from "@/components/motion/Stagger";
 import { commerceCategories, getFeaturedCommerceProducts } from "@/data/commerce";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { isUploadedMedia } from "@/lib/media";
+import { fetchPublicCmsEntries } from "@/lib/public-cms";
 
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
   const featured = backendProducts.length ? backendProducts.filter((product) => product.image).slice(0, 8) : getFeaturedCommerceProducts(8);
-  const stories = (backendProducts.length ? backendProducts : getFeaturedCommerceProducts(10)).slice(0, 10).map((product) => ({
-    label: product.category,
-    title: product.name,
-    image: product.image,
-  }));
+  const storyEntries = await fetchPublicCmsEntries("story");
+  const stories = storyEntries.map((story) => ({
+    label: typeof story.data?.label === "string" ? story.data.label : "Product Stories",
+    title: story.title,
+    video: typeof story.data?.video === "string" ? story.data.video : "",
+  })).filter((story) => Boolean(story.video));
   const heroProduct = featured[0];
 
   return (
@@ -149,7 +151,7 @@ export default async function ProductsLanding() {
         </Container>
       </section>
 
-      <section className="overflow-hidden bg-forest py-24 text-paper md:py-32 lg:py-40">
+      {stories.length > 0 && <section className="overflow-hidden bg-forest py-24 text-paper md:py-32 lg:py-40">
         <Container>
           <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
             <FadeUp>
@@ -160,16 +162,11 @@ export default async function ProductsLanding() {
                 از همیشه
               </h2>
             </FadeUp>
-            <FadeUp delay={0.1} className="max-w-xl lg:justify-self-end">
-              <p className="text-lg leading-9 text-paper/60">
-                جایگاه ویدیوهای عمودی برای دیدن بافت، مقیاس و جزئیات واقعی محصول. زیرساخت برای اتصال به محتوای ویدیویی CMS آماده است.
-              </p>
-            </FadeUp>
           </div>
 
           <ProductStoriesRail stories={stories} />
         </Container>
-      </section>
+      </section>}
     </>
   );
 }

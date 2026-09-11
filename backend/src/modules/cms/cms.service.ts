@@ -7,7 +7,7 @@ import { CmsEntry, CmsEntryDocument, CmsEntryKind, CmsEntryStatus } from './sche
 
 type EntryInput = Partial<CmsEntry> & { title?: string; slug?: string };
 
-const validKinds: CmsEntryKind[] = ['product', 'material', 'project', 'collection', 'article', 'page'];
+const validKinds: CmsEntryKind[] = ['product', 'material', 'project', 'collection', 'story', 'article', 'page'];
 
 @Injectable()
 export class CmsService implements OnModuleInit {

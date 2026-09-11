@@ -1,15 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { prefersReducedMotion } from "@/lib/gsap";
 import { toFa } from "@/lib/utils";
-import { isUploadedMedia } from "@/lib/media";
 
 export type ProductStory = {
   label: string;
   title: string;
-  image: string;
+  video: string;
 };
 
 export default function ProductStoriesRail({ stories }: { stories: ProductStory[] }) {
@@ -17,6 +15,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
   const activeRef = useRef(0);
   const pausedRef = useRef(false);
   const scrollFrameRef = useRef<number | undefined>(undefined);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [active, setActive] = useState(0);
 
   const goTo = useCallback(
@@ -71,6 +70,13 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
     [],
   );
 
+  const playStory = (index: number) => {
+    videoRefs.current.forEach((item, itemIndex) => {
+      if (itemIndex !== index) item?.pause();
+    });
+    void videoRefs.current[index]?.play().catch(() => undefined);
+  };
+
   return (
     <div className="mt-16 lg:mt-24">
       <div className="mb-6 flex items-center justify-between gap-6 border-t border-paper/15 pt-5">
@@ -115,26 +121,23 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
             key={`${story.title}-${index}`}
             className="group relative aspect-[9/16] w-[76vw] shrink-0 snap-center overflow-hidden rounded-[1.25rem] bg-paper/5 sm:w-[47vw] lg:w-[27vw] xl:w-[22vw]"
           >
-            <Image
-              src={story.image}
-              alt={story.title}
-              fill
-              unoptimized={isUploadedMedia(story.image)}
-              sizes="(max-width: 640px) 76vw, (max-width: 1024px) 47vw, 27vw"
-              className="object-cover transition-transform duration-[1400ms] ease-out-expo group-hover:scale-[1.045]"
+            <video
+              ref={(element) => { videoRefs.current[index] = element; }}
+              src={story.video}
+              preload="metadata"
+              playsInline
+              controls
+              onPlay={() => playStory(index)}
+              className="absolute inset-0 h-full w-full cursor-pointer object-cover"
+              aria-label={`پخش ویدیوی ${story.title}`}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/5 to-forest/20" />
-            <div className="commerce-grain absolute inset-0 opacity-20" aria-hidden />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/5 to-forest/20" />
+            <div className="commerce-grain pointer-events-none absolute inset-0 opacity-20" aria-hidden />
             <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 text-[10px] tracking-[0.2em] text-paper/70">
               <span>{story.label}</span>
               <span>{toFa(index + 1).padStart(2, "۰")}</span>
             </div>
-            <span
-              aria-hidden
-              className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest"
-            >
-              <span className="translate-x-[-1px] text-sm">▶</span>
-            </span>
+            <button type="button" onClick={() => playStory(index)} className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-label={`پخش ${story.title}`}><span className="translate-x-[-1px] text-sm">▶</span></button>
             <h3 className="absolute inset-x-5 bottom-6 max-w-[16rem] text-2xl font-light leading-tight">
               {story.title}
             </h3>

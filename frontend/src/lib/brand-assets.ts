@@ -1,7 +1,7 @@
-/** Official Choobohonar brand SVG paths (synced from brand downloads). */
+/** Official Choobohonar primary-logo variants from the brand downloads. */
 export const brandAssets = {
   logo: {
-    white: "/brand/downloads/CHH-20Logos-08.png",
-    black: "/brand/downloads/CHH-20Logos-08.png",
+    white: "/brand/downloads/CHH-Logos-04-white.svg",
+    black: "/brand/downloads/CHH-Logos-04.svg",
   },
 } as const;
