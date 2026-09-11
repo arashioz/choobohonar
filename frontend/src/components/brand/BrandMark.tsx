@@ -35,19 +35,21 @@ export default function BrandMark({
         className,
       )}
     >
-      <Layer src={brandAssets.logo.white} visible={showWhite} priority={priority} />
-      <Layer src={brandAssets.logo.black} visible={showBlack} alt={brand.nameFa} />
+      <Layer src={brandAssets.logo.white} visible={showWhite} size={size} priority={priority} />
+      <Layer src={brandAssets.logo.black} visible={showBlack} size={size} alt={brand.nameFa} />
     </span>
   );
 }
 function Layer({
   src,
   visible,
+  size,
   alt = "",
   priority = false,
 }: {
   src: string;
   visible: boolean;
+  size: BrandMarkSize;
   alt?: string;
   priority?: boolean;
 }) {
@@ -62,7 +64,8 @@ function Layer({
       decoding="async"
       fetchPriority={priority ? "high" : "auto"}
       className={cn(
-        "absolute left-1/2 top-1/2 w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
+        "absolute left-1/2 top-[45%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
+        size === "header" ? "w-[150%]" : "w-[130%]",
         visible ? "opacity-100" : "opacity-0",
       )}
     />

@@ -17,6 +17,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
   const scrollFrameRef = useRef<number | undefined>(undefined);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [active, setActive] = useState(0);
+  const [playing, setPlaying] = useState<number | null>(null);
 
   const goTo = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
@@ -126,8 +127,14 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
               src={story.video}
               preload="metadata"
               playsInline
-              controls
-              onPlay={() => playStory(index)}
+              onPlay={() => {
+                videoRefs.current.forEach((item, itemIndex) => {
+                  if (itemIndex !== index) item?.pause();
+                });
+                setPlaying(index);
+              }}
+              onPause={() => setPlaying((current) => current === index ? null : current)}
+              onEnded={() => setPlaying((current) => current === index ? null : current)}
               className="absolute inset-0 h-full w-full cursor-pointer object-cover"
               aria-label={`پخش ویدیوی ${story.title}`}
             />
@@ -137,7 +144,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
               <span>{story.label}</span>
               <span>{toFa(index + 1).padStart(2, "۰")}</span>
             </div>
-            <button type="button" onClick={() => playStory(index)} className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-label={`پخش ${story.title}`}><span className="translate-x-[-1px] text-sm">▶</span></button>
+            {playing !== index && <button type="button" onClick={() => playStory(index)} className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-label={`پخش ${story.title}`}><span className="translate-x-[-1px] text-sm">▶</span></button>}
             <h3 className="absolute inset-x-5 bottom-6 max-w-[16rem] text-2xl font-light leading-tight">
               {story.title}
             </h3>

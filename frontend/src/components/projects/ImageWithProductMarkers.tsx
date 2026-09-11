@@ -35,6 +35,10 @@ type ImageWithProductMarkersProps = {
   imageClassName?: string;
 };
 
+// Product callouts are kept in the project data for a possible future shop
+// integration, but are intentionally hidden from project imagery for now.
+const showProductMarkers = false;
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -191,7 +195,7 @@ export default function ImageWithProductMarkers({
           {...imageProps}
         />
 
-        {markers.length > 0 && (
+        {showProductMarkers && markers.length > 0 && (
           <div className="absolute inset-0">
             {markers.map((marker) => {
               const isActive = marker.id === activeId;
