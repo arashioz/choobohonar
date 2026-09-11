@@ -65,7 +65,7 @@ function Layer({
       fetchPriority={priority ? "high" : "auto"}
       className={cn(
         "absolute left-1/2 top-[45%] max-w-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300",
-        size === "header" ? "w-[125%]" : "w-[115%]",
+        size === "header" ? "w-[100%]" : "w-[95%]",
         visible ? "opacity-100" : "opacity-0",
       )}
     />
