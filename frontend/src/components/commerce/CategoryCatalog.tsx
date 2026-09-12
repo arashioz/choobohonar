@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
@@ -255,9 +256,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
               <div className="border border-dashed border-forest/20 px-6 py-20 text-center">
                 <p className="text-2xl font-light text-forest">محصولی پیدا نشد</p>
                 <p className="mt-3 text-sm text-forest/55">عبارت جستجو یا فیلترها را تغییر دهید.</p>
-                <button type="button" onClick={() => { setQuery(""); clearFilters(); setSort("featured"); router.replace(pathname, { scroll: false }); }} className="mt-6 text-sm text-brick">
+                <Link href="/products" className="mt-6 inline-block text-sm text-brick">
                   نمایش همه محصولات
-                </button>
+                </Link>
               </div>
             )}
 

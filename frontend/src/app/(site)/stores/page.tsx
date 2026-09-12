@@ -6,9 +6,8 @@ import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { brand } from "@/data/nav";
 import { stores, storesHero, storeKindLabel } from "@/data/stores";
-import { toFa } from "@/lib/utils";
-import { fetchPublicCmsEntries } from "@/lib/public-cms";
 import type { Store } from "@/data/stores";
+import { toFa } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "فروشگاه‌ها | خانه چوب و هنر",
@@ -17,9 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function StoresPage() {
-  const pages = await fetchPublicCmsEntries("page");
-  const migratedStores = pages.find((page) => page.slug === "stores")?.items;
-  const visibleStores = Array.isArray(migratedStores) ? migratedStores as unknown as Store[] : stores;
+  const visibleStores = stores;
   const branches = visibleStores.filter((store) => store.kind === "branch");
   const agencies = visibleStores.filter((store) => store.kind === "agency");
 
