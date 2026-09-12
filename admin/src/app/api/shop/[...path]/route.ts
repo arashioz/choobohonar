@@ -16,7 +16,7 @@ async function proxy(request: NextRequest, { params }: RouteContext) {
       method: request.method,
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        "Content-Type": "application/json",
+        ...(request.headers.get("content-type") ? { "Content-Type": request.headers.get("content-type")! } : {}),
       },
       body: ["GET", "HEAD"].includes(request.method) ? undefined : await request.arrayBuffer(),
       cache: "no-store",

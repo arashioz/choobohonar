@@ -27,6 +27,18 @@ export async function fetchPublicCmsEntries(kind: string): Promise<PublicCmsEntr
   }
 }
 
+/** Fetch one published CMS record. It may be found through a legacy project URL. */
+export async function fetchPublicCmsEntry(kind: string, slug: string): Promise<PublicCmsEntry | null> {
+  try {
+    const response = await fetch(`${getApiBase()}/public-cms/${kind}/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    const item = await response.json() as PublicCmsEntry;
+    return { ...(item.data || {}), ...item, slug: item.slug, title: item.title };
+  } catch {
+    return null;
+  }
+}
+
 /** Fetch one published page and expose its seeded payload under `items`. */
 export async function fetchPublicCmsPage<T = Record<string, unknown>>(slug: string): Promise<PublicCmsPage<T> | null> {
   const entries = await fetchPublicCmsEntries("page");

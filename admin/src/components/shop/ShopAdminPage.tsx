@@ -101,6 +101,22 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+
+  function importPrices(file: File) {
+    setImporting(true); setImportProgress(0); setError(""); setMessage("");
+    const request = new XMLHttpRequest();
+    request.open("POST", "/admin/api/shop/products/import-price");
+    request.upload.onprogress = (event) => { if (event.lengthComputable) setImportProgress(Math.round((event.loaded / event.total) * 100)); };
+    request.onload = () => {
+      setImporting(false); setImportProgress(100);
+      try { const result = JSON.parse(request.responseText); if (request.status >= 200 && request.status < 300) { setMessage(`قیمت: ${result.updated} به‌روزرسانی، ${result.created} محصول جدید، ${result.archived} بایگانی شد.`); void load(); } else setError(result.message || "ورود فایل ناموفق بود"); }
+      catch { setError("پاسخ ورود فایل معتبر نیست"); }
+    };
+    request.onerror = () => { setImporting(false); setError("ارتباط با سرویس فروشگاه برقرار نشد"); };
+    const data = new FormData(); data.append("file", file); request.send(data);
+  }
 
   function updateParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
@@ -272,6 +288,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
         {error ? <p className="text-sm text-brick">{error}</p> : null}
 
         <div className="flex flex-wrap gap-2">
+          {tab === "products" ? <label className="cursor-pointer rounded-xl border border-forest/15 bg-white px-3 py-2 text-sm text-forest/70"><input type="file" accept=".xlsx" className="sr-only" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) importPrices(file); event.currentTarget.value = ""; }} />{importing ? `در حال ورود ${importProgress}٪` : "ورود فایل قیمت"}</label> : null}
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -299,6 +316,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
             </select>
           ) : null}
         </div>
+        {importing ? <div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full bg-forest transition-[width]" style={{ width: `${importProgress}%` }} /></div> : null}
 
         {tab === "orders" ? (
           <>

@@ -1,10 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import type { Project } from "@/data/projects";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 
 export default function ProjectsListGrid({ projects }: { projects: Project[] }) {
+  const [activeCategory, setActiveCategory] = useState("همه");
+  const categories = useMemo(() => ["همه", ...Array.from(new Set(projects.map((project) => project.category).filter(Boolean)))], [projects]);
+  const visibleProjects = activeCategory === "همه" ? projects : projects.filter((project) => project.category === activeCategory);
   if (!projects.length) return null;
 
   return (
@@ -21,10 +27,11 @@ export default function ProjectsListGrid({ projects }: { projects: Project[] }) 
           >
             {"\u0647\u0645\u0647 \u067e\u0631\u0648\u0698\u0647\u200c\u0647\u0627"}
           </FadeUp>
+          {categories.length > 2 ? <div className="flex flex-wrap gap-2" aria-label="دسته‌بندی پروژه‌ها">{categories.map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={`rounded-full border px-4 py-2 text-xs transition-colors ${activeCategory === category ? "border-forest bg-forest text-paper" : "border-forest/15 text-forest/65 hover:border-forest/40"}`}>{category}</button>)}</div> : null}
         </div>
 
         <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p, i) => (
+          {visibleProjects.map((p, i) => (
             <FadeUp key={p.slug} delay={i * 0.07}>
               <Link href={`/projects/${p.slug}`} className="group block focus-visible:outline-none">
                 <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">

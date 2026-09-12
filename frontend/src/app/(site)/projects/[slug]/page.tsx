@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { projects, getProject, getRelatedProjects } from "@/data/projects";
+import { notFound, permanentRedirect } from "next/navigation";
+import { projects, getProject, getRelatedProjects, projectFromCms } from "@/data/projects";
+import { fetchPublicCmsEntry, fetchPublicCmsEntries } from "@/lib/public-cms";
 import Container from "@/components/layout/Container";
 import ProjectHero from "@/components/projects/ProjectHero";
 import ProjectStats from "@/components/projects/ProjectStats";
@@ -12,17 +13,23 @@ import ProjectInteriorCta from "@/components/projects/ProjectInteriorCta";
 import ProjectProducts from "@/components/projects/ProjectProducts";
 import RelatedProjects from "@/components/projects/RelatedProjects";
 
-export function generateStaticParams() { return projects.map((p) => ({ slug: p.slug })); }
+export async function generateStaticParams() {
+  const cmsProjects = await fetchPublicCmsEntries("project");
+  return [...new Set([...projects.map((project) => project.slug), ...cmsProjects.map((project) => project.slug)])].map((slug) => ({ slug }));
+}
 type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProject(slug);
+  const entry = await fetchPublicCmsEntry("project", slug);
+  const project = entry ? projectFromCms(entry) : getProject(slug);
   if (!project) return { title: "پروژه یافت نشد | خانه چوب و هنر" };
   return { title: `${project.title} | خانه چوب و هنر`, description: project.summary, openGraph: { title: `${project.title} | خانه چوب و هنر`, description: project.summary, images: [project.image], type: "website", locale: "fa_IR" } };
 }
 export default async function ProjectPage({ params }: PageProps) {
   const { slug } = await params;
-  const project = getProject(slug);
+  const entry = await fetchPublicCmsEntry("project", slug);
+  if (entry && entry.slug !== slug) permanentRedirect(`/projects/${entry.slug}`);
+  const project = entry ? projectFromCms(entry) : getProject(slug);
   if (!project) notFound();
   const related = getRelatedProjects(project.slug, 3);
   return (

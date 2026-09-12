@@ -15,9 +15,12 @@ export default async function Footer() {
     productMegaMenu?: typeof fallbackProductMegaMenu;
   }>("nav");
   const navData = navPage?.items;
-  const navItems = navData?.navItems?.length ? navData.navItems : fallbackNavItems;
+  const navItems = (navData?.navItems?.length ? navData.navItems : fallbackNavItems).filter((item) => item.href !== "/materials");
   const homeSectionLinks = navData?.homeSectionLinks?.length ? navData.homeSectionLinks : fallbackHomeSectionLinks;
-  const productMegaMenu = navData?.productMegaMenu?.length ? navData.productMegaMenu : fallbackProductMegaMenu;
+  // Product groups have one canonical order shared with the primary menu.
+  // Keep this list local rather than letting an older CMS navigation record
+  // reintroduce retired or out-of-order categories in the footer.
+  const productMegaMenu = fallbackProductMegaMenu;
   const brand = navData?.brand ? { ...fallbackBrand, ...navData.brand } : fallbackBrand;
   const currentYear = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
 

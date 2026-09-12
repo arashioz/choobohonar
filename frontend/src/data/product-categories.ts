@@ -17,11 +17,11 @@ export const productRooms: {
 }[] = [
   { id: "living", label: "نشیمن", description: "مبل، میز و مبلمان نشیمن", wpSlug: "livingroom" },
   { id: "bedroom", label: "اتاق خواب", description: "تخت، میز آرایش و کمد", wpSlug: "bedroom" },
-  { id: "bedding", label: "کالای خواب", description: "تشک، روتختی و ملحفه", wpSlug: "bedding" },
   { id: "dining", label: "غذاخوری", description: "میز و صندلی غذاخوری", wpSlug: "diningroom" },
-  { id: "decor", label: "دکوراتیو", description: "بوفه، کنسول، آینه و اکسسوری", wpSlug: "decor" },
-  { id: "carpet", label: "فرش و قالی", description: "فرش و زیرانداز", wpSlug: "carpet" },
+  { id: "bedding", label: "کالای خواب", description: "تشک، روتختی و ملحفه", wpSlug: "bedding" },
+  { id: "carpet", label: "فرش و گلیم", description: "فرش، گلیم و زیرانداز", wpSlug: "carpet" },
   { id: "lighting", label: "روشنایی", description: "آباژور و آویز", wpSlug: "lighting" },
+  { id: "decor", label: "دکوراتیو", description: "بوفه، کنسول، آینه و اکسسوری", wpSlug: "decor" },
   { id: "dishes", label: "ظروف", description: "ظروف سرو و پذیرایی", wpSlug: "dishes", shopPath: "decor/dishes" },
 ];
 
@@ -67,8 +67,8 @@ export const productCategories: ProductCategoryItem[] = [
   { id: "runner", label: "رانر", room: "decor" },
   { id: "napkin", label: "دستمال سفره", room: "decor" },
   // روشنایی
-  { id: "table-lamp", label: "آباژور رومیزی", room: "lighting" },
   { id: "floor-lamp", label: "آباژور ایستاده", room: "lighting" },
+  { id: "table-lamp", label: "آباژور رومیزی", room: "lighting" },
   { id: "pendant", label: "آویز", room: "lighting" },
 ];
 

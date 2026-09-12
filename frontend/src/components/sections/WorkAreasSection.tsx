@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { commerceCategories } from "@/data/commerce";
@@ -8,19 +8,7 @@ import { cn } from "@/lib/utils";
 
 export default function WorkAreasSection() {
   const [active, setActive] = useState(0);
-  const [areas, setAreas] = useState(() => commerceCategories.map((area) => ({ ...area })));
-
-  useEffect(() => {
-    fetch("/api/public-cms/page", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : [])
-      .then((pages: unknown) => {
-        if (!Array.isArray(pages)) return;
-        const page = pages.find((item) => item && typeof item === "object" && (item as { slug?: string }).slug === "work-areas") as { items?: unknown[] } | undefined;
-        if (!Array.isArray(page?.items) || !page.items.length) return;
-        const migrated = page.items.filter((item): item is { id: string; label: string; en?: string; description?: string; image?: string } => Boolean(item && typeof item === "object" && "id" in item && "label" in item));
-        if (migrated.length) setAreas(migrated.map((area) => ({ slug: area.id, label: area.label, eyebrow: area.en || "Work areas", description: area.description || "", story: area.description || "", image: area.image || "", children: [] })));
-      }).catch(() => undefined);
-  }, []);
+  const areas = commerceCategories;
 
   return (
     <section id="work-areas" className="relative min-h-screen overflow-hidden bg-forest text-paper">

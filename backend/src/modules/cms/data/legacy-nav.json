@@ -15,17 +15,17 @@
           "description": "فضایی شخصی برای آرامش، نظم و شروع دوباره."
         },
         {
-          "label": "کالای خواب",
-          "href": "/products/category/bedding",
-          "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
-        },
-        {
           "label": "غذاخوری",
           "href": "/products/category/diningroom",
           "description": "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند."
         },
         {
-          "label": "فرش و قالی",
+          "label": "کالای خواب",
+          "href": "/products/category/bedding",
+          "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
+        },
+        {
+          "label": "فرش و گلیم",
           "href": "/products/category/carpet",
           "description": "بافت‌هایی که فضا را یکپارچه و گرم می‌کنند."
         },
@@ -38,17 +38,8 @@
           "label": "دکور",
           "href": "/products/category/decor",
           "description": "اشیایی کوچک با تأثیری ماندگار بر شخصیت فضا."
-        },
-        {
-          "label": "اکسسوری",
-          "href": "/products/category/accessory",
-          "description": "آخرین لایه برای کامل‌کردن ترکیب خانه."
         }
       ]
-    },
-    {
-      "label": "متریال",
-      "href": "/materials"
     },
     {
       "label": "کالکشن",
@@ -120,18 +111,18 @@
       "href": "/products/category/bedroom",
       "description": "فضایی شخصی برای آرامش، نظم و شروع دوباره."
     },
-    {
-      "label": "کالای خواب",
-      "href": "/products/category/bedding",
-      "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
-    },
-    {
-      "label": "غذاخوری",
+        {
+          "label": "غذاخوری",
       "href": "/products/category/diningroom",
-      "description": "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند."
-    },
-    {
-      "label": "فرش و قالی",
+          "description": "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند."
+        },
+        {
+          "label": "کالای خواب",
+          "href": "/products/category/bedding",
+          "description": "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر."
+        },
+        {
+          "label": "فرش و گلیم",
       "href": "/products/category/carpet",
       "description": "بافت‌هایی که فضا را یکپارچه و گرم می‌کنند."
     },
@@ -144,11 +135,6 @@
       "label": "دکور",
       "href": "/products/category/decor",
       "description": "اشیایی کوچک با تأثیری ماندگار بر شخصیت فضا."
-    },
-    {
-      "label": "اکسسوری",
-      "href": "/products/category/accessory",
-      "description": "آخرین لایه برای کامل‌کردن ترکیب خانه."
-    }
+        }
   ]
 }

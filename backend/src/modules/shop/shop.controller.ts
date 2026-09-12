@@ -8,7 +8,10 @@ import {
   Post,
   Query,
   UseGuards,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UseInterceptors } from '@nestjs/common';
 import { ShopService } from './shop.service';
 import { OrderService } from './order.service';
 import {
@@ -78,6 +81,13 @@ export class ShopController {
   @UseGuards(JwtAuthGuard)
   seed(@Body() body: { force?: boolean }) {
     return this.shopService.seedFromCatalog(Boolean(body?.force));
+  }
+
+  @Post('products/import-price')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  importPrice(@UploadedFile() file: { buffer: Buffer; originalname: string }) {
+    return this.shopService.importPriceFile(file);
   }
 
   @Post('collections/seed')

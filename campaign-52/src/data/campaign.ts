@@ -130,7 +130,7 @@ export type CatalogCategory = {
   eligible?: boolean;
 };
 
-/** Live storefront taxonomy — same eight groups as choobohonar.com. */
+/** Live storefront taxonomy — ordered to match the storefront's product-group priority. */
 export const catalogCategories: CatalogCategory[] = [
   {
     slug: "livingroom",
@@ -147,6 +147,13 @@ export const catalogCategories: CatalogCategory[] = [
     href: shopUrl("/products/category/bedroom"),
   },
   {
+    slug: "diningroom",
+    label: "غذاخوری",
+    body: "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند.",
+    image: "/images/dining.jpg",
+    href: shopUrl("/products/category/diningroom"),
+  },
+  {
     slug: "bedding",
     label: "کالای خواب",
     body: "لایه‌های نرم، تنفس‌پذیر و هماهنگ برای خواب بهتر.",
@@ -155,15 +162,8 @@ export const catalogCategories: CatalogCategory[] = [
     eligible: true,
   },
   {
-    slug: "diningroom",
-    label: "غذاخوری",
-    body: "میزبان لحظه‌هایی که دور یک میز شکل می‌گیرند.",
-    image: "/images/dining.jpg",
-    href: shopUrl("/products/category/diningroom"),
-  },
-  {
     slug: "carpet",
-    label: "فرش و قالی",
+    label: "فرش و گلیم",
     body: "بافت‌هایی که فضا را یکپارچه و گرم می‌کنند.",
     image: "/images/category-carpet.jpg",
     href: shopUrl("/products/category/carpet"),

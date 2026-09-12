@@ -8,7 +8,7 @@ import { cmsListItems, cmsRequest, formatMoney, resourceToKind, type CmsEntry, t
 const copy: Record<ResourcePath, { title: string; singular: string; eyebrow: string; description: string; categoryKey: string; categoryLabel: string }> = {
   products: { title: "محصولات", singular: "محصول", eyebrow: "PRODUCT CATALOG", description: "قیمت، موجودی، تصاویر، مشخصات فنی و وضعیت انتشار محصولات.", categoryKey: "category", categoryLabel: "دسته‌بندی" },
   materials: { title: "متریال‌ها", singular: "متریال", eyebrow: "MATERIAL LIBRARY", description: "کتابخانه متریال، کد، تامین‌کننده، موجودی و ویژگی‌های فنی.", categoryKey: "materialType", categoryLabel: "نوع متریال" },
-  projects: { title: "پروژه‌ها", singular: "پروژه", eyebrow: "PROJECTS", description: "اطلاعات کامل پروژه‌ها، خدمات، تصاویر و روایت اجرا.", categoryKey: "location", categoryLabel: "موقعیت" },
+  projects: { title: "پروژه‌ها", singular: "پروژه", eyebrow: "PROJECTS", description: "اطلاعات کامل پروژه‌ها، نوع کاربری، خدمات، تصاویر و روایت اجرا.", categoryKey: "projectType", categoryLabel: "دسته‌بندی" },
   collections: { title: "کالکشن‌ها", singular: "کالکشن", eyebrow: "COLLECTIONS", description: "ساخت مجموعه، اتصال محصولات و مدیریت داستان و تصویر کالکشن.", categoryKey: "season", categoryLabel: "فصل / موضوع" },
   stories: { title: "ویدیوهای عمودی", singular: "ویدیو", eyebrow: "PRODUCT STORIES", description: "ویدیوهای عمودی بخش «نزدیک‌تر از همیشه» در صفحه محصولات.", categoryKey: "label", categoryLabel: "دسته / برچسب" },
 };

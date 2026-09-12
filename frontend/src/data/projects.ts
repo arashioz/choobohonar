@@ -54,6 +54,42 @@ export type Project = {
   featuredImages?: string[];
 };
 
+/** Convert a published CMS project into the shape used by the storefront. */
+export function projectFromCms(entry: { slug: string; title: string; excerpt?: string; description?: string; images?: string[]; data?: Record<string, unknown> }): Project {
+  const data = entry.data || {};
+  const legacy = data as Partial<Project>;
+  const images = Array.isArray(entry.images) ? entry.images.filter((image): image is string => typeof image === "string" && image.length > 0) : [];
+  const image = images[0] || legacy.image || "/images/projects/aknoon-residence/01.jpg";
+  const projectType = String(data.projectType || legacy.category || "پروژه");
+  const services = Array.isArray(data.services) ? data.services.map(String) : Array.isArray(legacy.scope) ? legacy.scope : [];
+  const area = data.area ? `${data.area} مترمربع` : legacy.area || "—";
+
+  return {
+    ...legacy,
+    slug: entry.slug,
+    title: entry.title,
+    category: projectType,
+    year: String(data.year || legacy.year || "—"),
+    image,
+    location: String(data.location || legacy.location || "—"),
+    area,
+    client: String(data.client || legacy.client || ""),
+    duration: String(data.duration || legacy.duration || "—"),
+    scope: services,
+    summary: entry.excerpt || legacy.summary || entry.description || "",
+    description: entry.description || legacy.description || entry.excerpt || "",
+    gallery: images.length ? images : legacy.gallery || [image],
+    stats: Array.isArray(legacy.stats) && legacy.stats.length ? legacy.stats : [
+      { label: "نوع پروژه", value: projectType },
+      { label: "موقعیت", value: String(data.location || legacy.location || "—") },
+      { label: "سال اجرا", value: String(data.year || legacy.year || "—") },
+      { label: "متراژ", value: area },
+    ],
+    sections: Array.isArray(legacy.sections) ? legacy.sections : [],
+    featured: Boolean(data.featured ?? legacy.featured),
+  };
+}
+
 const aknoon = getProjectImages("aknoon-residence");
 const armon = getProjectImages("armon-hotel");
 const araz = getProjectImages("araz-suite");

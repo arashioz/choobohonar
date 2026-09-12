@@ -8,9 +8,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import * as XLSX from 'xlsx';
 import {
   ShopProduct,
   ShopProductDocument,
+  ProductRoom,
 } from './schemas/shop-product.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 import { Collection, CollectionDocument } from '../collections/schemas/collection.schema';
@@ -46,6 +48,17 @@ function normalizeSeriesValue(value: string): string {
     .replace(/[آأإ]/g, 'ا')
     .replace(/[يى]/g, 'ی')
     .replace(/ك/g, 'ک')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeImportName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[آأإ]/g, 'ا')
+    .replace(/[يى]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -144,6 +157,43 @@ export class ShopService implements OnModuleInit {
     const product = await this.productModel.findOne({ slug }).exec();
     if (!product) throw new NotFoundException('محصول پیدا نشد');
     return product;
+  }
+
+  async importPriceFile(file?: { buffer: Buffer; originalname: string }) {
+    if (!file?.buffer?.length || !/\.xlsx$/i.test(file.originalname)) throw new ConflictException('فایل اکسل معتبر نیست');
+    const archive = /حذف\s*از\s*تولید/i.test(file.originalname);
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const catalog = await this.productModel.find({}).select('name externalCode variants').lean().exec();
+    let updated = 0, created = 0, archived = 0, skipped = 0;
+    for (const sheetName of workbook.SheetNames) {
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null });
+      for (const row of rows) {
+        const code = String(row['کد کالا'] ?? '').trim();
+        const name = String(row['شرح کالا'] ?? '').trim();
+        const priceRial = Number(row['قیمت جدید'] ?? row['قیمت جدید '] ?? 0);
+        if (!code || !name) { skipped++; continue; }
+        const nameMatches = catalog.filter((product) => normalizeImportName(product.name) === normalizeImportName(name));
+        const existing = catalog.find((product) => product.externalCode === code || product.variants?.some((variant) => variant.sku === code)) || (nameMatches.length === 1 ? nameMatches[0] : null);
+        if (existing) {
+          if (archive) { await this.productModel.updateOne({ _id: existing._id }, { $set: { status: 'archived' } }); archived++; }
+          else if (Number.isFinite(priceRial) && priceRial > 0) { await this.productModel.updateOne({ _id: existing._id }, { $set: { price: Math.round(priceRial / 10), externalCode: code } }); updated++; }
+          else skipped++;
+          continue;
+        }
+        if (archive || !Number.isFinite(priceRial) || priceRial <= 0) { skipped++; continue; }
+        const category = String(row['دسته بندی'] ?? 'محصول جدید').trim();
+        await this.productModel.create({ externalCode: code, slug: `import-${code}`, name, category, room: this.roomFromCategory(category), price: Math.round(priceRial / 10), status: 'draft', source: 'price-import' });
+        created++;
+      }
+    }
+    return { updated, created, archived, skipped, archive };
+  }
+
+  private roomFromCategory(category: string): ProductRoom {
+    if (/تشک|بالش|روتختی|ملحفه|پتو/.test(category)) return 'bedding';
+    if (/آباژور|لوستر|چراغ|روشن/.test(category)) return 'lighting';
+    if (/فرش|گلیم/.test(category)) return 'carpet';
+    return 'decor';
   }
 
   async create(dto: CreateShopProductDto) {

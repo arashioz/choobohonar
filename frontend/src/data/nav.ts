@@ -12,7 +12,6 @@ export const productMegaMenu: NavChildItem[] = commerceCategories.map((category)
 
 export const navItems: NavItem[] = [
   { label: "محصولات", href: "/products", children: productMegaMenu },
-  { label: "متریال", href: "/materials" },
   { label: "کالکشن", href: "/collection" },
   { label: "پروژه‌ها", href: "/projects" },
   { label: "معماری داخلی", href: "/interior-architecture-services" },

@@ -17,6 +17,8 @@ export type ProductStatus = 'draft' | 'published' | 'archived';
 
 @Schema({ timestamps: true })
 export class ShopProduct {
+  @Prop({ unique: true, sparse: true, index: true })
+  externalCode?: string;
   @Prop({ required: true, unique: true, trim: true, index: true })
   slug: string;
 

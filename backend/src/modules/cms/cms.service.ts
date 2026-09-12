@@ -79,7 +79,17 @@ export class CmsService implements OnModuleInit {
   async update(kindValue: string, id: string, input: EntryInput) {
     const kind = this.assertKind(kindValue);
     const update = this.sanitizeInput(input);
-    if (input.slug) update.slug = this.normalizeSlug(input.slug);
+    if (input.slug) {
+      const nextSlug = this.normalizeSlug(input.slug);
+      const current = await this.entryModel.findOne({ _id: id, kind }).select({ slug: 1, data: 1 }).lean().exec();
+      if (!current) throw new NotFoundException('CMS entry not found');
+      update.slug = nextSlug;
+      if (kind === 'project' && current.slug !== nextSlug) {
+        const currentData = (current.data && typeof current.data === 'object' ? current.data : {}) as Record<string, unknown>;
+        const aliases = Array.isArray(currentData.previousSlugs) ? currentData.previousSlugs.filter((value): value is string => typeof value === 'string') : [];
+        update.data = { ...currentData, ...(input.data || {}), previousSlugs: [...new Set([...aliases, current.slug])].slice(-10) };
+      }
+    }
     const entry = await this.entryModel.findOneAndUpdate({ _id: id, kind }, update, { new: true, runValidators: true }).lean().exec();
     if (!entry) throw new NotFoundException('CMS entry not found');
     return entry;
@@ -168,7 +178,7 @@ export class CmsService implements OnModuleInit {
   }
 
   private async getPublished(kind: CmsEntryKind, slug: string) {
-    const entry = await this.entryModel.findOne({ kind, slug, status: 'published' }).lean().exec();
+    const entry = await this.entryModel.findOne({ kind, status: 'published', $or: [{ slug }, { 'data.previousSlugs': slug }] }).lean().exec();
     if (!entry) throw new NotFoundException('Published entry not found');
     return entry;
   }
