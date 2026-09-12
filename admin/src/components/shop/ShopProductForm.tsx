@@ -267,7 +267,7 @@ export default function ShopProductForm({
               </select>
             </Field>
             {form.room === "lighting" ? (
-              <Field label="نوع آباژور" hint="برای نمایش در گروه مستقل آباژورهای ایستاده یا رومیزی انتخاب کنید.">
+              <Field label="نوع آباژور">
                 <select
                   className={fieldClass}
                   value={["آباژور ایستاده", "آباژور رومیزی"].includes(form.category) ? form.category : ""}

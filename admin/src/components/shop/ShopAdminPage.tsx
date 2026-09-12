@@ -111,7 +111,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     request.upload.onprogress = (event) => { if (event.lengthComputable) setImportProgress(Math.round((event.loaded / event.total) * 100)); };
     request.onload = () => {
       setImporting(false); setImportProgress(100);
-      try { const result = JSON.parse(request.responseText); if (request.status >= 200 && request.status < 300) { setMessage(`قیمت: ${result.updated} به‌روزرسانی، ${result.created} محصول جدید، ${result.archived} بایگانی شد.`); void load(); } else setError(result.message || "ورود فایل ناموفق بود"); }
+      try { const result = JSON.parse(request.responseText); if (request.status >= 200 && request.status < 300) { setMessage(`قیمت: ${result.updated} به‌روزرسانی، ${result.created} محصول جدید، ${result.archived} بایگانی شد.`); void loadProducts(); } else setError(result.message || "ورود فایل ناموفق بود"); }
       catch { setError("پاسخ ورود فایل معتبر نیست"); }
     };
     request.onerror = () => { setImporting(false); setError("ارتباط با سرویس فروشگاه برقرار نشد"); };
