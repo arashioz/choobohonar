@@ -252,6 +252,25 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
           </div>
         </div>
       </section>
+
+      {(product.longDescription || product.specs?.length) ? (
+        <section className="bg-paper py-20 md:py-28">
+          <div className="mx-auto grid w-full max-w-container gap-10 px-6 md:px-10 lg:grid-cols-[0.7fr_1.3fr] lg:px-16">
+            <div>
+              <p className="eyebrow text-brick">جزئیات محصول</p>
+              <h2 className="mt-5 text-4xl font-extralight text-forest md:text-6xl">توضیحات و ابعاد</h2>
+            </div>
+            <div>
+              {product.longDescription ? <p className="max-w-3xl whitespace-pre-line text-base leading-9 text-forest/70">{product.longDescription}</p> : null}
+              {product.specs?.length ? (
+                <dl className="mt-8 divide-y divide-forest/10 border-y border-forest/10">
+                  {product.specs.map((spec, index) => <div key={`${spec.label}-${index}`} className="grid grid-cols-2 gap-5 py-4 text-sm"><dt className="font-medium text-forest">{spec.label}</dt><dd className="text-forest/65">{spec.value}</dd></div>)}
+                </dl>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

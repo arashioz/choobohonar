@@ -16,7 +16,7 @@
 /campigan-52/Public
 Video/
 design/
-
+/wordpress-files
 # Dependencies & build
 node_modules/
 .next/

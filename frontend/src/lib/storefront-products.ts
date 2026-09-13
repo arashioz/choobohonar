@@ -8,6 +8,8 @@ type BackendProduct = {
   category?: string;
   room?: ProductRoom;
   shortDescription?: string;
+  longDescription?: string;
+  specs?: { label: string; value: string }[];
   image?: string;
   gallery?: string[];
   shopUrl?: string;
@@ -33,9 +35,11 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
     category: item.category || "محصولات خانه",
     room: item.room || "living",
     shortDescription: item.shortDescription || "",
+    longDescription: item.longDescription || "",
     image,
     gallery: item.gallery || (image ? [image] : []),
     categories: [{ id: 0, name: item.category || "محصولات خانه", slug: item.category || "all" }],
+    specs: item.specs || [],
     attributes: [
       ...(item.series ? [{ id: -1, name: "کالکشن", taxonomy: "pa_collection", hasVariations: false, terms: [{ id: 0, name: item.series, slug: item.series, default: true }] }] : []),
       ...(item.attributes || []).map((attribute, index) => ({ id: index, name: attribute.name, taxonomy: null, hasVariations: true, terms: attribute.values.map((value, valueIndex) => ({ id: valueIndex, name: value, slug: value, default: valueIndex === 0 })) })),

@@ -26,6 +26,7 @@ type CatalogSeedRow = {
   name: string;
   category: string;
   room: string;
+  status?: 'draft' | 'published' | 'archived';
   shortDescription?: string;
   image?: string;
   gallery?: string[];
@@ -42,6 +43,7 @@ type CatalogSeedRow = {
     enabled?: boolean;
   }[];
   longDescription?: string;
+  specs?: { label: string; value: string }[];
   sortOrder?: number;
   shopUrl?: string;
 };
@@ -454,14 +456,14 @@ export class ShopService implements OnModuleInit {
       price: row.prices?.value ? Number(row.prices.value) : undefined,
       compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
       finishes: [] as string[],
-      status: 'published' as const,
+      status: row.status || 'published',
       featured: false,
       suggested: false,
       stockQty: row.variants?.length
         ? row.variants.reduce((total, variant) => total + (variant.stockQty || 0), 0)
         : 0,
       trackInventory: false,
-      specs: [] as { label: string; value: string }[],
+      specs: row.specs || [],
       highlights: [] as { title: string; description: string }[],
       attributes: ((row.attributes || []) as CatalogAttribute[]).map((attribute) => ({
         name: attribute.name || '',

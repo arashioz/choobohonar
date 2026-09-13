@@ -17,6 +17,9 @@
     "sync:catalog": "node scripts/sync-shop-catalog.mjs",
     "download:choobohonar-images": "node ../scripts/download-choobohonar-product-images.mjs",
     "build:choobohonar-catalog": "node ../scripts/build-choobohonar-catalog.mjs",
+    "build:wordpress-catalog": "node ../scripts/build-wordpress-shop-catalog.mjs",
+    "download:wordpress-images": "node ../scripts/download-wordpress-product-images.mjs",
+    "crawl:choobohonar-details": "node ../scripts/crawl-choobohonar-product-details.mjs",
     "sync:projects": "node scripts/sync-project-images.mjs"
   },
   "dependencies": {

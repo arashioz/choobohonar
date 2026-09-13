@@ -289,15 +289,17 @@ export type ShopProduct = {
   category: string;
   room: ProductRoom;
   shortDescription: string;
+  longDescription?: string;
+  specs?: { label: string; value: string }[];
   image: string;
   gallery: string[];
   categories: {
-    id: number;
+    id: number | string;
     name: string;
     slug: string;
   }[];
   attributes: {
-    id: number;
+    id: number | string;
     name: string;
     taxonomy: string | null;
     hasVariations: boolean;

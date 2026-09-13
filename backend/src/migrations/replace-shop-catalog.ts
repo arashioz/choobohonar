@@ -30,8 +30,10 @@ type CatalogRow = {
   name: string;
   category: string;
   room: string;
+  status?: 'draft' | 'published' | 'archived';
   shortDescription?: string;
   longDescription?: string;
+  specs?: { label: string; value: string }[];
   image?: string;
   gallery?: string[];
   attributes?: CatalogAttribute[];
@@ -73,7 +75,7 @@ async function main() {
     image: row.image || '',
     gallery: row.gallery || [],
     finishes: [],
-    status: 'published',
+    status: row.status || 'published',
     featured: false,
     suggested: false,
     series: seriesFrom(row.attributes || []),
@@ -81,7 +83,7 @@ async function main() {
     compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
     stockQty: (row.variants || []).reduce((total, variant) => total + (variant.stockQty || 0), 0),
     trackInventory: false,
-    specs: [],
+    specs: row.specs || [],
     highlights: [],
     attributes: (row.attributes || [])
       .map((attribute) => ({ name: attribute.name, values: (attribute.terms || []).map((term) => term.name), required: Boolean(attribute.hasVariations) }))
