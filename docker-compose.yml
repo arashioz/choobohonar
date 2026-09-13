@@ -18,7 +18,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        NPM_REGISTRY: https://mirror-npm.runflare.com
+        NPM_REGISTRY: https://mirror.kargadan.ir/repository/npm-group/
     restart: unless-stopped
     env_file:
       - ./backend/.env
@@ -41,7 +41,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
         NEXT_TELEMETRY_DISABLED: '1'
-        NPM_REGISTRY: https://mirror-npm.runflare.com
+        NPM_REGISTRY: https://mirror.kargadan.ir/repository/npm-group/
       context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
@@ -67,7 +67,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
         NEXT_PUBLIC_ASSET_PREFIX: /admin
-        NPM_REGISTRY: https://mirror-npm.runflare.com
+        NPM_REGISTRY: https://mirror.kargadan.ir/repository/npm-group/
     restart: unless-stopped
     environment:
       NEXT_TELEMETRY_DISABLED: '1'
