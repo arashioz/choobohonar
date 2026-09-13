@@ -2,7 +2,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
-ARG NPM_REGISTRY=https://mirror.kargadan.ir/repository/npm-group/
+ARG NPM_REGISTRY=https://package-mirror.liara.ir/repository/npm/
 RUN npm config set registry "$NPM_REGISTRY" \
   && npm config set fetch-retries 3 \
   && npm config set fetch-retry-mintimeout 1000 \
