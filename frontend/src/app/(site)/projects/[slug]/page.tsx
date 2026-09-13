@@ -13,6 +13,12 @@ import ProjectInteriorCta from "@/components/projects/ProjectInteriorCta";
 import ProjectProducts from "@/components/projects/ProjectProducts";
 import RelatedProjects from "@/components/projects/RelatedProjects";
 
+// Projects are managed in MongoDB from the admin panel. Do not turn a newly
+// published project into a build-time-only route; its page must resolve from
+// the database immediately, without rebuilding the storefront.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateStaticParams() {
   const cmsProjects = await fetchPublicCmsEntries("project");
   return [...new Set([...projects.map((project) => project.slug), ...cmsProjects.map((project) => project.slug)])].map((slug) => ({ slug }));

@@ -19,7 +19,7 @@ type BackendProduct = {
   sortOrder?: number;
   series?: string;
   attributes?: { name: string; values: string[]; required?: boolean }[];
-  variants?: { _id?: string; sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty?: number; enabled?: boolean }[];
+  variants?: { _id?: string; sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty?: number; image?: string; enabled?: boolean }[];
 };
 
 export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
@@ -47,7 +47,7 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
     isInStock: item.variants?.length ? item.variants.some((variant) => variant.enabled !== false && (variant.stockQty || 0) > 0) : (item.trackInventory ? (item.stockQty || 0) > 0 : true),
     hasOptions: Boolean(item.attributes?.length),
     shopUrl: item.shopUrl || "",
-    variants: item.variants?.map((variant, index) => ({ id: variant._id || variant.sku || String(index), options: variant.options || [], price: variant.price, compareAtPrice: variant.compareAtPrice, stockQty: variant.stockQty || 0, enabled: variant.enabled !== false })),
+    variants: item.variants?.map((variant, index) => ({ id: variant._id || variant.sku || String(index), sku: variant.sku, options: variant.options || [], price: variant.price, compareAtPrice: variant.compareAtPrice, stockQty: variant.stockQty || 0, image: variant.image, enabled: variant.enabled !== false })),
   };
 }
 

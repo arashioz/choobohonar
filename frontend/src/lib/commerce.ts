@@ -27,7 +27,9 @@ export function getCollectionName(product: ShopProduct): string | null {
 
 export function getProductAttributeOptions(product: ShopProduct) {
   return product.attributes
-    .filter((attribute) => attribute.terms.length > 0 && attribute.taxonomy !== "pa_collection" && attribute.name !== "کالکشن")
+    // Only WooCommerce attributes marked as variation attributes are purchase
+    // controls. The remaining attributes are still shown as specifications.
+    .filter((attribute) => attribute.hasVariations && attribute.terms.length > 0 && attribute.taxonomy !== "pa_collection" && attribute.name !== "کالکشن")
     .map((attribute) => ({
       id: attribute.taxonomy || String(attribute.id),
       label: attribute.name,

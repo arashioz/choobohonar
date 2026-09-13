@@ -32,11 +32,22 @@ type CatalogSeedRow = {
   categories?: { id: number; name: string; slug: string }[];
   attributes?: unknown[];
   prices?: { value?: string | null; regularValue?: string | null } | null;
+  variants?: {
+    sku?: string;
+    options?: { name: string; value: string }[];
+    price?: number;
+    compareAtPrice?: number;
+    stockQty?: number;
+    image?: string;
+    enabled?: boolean;
+  }[];
+  longDescription?: string;
+  sortOrder?: number;
   shopUrl?: string;
 };
 
 type CatalogCollectionTerm = { name: string; slug?: string };
-type CatalogAttribute = { taxonomy?: string; name?: string; terms?: CatalogCollectionTerm[] };
+type CatalogAttribute = { taxonomy?: string; name?: string; hasVariations?: boolean; terms?: CatalogCollectionTerm[] };
 
 const SERIES_ALIASES: Record<string, string> = {
   alder: 'آلدر',
@@ -403,8 +414,13 @@ export class ShopService implements OnModuleInit {
     return { items, count: items.length };
   }
 
-  async seedFromCatalog(force = false) {
-    if (force) {
+  async seedFromCatalog(force = false, replaceAll = false) {
+    if (replaceAll) {
+      // This operation is available only through the JWT-protected seed API.
+      // It intentionally removes manually created records too, for a clean
+      // replacement migration from the WooCommerce export.
+      await this.productModel.deleteMany({});
+    } else if (force) {
       await this.productModel.deleteMany({ source: 'catalog' });
     }
 
@@ -430,7 +446,7 @@ export class ShopService implements OnModuleInit {
         | 'lighting'
         | 'dishes',
       shortDescription: row.shortDescription || '',
-      longDescription: '',
+      longDescription: row.longDescription || '',
       image: row.image || '',
       gallery: row.gallery || (row.image ? [row.image] : []),
       shopUrl: row.shopUrl,
@@ -441,11 +457,27 @@ export class ShopService implements OnModuleInit {
       status: 'published' as const,
       featured: false,
       suggested: false,
-      stockQty: 0,
+      stockQty: row.variants?.length
+        ? row.variants.reduce((total, variant) => total + (variant.stockQty || 0), 0)
+        : 0,
       trackInventory: false,
       specs: [] as { label: string; value: string }[],
       highlights: [] as { title: string; description: string }[],
-      sortOrder: index,
+      attributes: ((row.attributes || []) as CatalogAttribute[]).map((attribute) => ({
+        name: attribute.name || '',
+        values: (attribute.terms || []).map((term) => term.name).filter(Boolean),
+        required: Boolean(attribute.hasVariations),
+      })).filter((attribute) => attribute.name && attribute.values.length),
+      variants: (row.variants || []).map((variant) => ({
+        sku: variant.sku,
+        options: variant.options || [],
+        price: variant.price,
+        compareAtPrice: variant.compareAtPrice,
+        stockQty: variant.stockQty || 0,
+        image: variant.image,
+        enabled: variant.enabled !== false,
+      })),
+      sortOrder: row.sortOrder ?? index,
       source: 'catalog',
     }));
 
@@ -475,6 +507,7 @@ export class ShopService implements OnModuleInit {
       upserted: result.upsertedCount,
       modified: result.modifiedCount,
       total,
+      replaced: replaceAll,
     };
   }
 

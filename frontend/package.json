@@ -15,6 +15,8 @@
     "check:assets": "node scripts/sync-public-assets.mjs --check",
     "sync:assets": "node scripts/sync-public-assets.mjs",
     "sync:catalog": "node scripts/sync-shop-catalog.mjs",
+    "download:choobohonar-images": "node ../scripts/download-choobohonar-product-images.mjs",
+    "build:choobohonar-catalog": "node ../scripts/build-choobohonar-catalog.mjs",
     "sync:projects": "node scripts/sync-project-images.mjs"
   },
   "dependencies": {

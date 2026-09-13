@@ -158,17 +158,18 @@ export const shopApi = {
   stats: () => shopFetch<ShopStats>("/stats"),
   suggestions: () =>
     shopFetch<{ items: ShopSuggestionGroup[]; count: number }>("/suggestions"),
-  seed: (force = false) =>
+  seed: (force = false, replaceAll = false) =>
     shopFetch<{
       ok: boolean;
       skipped?: boolean;
       message?: string;
-      total?: number;
-      upserted?: number;
-      modified?: number;
+    total?: number;
+    upserted?: number;
+    modified?: number;
+    replaced?: boolean;
     }>("/products/seed", {
       method: "POST",
-      body: JSON.stringify({ force }),
+      body: JSON.stringify({ force, replaceAll }),
     }),
   categories: () =>
     shopFetch<{ category: string; room: string; count: number }[]>(

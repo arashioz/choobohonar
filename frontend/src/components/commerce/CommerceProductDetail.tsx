@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ShopProduct } from "@/data/products";
@@ -41,6 +41,10 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
   })), [attributes, product.variants, selected]);
   const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
   const canAddToCart = product.isPurchasable && Number.isFinite(priceValue) && priceValue > 0 && (!product.variants?.length || Boolean(selectedVariant && selectedVariant.stockQty > 0));
+
+  useEffect(() => {
+    if (selectedVariant?.image) setActiveImage(selectedVariant.image);
+  }, [selectedVariant?.image]);
 
   const handleAddToCart = () => {
     const options: CartOption[] = attributes

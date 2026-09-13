@@ -70,3 +70,7 @@ WiredTigerLog.*
 volumes/
 /data/*
 !/data/.gitkeep
+
+# Downloaded product-media migration assets are deployed to the persistent
+# backend uploads volume, not committed as source code.
+backend/uploads/products/

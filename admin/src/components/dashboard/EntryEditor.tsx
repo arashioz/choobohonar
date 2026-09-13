@@ -81,7 +81,14 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
       setCurrentId(saved._id);
       setEntry((current) => ({ ...current, slug: saved.slug, status: saved.status }));
       setDirty(false);
-      setNotice({ tone: "ok", text: mode === "publish" ? "با موفقیت منتشر شد." : "تغییرات ذخیره شد." });
+      setNotice({
+        tone: "ok",
+        text: mode === "publish"
+          ? "با موفقیت منتشر شد و اکنون در سایت نمایش داده می‌شود."
+          : kind === "project" && saved.status !== "published"
+            ? "پروژه در دیتابیس ثبت شد، اما هنوز پیش‌نویس است؛ برای نمایش در /projects باید «انتشار» را بزنید."
+            : "تغییرات ذخیره شد.",
+      });
       if (isNew) router.replace(`${basePath}/${saved._id}`);
     } catch (err) { setNotice({ tone: "error", text: err instanceof Error ? err.message : "ذخیره انجام نشد" }); }
     finally { setSaving(false); }

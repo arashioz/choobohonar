@@ -203,16 +203,17 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     };
   }, [tab, loadProducts, loadOrders, loadInvoices]);
 
-  async function onSeed() {
+  async function onSeed(replaceAll = false) {
+    if (replaceAll && !window.confirm("تمام محصولات فعلی فروشگاه حذف و فقط کاتالوگ جدید جایگزین شود؟ این عمل قابل بازگشت نیست.")) return;
     setBusy(true);
     setMessage("");
     setError("");
     try {
-      const res = await shopApi.seed(false);
+      const res = await shopApi.seed(replaceAll, replaceAll);
       setMessage(
         res.skipped
           ? res.message || "کاتالوگ از قبل موجود است"
-          : `کاتالوگ سینک شد: ${res.upserted ?? res.total ?? 0} محصول`,
+          : `${res.replaced ? "کاتالوگ قبلی جایگزین شد" : "کاتالوگ سینک شد"}: ${res.upserted ?? res.total ?? 0} محصول`,
       );
       await loadProducts();
     } catch (e) {
@@ -245,11 +246,19 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={onSeed}
+                onClick={() => onSeed()}
                 disabled={busy}
                 className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs text-forest/70 disabled:opacity-50"
               >
                 سینک کاتالوگ
+              </button>
+              <button
+                type="button"
+                onClick={() => onSeed(true)}
+                disabled={busy}
+                className="rounded-xl border border-brick/20 bg-white px-3 py-2 text-xs text-brick disabled:opacity-50"
+              >
+                جایگزینی کامل کاتالوگ
               </button>
               <Link
                 href="/admin/manage/products/new"

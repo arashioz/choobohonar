@@ -324,7 +324,7 @@ export type ShopProduct = {
   isInStock: boolean;
   hasOptions: boolean;
   shopUrl: string;
-  variants?: { id: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; enabled: boolean }[];
+  variants?: { id: string; sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; image?: string; enabled: boolean }[];
 };
 
 export type AnyProduct = Product | ShopProduct;
@@ -335,8 +335,8 @@ export const shopProducts: ShopProduct[] = shopCatalogRaw.map((entry) => ({
   kind: "catalog" as const,
 }));
 
-/** Featured showcase products with rich editorial content. */
-export const featuredProducts = products;
+/** Products displayed in the storefront always come from the imported catalog. */
+export const featuredProducts = shopProducts.slice(0, 8);
 
 export function isShopProduct(product: AnyProduct): product is ShopProduct {
   return "kind" in product && product.kind === "catalog";
@@ -347,7 +347,7 @@ export function isFeaturedProduct(product: AnyProduct): product is Product {
 }
 
 export function getAllCatalogProducts(): AnyProduct[] {
-  return [...products, ...shopProducts];
+  return shopProducts;
 }
 
 function normalizeSlug(slug: string): string {
@@ -360,7 +360,7 @@ function normalizeSlug(slug: string): string {
 
 export function getCatalogProduct(slug: string): AnyProduct | undefined {
   const normalized = normalizeSlug(slug);
-  return getProduct(normalized) ?? shopProducts.find((p) => p.slug === normalized);
+  return shopProducts.find((p) => p.slug === normalized);
 }
 
 export function getRelatedCatalogProducts(slug: string, count = 3): AnyProduct[] {

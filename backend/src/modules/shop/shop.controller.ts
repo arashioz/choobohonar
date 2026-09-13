@@ -79,8 +79,8 @@ export class ShopController {
 
   @Post('products/seed')
   @UseGuards(JwtAuthGuard)
-  seed(@Body() body: { force?: boolean }) {
-    return this.shopService.seedFromCatalog(Boolean(body?.force));
+  seed(@Body() body: { force?: boolean; replaceAll?: boolean }) {
+    return this.shopService.seedFromCatalog(Boolean(body?.force), Boolean(body?.replaceAll));
   }
 
   @Post('products/import-price')

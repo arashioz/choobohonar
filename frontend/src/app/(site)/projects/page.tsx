@@ -5,6 +5,11 @@ import FeaturedProjectsScroll from "@/components/projects/FeaturedProjectsScroll
 import ProjectsListGrid from "@/components/projects/ProjectsListGrid";
 import { fetchPublicCmsEntries } from "@/lib/public-cms";
 
+// The project index is database-backed, so newly published entries must be
+// visible as soon as they are published from the admin panel.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "پروژه‌ها | خانه چوب و هنر",
   description:
