@@ -362,7 +362,9 @@ function normalizeSlug(slug: string): string {
 
 export function getCatalogProduct(slug: string): AnyProduct | undefined {
   const normalized = normalizeSlug(slug);
-  return shopProducts.find((p) => p.slug === normalized);
+  // WordPress dumps may contain percent-encoded Persian slugs while Next.js
+  // provides the decoded route value. Accept both during a rolling deploy.
+  return shopProducts.find((p) => normalizeSlug(p.slug) === normalized);
 }
 
 export function getRelatedCatalogProducts(slug: string, count = 3): AnyProduct[] {

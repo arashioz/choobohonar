@@ -34,6 +34,9 @@ const attributeLabels = {
   pa_length: "طول", pa_width: "عرض", pa_height: "ارتفاع", pa_size: "سایز",
   pa_color: "رنگ", "pa_bedding-color": "رنگ", pa_material: "متریال",
 };
+function decodeSlug(value = "") {
+  try { return decodeURIComponent(value); } catch { return value; }
+}
 
 function sqlValue(raw) {
   const value = raw.trim();
@@ -244,7 +247,7 @@ async function main() {
     const productDescription = cleanText(post.post_content);
     const detailsDescription = detailBlocks.find((block) => /توضیحات|description/i.test(block.post_title))?.post_content || "";
     return {
-      id: Number(id), slug: post.post_name || `product-${id}`, name: post.post_title, category: isBeddingProduct ? "کالای خواب" : category?.name || "محصول", room,
+      id: Number(id), slug: decodeSlug(post.post_name || `product-${id}`), name: post.post_title, category: isBeddingProduct ? "کالای خواب" : category?.name || "محصول", room,
       status: productStatus(post.post_status), shortDescription: cleanText(post.post_excerpt) || productDescription.slice(0, 220) || cleanText(detailsDescription).slice(0, 220), longDescription: productDescription || cleanText(detailsDescription), specs: [...new Map(specs.map((item) => [`${item.label}:${item.value}`, item])).values()],
       image: gallery[0] || variants.find((item) => item.image)?.image || "", gallery: [...new Set(gallery)], categories: categoryTerms.map((term) => ({ id: Number(term.term_id), name: term.name, slug: term.slug })), attributes,
       prices: Number.isFinite(productPrice) ? { value: String(productPrice), regularValue: regularPrice ? String(regularPrice) : null, saleValue: null, minValue: String(productPrice), maxValue: String(numberOrUndefined(lookup.get(id)?.max_price) || productPrice), currencyCode: "IRT", currencySymbol: "تومان", minorUnit: 0 } : null,
