@@ -136,6 +136,39 @@ async function readSimpleTermTables(file, terms, taxonomies) {
   }
 }
 
+// Some old postmeta INSERT chunks include malformed HTML/quotes. The two
+// shortcode keys are plain one-line values, so recover them independently.
+async function readContentShortcodes(file, meta) {
+  let active = false;
+  const input = createInterface({ input: createReadStream(file, { encoding: "utf8" }), crlfDelay: Infinity });
+  for await (const line of input) {
+    if (line.startsWith("INSERT INTO `wp_postmeta`")) { active = true; continue; }
+    if (!active) continue;
+    const match = /^\(\d+,\s*(\d+),\s*'(desc_short_code|accordion_short_code)',\s*'(.*?)'\)[,;]$/.exec(line);
+    if (match) {
+      if (!meta.has(match[1])) meta.set(match[1], new Map());
+      meta.get(match[1]).set(match[2], [match[3].replace(/\\(["'])/g, "$1")]);
+    }
+    if (line.endsWith(";")) active = false;
+  }
+}
+
+async function readCmsBlocks(file, posts) {
+  let active = false;
+  const columns = "`ID`, `post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`, `post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`, `post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`, `post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`, `post_mime_type`, `comment_count`";
+  const input = createInterface({ input: createReadStream(file, { encoding: "utf8" }), crlfDelay: Infinity });
+  for await (const line of input) {
+    if (line.startsWith("INSERT INTO `wp_posts`")) { active = true; continue; }
+    if (!active) continue;
+    if (line.startsWith("(")) {
+      parseInsert(`INSERT INTO \`wp_posts\` (${columns}) VALUES ${line.replace(/,$/, ";")}`, (_, row) => {
+        if (row.post_type === "cms_block") posts.set(String(row.ID), row);
+      });
+    }
+    if (line.endsWith(";")) active = false;
+  }
+}
+
 function cleanText(value = "") {
   return String(value)
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
@@ -152,6 +185,14 @@ function tableSpecs(html = "") {
     if (cells.length >= 2 && cells[0] && cells[1]) specs.push({ label: cells[0], value: cells.slice(1).join("، ") });
   }
   return specs;
+}
+
+function listSpecs(html = "") {
+  return [...html.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)].flatMap((match) => {
+    const text = cleanText(match[1]);
+    const separator = text.indexOf(":");
+    return separator > 0 ? [{ label: text.slice(0, separator).trim(), value: text.slice(separator + 1).trim() }] : [];
+  });
 }
 
 function metaValues(meta, id, key) { return meta.get(id)?.get(key) || []; }
@@ -187,6 +228,8 @@ async function main() {
   taxonomies.clear();
   await readSimpleTermTables(dumpPath, terms, taxonomies);
   await readTermRelationships(dumpPath, relations);
+  await readContentShortcodes(dumpPath, meta);
+  await readCmsBlocks(dumpPath, posts);
 
   const termForTaxonomy = (taxonomy, slug) => [...taxonomies.values()].map((item) => ({ ...item, term: terms.get(String(item.term_id)) })).find((item) => item.taxonomy === taxonomy && item.term?.slug === slug)?.term;
   // The known early catalog row is a compact integrity check for the SQL parser.
@@ -197,6 +240,11 @@ async function main() {
   // by the Woo template, so status must not discard their product data.
   const cmsBlocks = [...posts.values()].filter((post) => post.post_type === "cms_block");
   const products = [...posts.values()].filter((post) => post.post_type === "product" && ["publish", "draft", "pending", "private"].includes(post.post_status));
+  const contentBlockFromShortcode = (value) => {
+    const blockId = /\[(?:html_block|cms_block)\s+id=["']?(\d+)/i.exec(String(value || ""))?.[1];
+    const block = blockId ? posts.get(blockId) : undefined;
+    return block?.post_type === "cms_block" ? block : undefined;
+  };
   const variationsByParent = new Map();
   for (const variation of [...posts.values()].filter((post) => post.post_type === "product_variation")) {
     const parent = String(variation.post_parent); if (!variationsByParent.has(parent)) variationsByParent.set(parent, []); variationsByParent.get(parent).push(variation);
@@ -246,9 +294,13 @@ async function main() {
     ];
     const productDescription = cleanText(post.post_content);
     const detailsDescription = detailBlocks.find((block) => /توضیحات|description/i.test(block.post_title))?.post_content || "";
+    const descriptionBlock = contentBlockFromShortcode(metaValue(meta, id, "desc_short_code"));
+    const accordionBlock = contentBlockFromShortcode(metaValue(meta, id, "accordion_short_code"));
+    if (descriptionBlock) specs.push(...tableSpecs(descriptionBlock.post_content), ...listSpecs(descriptionBlock.post_content));
+    if (accordionBlock) specs.push(...tableSpecs(accordionBlock.post_content));
     return {
       id: Number(id), slug: decodeSlug(post.post_name || `product-${id}`), name: post.post_title, category: isBeddingProduct ? "کالای خواب" : category?.name || "محصول", room,
-      status: productStatus(post.post_status), shortDescription: cleanText(post.post_excerpt) || productDescription.slice(0, 220) || cleanText(detailsDescription).slice(0, 220), longDescription: productDescription || cleanText(detailsDescription), specs: [...new Map(specs.map((item) => [`${item.label}:${item.value}`, item])).values()],
+      status: productStatus(post.post_status), shortDescription: cleanText(post.post_excerpt) || productDescription.slice(0, 220) || cleanText(descriptionBlock?.post_content || detailsDescription).slice(0, 220), longDescription: productDescription || cleanText(descriptionBlock?.post_content || detailsDescription), specs: [...new Map(specs.map((item) => [`${item.label}:${item.value}`, item])).values()],
       image: gallery[0] || variants.find((item) => item.image)?.image || "", gallery: [...new Set(gallery)], categories: categoryTerms.map((term) => ({ id: Number(term.term_id), name: term.name, slug: term.slug })), attributes,
       prices: Number.isFinite(productPrice) ? { value: String(productPrice), regularValue: regularPrice ? String(regularPrice) : null, saleValue: null, minValue: String(productPrice), maxValue: String(numberOrUndefined(lookup.get(id)?.max_price) || productPrice), currencyCode: "IRT", currencySymbol: "تومان", minorUnit: 0 } : null,
       averageRating: metaValue(meta, id, "_wc_average_rating") || "0", reviewCount: Number(metaValue(meta, id, "_wc_review_count")) || 0,
