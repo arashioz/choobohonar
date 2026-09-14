@@ -36,7 +36,12 @@ export class CollectionsService {
     const item = await this.model.findOne({ slug, status: { $ne: 'archived' } }).lean().exec();
     if (item) {
       const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
-      return { ...item, products };
+      // Set collection image from first product if not already set
+      let image = item.image;
+      if (!image && products.length > 0 && products[0].image) {
+        image = products[0].image as string;
+      }
+      return { ...item, image, products };
     }
 
     // Collections created from «مدیریت آثار» live in cms_entries, not in the
@@ -105,10 +110,19 @@ export class CollectionsService {
       .exec()) as unknown as Record<string, unknown>[];
 
     const withProducts: Array<Record<string, unknown> & { products: Record<string, unknown>[] }> = await Promise.all(
-      collections.map(async (collection) => ({
-        ...collection,
-        products: await this.getProductsForCollection(collection as unknown as Record<string, unknown>),
-      })),
+      collections.map(async (collection) => {
+        const products = await this.getProductsForCollection(collection as unknown as Record<string, unknown>);
+        // Set collection image from first product if not already set
+        let image = collection.image;
+        if (!image && products.length > 0 && products[0].image) {
+          image = products[0].image as string;
+        }
+        return {
+          ...collection,
+          image,
+          products,
+        };
+      }),
     );
     const cmsCollections = await this.cmsEntries
       .find({ kind: 'collection', status: { $ne: 'archived' } })

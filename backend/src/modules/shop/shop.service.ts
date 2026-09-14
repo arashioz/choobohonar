@@ -238,13 +238,13 @@ export class ShopService implements OnModuleInit {
         const variantId = String(row['شناسه واریانت'] ?? '').trim();
         const sku = String(row['کد کالا'] ?? '').trim();
         if (variantId || sku) {
-          const variant = product.variants?.find((item: any) => String(item._id) === variantId || (!variantId && sku && item.sku === sku));
-          if (!variant) { skipped++; continue; }
+          const variantIndex = product.variants?.findIndex((item: any) => String(item._id) === variantId || (!variantId && sku && item.sku === sku));
+          if (variantIndex === undefined || variantIndex === -1) { skipped++; continue; }
+          const variant = product.variants[variantIndex];
           if (variant.price === price) { unchanged++; continue; }
           await this.productModel.updateOne(
             { _id: product._id },
-            { $set: { 'variants.$[variant].price': price } },
-            { arrayFilters: [{ 'variant._id': variant._id }] },
+            { $set: { [`variants.${variantIndex}.price`]: price } },
           );
           variant.price = price;
           updated++;

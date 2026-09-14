@@ -11,7 +11,7 @@ import {
   UseGuards,
   UploadedFile,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseInterceptors } from '@nestjs/common';
 import { ShopService } from './shop.service';
