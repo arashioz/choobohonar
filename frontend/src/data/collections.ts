@@ -24,6 +24,7 @@ export type ApiCollection = {
   gallery: string[];
   series: string;
   tags: string[];
+  productCount?: number;
   products: Array<{
     slug: string;
     name: string;

@@ -51,7 +51,7 @@ export default async function CollectionPage() {
                       <p className="eyebrow text-brick">سری {collection.series || "—"}</p>
                       <h2 className="mt-3 text-3xl font-light tracking-tight text-forest md:text-4xl">{collection.name}</h2>
                       <p className="mt-3 max-w-md text-base leading-relaxed text-forest/60">{collection.excerpt || collection.description}</p>
-                      <p className="mt-3 text-sm text-forest/50">{toFa(collection.products?.length || 0)} محصول در این مجموعه</p>
+                      <p className="mt-3 text-sm text-forest/50">{toFa(collection.productCount ?? collection.products?.length ?? 0)} محصول در این مجموعه</p>
                     </div>
                   </div>
                   <span className="mt-6 inline-flex items-center gap-2 text-sm text-brick transition-colors group-hover:text-forest">

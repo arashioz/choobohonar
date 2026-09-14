@@ -50,7 +50,7 @@ export class CollectionsService {
     return this.toPublicCmsCollection(cmsItem as unknown as Record<string, unknown>);
   }
 
-  async getProductsForCollection(collection: Record<string, unknown>): Promise<Record<string, unknown>[]> {
+  async getProductsForCollection(collection: Record<string, unknown>, availableProducts?: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
     // A collection owns every published product whose title contains its
     // name. This stays current automatically as products are created or
     // renamed; no manual product-to-collection assignment is required.
@@ -58,16 +58,16 @@ export class CollectionsService {
     if (!collectionName) return [];
 
     const normalizedCollectionName = this.normalizeForMatch(collectionName);
-    const products = await this.products
+    const products = availableProducts || await this.products
       .find({ status: 'published' })
       .sort({ sortOrder: 1, createdAt: -1 })
       .lean()
-      .exec();
+      .exec() as unknown as Record<string, unknown>[];
 
     const normalizedSeries = this.normalizeForMatch(String(collection.series || collectionName));
     return products.filter((product) => {
-      const titleMatches = this.normalizeForMatch(product.name || '').includes(normalizedCollectionName);
-      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(product.series || '') === normalizedSeries;
+      const titleMatches = this.normalizeForMatch(String(product.name || '')).includes(normalizedCollectionName);
+      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(String(product.series || '')) === normalizedSeries;
       return titleMatches || seriesMatches;
     }) as unknown as Record<string, unknown>[];
   }
@@ -112,49 +112,46 @@ export class CollectionsService {
     // The storefront should mirror the collection manager: return every
     // active collection that actually owns products, including collections
     // whose membership is inferred from their series or product names.
-    const collections = (await this.model
-      .find({ status: { $ne: 'archived' } })
-      .sort({ updatedAt: -1 })
-      .lean()
-      .exec()) as unknown as Record<string, unknown>[];
+    const [collections, allProducts, cmsCollections] = await Promise.all([
+      this.model.find({ status: { $ne: 'archived' } }).sort({ updatedAt: -1 }).lean().exec(),
+      this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec(),
+      this.cmsEntries.find({ kind: 'collection', status: { $ne: 'archived' } }).sort({ updatedAt: -1 }).lean().exec(),
+    ]);
+    const publishedProducts = allProducts as unknown as Record<string, unknown>[];
 
     const withProducts: Array<Record<string, unknown> & { products: Record<string, unknown>[] }> = await Promise.all(
       collections.map(async (collection) => {
-        const products = await this.getProductsForCollection(collection as unknown as Record<string, unknown>);
+        const products = await this.getProductsForCollection(collection as unknown as Record<string, unknown>, publishedProducts);
         const image = String(products[0]?.image || collection.image || '');
         return {
           ...collection,
           image,
-          products,
+          productCount: products.length,
+          products: [],
         };
       }),
     );
-    const cmsCollections = await this.cmsEntries
-      .find({ kind: 'collection', status: { $ne: 'archived' } })
-      .sort({ updatedAt: -1 })
-      .lean()
-      .exec();
     const cmsWithProducts = await Promise.all(
-      cmsCollections.map((collection) => this.toPublicCmsCollection(collection as unknown as Record<string, unknown>)),
+      cmsCollections.map((collection) => this.toPublicCmsCollection(collection as unknown as Record<string, unknown>, publishedProducts, false)),
     );
 
     // CMS is the source used by «مدیریت آثار»; when a legacy standalone
     // collection has the same slug, keep the CMS version and its membership.
     const result = new Map<string, Record<string, unknown>>();
     for (const collection of cmsWithProducts) {
-      if ((collection.products as Record<string, unknown>[]).length) result.set(String(collection.slug), collection);
+      if (Number(collection.productCount || 0) > 0) result.set(String(collection.slug), collection);
     }
     for (const collection of withProducts) {
-      if (collection.products.length && !result.has(String(collection.slug))) result.set(String(collection.slug), collection);
+      if (Number(collection.productCount || 0) > 0 && !result.has(String(collection.slug))) result.set(String(collection.slug), collection);
     }
     return [...result.values()];
   }
 
-  private async toPublicCmsCollection(collection: Record<string, unknown>): Promise<Record<string, unknown> & { products: Record<string, unknown>[] }> {
+  private async toPublicCmsCollection(collection: Record<string, unknown>, availableProducts?: Record<string, unknown>[], includeProducts = true): Promise<Record<string, unknown> & { products: Record<string, unknown>[] }> {
     const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
     const title = String(collection.title || '').trim();
     const series = String(data.seriesName || data.series || title.replace(/^کالکشن\s+/u, '')).trim();
-    const products = await this.getProductsForCmsCollection(collection, series);
+    const products = await this.getProductsForCmsCollection(collection, series, availableProducts);
     // The first actual product is the collection cover everywhere. This keeps
     // the listing and detail header in sync and bypasses stale legacy covers.
     const savedImages = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
@@ -174,11 +171,12 @@ export class CollectionsService {
       gallery: processedImages,
       series,
       tags: Array.isArray(collection.tags) ? collection.tags.map(String) : [],
-      products,
+      productCount: products.length,
+      products: includeProducts ? products : [],
     };
   }
 
-  private async getProductsForCmsCollection(collection: Record<string, unknown>, series: string): Promise<Record<string, unknown>[]> {
+  private async getProductsForCmsCollection(collection: Record<string, unknown>, series: string, availableProducts?: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
     const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
     const references = new Set(
       [data.productSlugs, data.productIds]
@@ -187,10 +185,10 @@ export class CollectionsService {
         .filter(Boolean),
     );
     const normalizedSeries = this.normalizeForMatch(series);
-    const products = await this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
+    const products = availableProducts || await this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec() as unknown as Record<string, unknown>[];
     return products.filter((product) => {
       const explicitlyAssigned = references.has(String(product.slug)) || references.has(String(product._id));
-      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(product.series || '') === normalizedSeries;
+      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(String(product.series || '')) === normalizedSeries;
       return explicitlyAssigned || seriesMatches;
     }) as unknown as Record<string, unknown>[];
   }
