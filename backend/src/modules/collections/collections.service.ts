@@ -39,7 +39,16 @@ export class CollectionsService {
       // Set collection image from first product if not already set
       let image = item.image;
       if (!image && products.length > 0 && products[0].image) {
-        image = products[0].image as string;
+        const productImage = products[0].image as string;
+        // Ensure the image uses the correct local path format
+        if (productImage.includes('wp-content/uploads/')) {
+          const filename = productImage.split('/').pop() || '';
+          if (filename) {
+            image = `/uploads/products/${filename}`;
+          }
+        } else {
+          image = productImage;
+        }
       }
       return { ...item, image, products };
     }
@@ -78,6 +87,33 @@ export class CollectionsService {
     const data = this.clean(input, true);
     if (!data['name']) throw new BadRequestException('نام کالکشن الزامی است');
     if (!data['slug']) data['slug'] = this.normalizeSlug(String(data['name']));
+    
+    // If no image provided but we can find products for this collection, use first product's image
+    if (!data['image']) {
+      const products = await this.getProductsBySeries(String(data['series'] || data['name'] || ''));
+      if (products.length > 0 && products[0].image) {
+        const productImage = products[0].image as string;
+        // Convert image path to local format
+        if (productImage.includes('wp-content/uploads/')) {
+          const filename = productImage.split('/').pop() || '';
+          if (filename) {
+            data['image'] = `/uploads/products/${filename}`;
+          }
+        } else {
+          data['image'] = productImage;
+        }
+      }
+    } else if (data['image']) {
+      // Ensure provided image uses correct local path format
+      const providedImage = String(data['image']);
+      if (providedImage.includes('wp-content/uploads/')) {
+        const filename = providedImage.split('/').pop() || '';
+        if (filename) {
+          data['image'] = `/uploads/products/${filename}`;
+        }
+      }
+    }
+    
     try {
       const doc = await this.model.create(data);
       return doc.toObject();
@@ -88,7 +124,20 @@ export class CollectionsService {
   }
 
   async update(id: string, input: Record<string, unknown>) {
-    const item = await this.model.findByIdAndUpdate(id, { $set: this.clean(input, false) }, { new: true, runValidators: true }).lean().exec();
+    const data = this.clean(input, false);
+    
+    // Handle image path conversion if image is being updated
+    if (data['image']) {
+      const providedImage = String(data['image']);
+      if (providedImage.includes('wp-content/uploads/')) {
+        const filename = providedImage.split('/').pop() || '';
+        if (filename) {
+          data['image'] = `/uploads/products/${filename}`;
+        }
+      }
+    }
+    
+    const item = await this.model.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean().exec();
     if (!item) throw new NotFoundException('کالکشن پیدا نشد');
     return item;
   }
@@ -115,7 +164,16 @@ export class CollectionsService {
         // Set collection image from first product if not already set
         let image = collection.image;
         if (!image && products.length > 0 && products[0].image) {
-          image = products[0].image as string;
+          const productImage = products[0].image as string;
+          // Ensure the image uses the correct local path format
+          if (productImage.includes('wp-content/uploads/')) {
+            const filename = productImage.split('/').pop() || '';
+            if (filename) {
+              image = `/uploads/products/${filename}`;
+            }
+          } else {
+            image = productImage;
+          }
         }
         return {
           ...collection,
@@ -151,6 +209,32 @@ export class CollectionsService {
     const series = String(data.seriesName || data.series || title.replace(/^کالکشن\s+/u, '')).trim();
     const products = await this.getProductsForCmsCollection(collection, series);
     const images = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
+    
+    // Ensure collection images use the same path format as product images
+    let processedImages = images;
+    if (images.length > 0) {
+      processedImages = images.map(image => {
+        // If image is already in the correct format, keep it
+        if (image.startsWith('/uploads/products/')) {
+          return image;
+        }
+        // If image is from WordPress/wp-content, convert to local path
+        if (image.includes('wp-content/uploads/')) {
+          const filename = image.split('/').pop() || '';
+          if (filename) {
+            return `/uploads/products/${filename}`;
+          }
+        }
+        // For other external images, keep as is (but prefer product images)
+        return image;
+      });
+    }
+    
+    // If no images but we have products, use first product's image
+    if (processedImages.length === 0 && products.length > 0 && products[0].image) {
+      processedImages = [products[0].image as string];
+    }
+
     return {
       _id: String(collection._id || ''),
       name: title,
@@ -158,8 +242,8 @@ export class CollectionsService {
       status: String(collection.status || 'draft'),
       excerpt: String(collection.excerpt || ''),
       description: String(collection.description || collection.content || ''),
-      image: images[0] || '',
-      gallery: images,
+      image: processedImages[0] || '',
+      gallery: processedImages,
       series,
       tags: Array.isArray(collection.tags) ? collection.tags.map(String) : [],
       products,

@@ -619,6 +619,26 @@ export class ShopService implements OnModuleInit {
     const operations = sharedGroups.map((group) => {
       const productSlugs = group.products.map((product) => product.slug);
       const slug = `series-${group.slug}`;
+      
+      // Process the first product's image to ensure correct path format
+      let firstImage = '';
+      if (group.products[0]?.image) {
+        const productImage = group.products[0].image;
+        // Convert WordPress/wp-content paths to local format
+        if (productImage.includes('wp-content/uploads/')) {
+          const filename = productImage.split('/').pop() || '';
+          if (filename) {
+            firstImage = `/uploads/products/${filename}`;
+          }
+        } else if (productImage.startsWith('/')) {
+          // Already in correct local format
+          firstImage = productImage;
+        } else {
+          // External image, but prefer local format when possible
+          firstImage = productImage;
+        }
+      }
+      
       return {
         updateOne: {
           filter: { kind: 'collection', slug },
@@ -630,7 +650,7 @@ export class ShopService implements OnModuleInit {
               status: 'published',
               excerpt: `${productSlugs.length} محصول از سری ${group.name}`,
               description: '',
-              images: group.products[0]?.image ? [group.products[0].image] : [],
+              images: firstImage ? [firstImage] : [],
               tags: [group.name],
               publishedAt: new Date(),
             },
