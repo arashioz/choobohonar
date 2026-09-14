@@ -36,10 +36,9 @@ export class CollectionsService {
     const item = await this.model.findOne({ slug, status: { $ne: 'archived' } }).lean().exec();
     if (item) {
       const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
-      let image = item.image;
-      if (!image && products.length > 0 && products[0].image) {
-        image = products[0].image as string;
-      }
+      // Product media is the canonical cover: this prevents a stale saved
+      // collection image from breaking a card while its product is healthy.
+      const image = String(products[0]?.image || item.image || '');
       return { ...item, image, products };
     }
 
@@ -122,10 +121,7 @@ export class CollectionsService {
     const withProducts: Array<Record<string, unknown> & { products: Record<string, unknown>[] }> = await Promise.all(
       collections.map(async (collection) => {
         const products = await this.getProductsForCollection(collection as unknown as Record<string, unknown>);
-        let image = collection.image;
-        if (!image && products.length > 0 && products[0].image) {
-          image = products[0].image as string;
-        }
+        const image = String(products[0]?.image || collection.image || '');
         return {
           ...collection,
           image,
@@ -159,15 +155,13 @@ export class CollectionsService {
     const title = String(collection.title || '').trim();
     const series = String(data.seriesName || data.series || title.replace(/^کالکشن\s+/u, '')).trim();
     const products = await this.getProductsForCmsCollection(collection, series);
-    // A WordPress URL cannot be mapped from its filename to the local media
-    // store: downloaded product filenames are hashed. Preserve the original
-    // URL (which is allow-listed in Next's image configuration) instead.
-    let processedImages = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
-    
-    // If no images but we have products, use first product's image
-    if (processedImages.length === 0 && products.length > 0 && products[0].image) {
-      processedImages = [products[0].image as string];
-    }
+    // The first actual product is the collection cover everywhere. This keeps
+    // the listing and detail header in sync and bypasses stale legacy covers.
+    const savedImages = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
+    const productCover = String(products[0]?.image || '');
+    const processedImages = productCover
+      ? [productCover, ...savedImages.filter((image) => image !== productCover)]
+      : savedImages;
 
     return {
       _id: String(collection._id || ''),
