@@ -23,6 +23,7 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
   const [filter, setFilter] = useState<"all" | CmsStatus>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [syncingCollections, setSyncingCollections] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +62,21 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
     } catch (err) { setError(err instanceof Error ? err.message : "تغییر وضعیت انجام نشد"); }
   }
 
+  async function syncCollectionsFromCatalog() {
+    setSyncingCollections(true);
+    setError("");
+    try {
+      const response = await fetch("/admin/api/shop/collections/seed", { method: "POST", credentials: "include" });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "همگام‌سازی کالکشن‌ها انجام نشد");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "همگام‌سازی کالکشن‌ها انجام نشد");
+    } finally {
+      setSyncingCollections(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f3ee]">
       <div className="mx-auto max-w-[1380px] px-5 py-7 sm:px-8 md:py-9 lg:px-10">
@@ -71,7 +87,10 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
             <h1 className="mt-2 text-2xl font-medium tracking-tightest text-forest sm:text-3xl">{labels.title}</h1>
             <p className="mt-2 text-xs leading-6 text-forest/45">{labels.description}</p>
           </div>
-          <Link href={`/admin/manage/${kind}/new`} className="inline-flex w-fit items-center gap-2 rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper shadow-sm transition-colors hover:bg-forest-700"><span className="text-base text-peach">+</span>افزودن {labels.singular}</Link>
+          <div className="flex flex-wrap gap-2">
+            {kind === "collections" && <button type="button" onClick={syncCollectionsFromCatalog} disabled={syncingCollections} className="inline-flex w-fit items-center gap-2 rounded-xl border border-forest/15 bg-white px-4 py-3 text-xs font-medium text-forest transition-colors hover:bg-forest/[0.03] disabled:cursor-not-allowed disabled:opacity-55">{syncingCollections ? "در حال همگام‌سازی…" : "همگام‌سازی از کاتالوگ"}</button>}
+            <Link href={`/admin/manage/${kind}/new`} className="inline-flex w-fit items-center gap-2 rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper shadow-sm transition-colors hover:bg-forest-700"><span className="text-base text-peach">+</span>افزودن {labels.singular}</Link>
+          </div>
         </header>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-3">

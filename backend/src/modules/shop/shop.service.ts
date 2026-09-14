@@ -613,31 +613,25 @@ export class ShopService implements OnModuleInit {
       groups.set(key, group);
     }
 
-    // A collection is a shared product series. Single-product names remain
-    // product attributes but do not create an empty-looking collection page.
-    const sharedGroups = [...groups.values()].filter((group) => group.products.length >= 2);
+    // Import every WordPress collection, including a single-product series.
+    // Its explicit taxonomy membership is still a real collection and the
+    // admin can enrich its image and story later.
+    const sharedGroups = [...groups.values()].filter((group) => group.products.length >= 1);
+    // Older releases named generated records `series-*`. Archive those
+    // generated duplicates and keep the original WordPress collection slug as
+    // the single canonical public/admin record (e.g. `/collection/solo`).
+    const legacyGeneratedSlugs = sharedGroups.map((group) => `series-${group.slug}`);
+    if (legacyGeneratedSlugs.length) await this.collectionModel.updateMany(
+      { kind: 'collection', slug: { $in: legacyGeneratedSlugs }, 'data.source': 'catalog-series' },
+      { $set: { status: 'archived' } },
+    ).exec();
     const operations = sharedGroups.map((group) => {
       const productSlugs = group.products.map((product) => product.slug);
-      const slug = `series-${group.slug}`;
+      const slug = group.slug;
       
-      // Process the first product's image to ensure correct path format
-      let firstImage = '';
-      if (group.products[0]?.image) {
-        const productImage = group.products[0].image;
-        // Convert WordPress/wp-content paths to local format
-        if (productImage.includes('wp-content/uploads/')) {
-          const filename = productImage.split('/').pop() || '';
-          if (filename) {
-            firstImage = `/uploads/products/${filename}`;
-          }
-        } else if (productImage.startsWith('/')) {
-          // Already in correct local format
-          firstImage = productImage;
-        } else {
-          // External image, but prefer local format when possible
-          firstImage = productImage;
-        }
-      }
+      // Keep the actual catalog URL. A WordPress filename cannot be used to
+      // reconstruct a local upload path because downloaded assets are hashed.
+      const firstImage = group.products[0]?.image || '';
       
       return {
         updateOne: {

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { collections } from "@/data/collections";
+import { collections, fetchApiCollections } from "@/data/collections";
 import { materials } from "@/data/materials";
 import { materialCommerceItems } from "@/data/material-products";
 import { commerceCategories } from "@/data/commerce";
@@ -11,7 +11,7 @@ const BASE = "https://choobohonar.com";
 
 // Note: post/product `date` fields are stored as Persian-digit strings, so we
 // intentionally omit `lastModified` rather than emit invalid dates.
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     "",
     "/products",
@@ -52,8 +52,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]);
 
-  const collectionRoutes: MetadataRoute.Sitemap = collections.map((c) => ({
-    url: `${BASE}/collection/${c.slug}`,
+  const apiCollections = await fetchApiCollections();
+  const collectionSlugs = [...new Set([...collections.map((collection) => collection.slug), ...apiCollections.map((collection) => collection.slug)])];
+  const collectionRoutes: MetadataRoute.Sitemap = collectionSlugs.map((slug) => ({
+    url: `${BASE}/collection/${slug}`,
     changeFrequency: "monthly",
     priority: 0.7,
   }));

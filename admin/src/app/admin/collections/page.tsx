@@ -1,3 +1,6 @@
-import CollectionsWorkspace from "@/components/collections/CollectionsWorkspace";
+import { redirect } from "next/navigation";
 export const metadata = { title: "مدیریت کالکشن‌ها" };
-export default function CollectionsPage() { return <CollectionsWorkspace />; }
+
+// Keep this old address for bookmarks, but use the CMS workspace as the
+// single source of truth for every collection.
+export default function CollectionsPage() { redirect("/admin/manage/collections"); }
