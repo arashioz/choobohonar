@@ -59,7 +59,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
             </div>
             {apiCollection.image && (
               <FadeUp delay={0.1} className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
-                <Image src={apiCollection.image} alt={apiCollection.name} fill priority sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
+                <Image src={apiCollection.image} alt={apiCollection.name} fill priority unoptimized sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
               </FadeUp>
             )}
           </div>
@@ -77,7 +77,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                 <article className="group block">
                   <Link href={`/products/${product.slug}`} className="block">
                     <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">
-                      <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
+                      <Image src={product.image} alt={product.name} fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
                     </div>
                     <div className="mt-4 flex items-baseline justify-between gap-3">
                       <h3 className="text-xl font-light tracking-tight text-forest">{product.name}</h3>
@@ -130,7 +130,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
             <FadeUp as="p" delay={0.15} className="mt-6 max-w-2xl text-lg leading-relaxed text-forest/65">{collection.longDescription}</FadeUp>
           </div>
           <FadeUp delay={0.1} className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
-            <Image src={collection.image} alt={collection.name} fill priority sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
+            <Image src={collection.image} alt={collection.name} fill priority unoptimized sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
           </FadeUp>
         </div>
 
@@ -147,7 +147,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
               <article className="group block">
                 <Link href={`/products/${product.slug}`} className="block">
                   <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">
-                    <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
+                    <Image src={product.image} alt={product.name} fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
                   </div>
                   <div className="mt-4 flex items-baseline justify-between gap-3">
                     <h3 className="text-xl font-light tracking-tight text-forest">{product.name}</h3>

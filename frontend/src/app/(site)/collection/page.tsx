@@ -39,7 +39,7 @@ export default async function CollectionPage() {
                 <Link href={`/collection/${collection.slug}`} className="group block">
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
                     {collection.image ? (
-                      <Image src={collection.image} alt={collection.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
+                      <Image src={collection.image} alt={collection.name} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-forest/30">
                         <span className="text-sm">{collection.name}</span>
@@ -69,7 +69,7 @@ export default async function CollectionPage() {
                 <FadeUp key={collection.slug} delay={index * 0.08}>
                   <Link href={`/collection/${collection.slug}`} className="group block">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
-                      <Image src={collection.image} alt={collection.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
+                      <Image src={collection.image} alt={collection.name} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
                     </div>
                     <div className="mt-6 flex items-start justify-between gap-4">
                       <div>
