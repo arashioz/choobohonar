@@ -7,9 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
   UploadedFile,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseInterceptors } from '@nestjs/common';
 import { ShopService } from './shop.service';
@@ -88,6 +90,20 @@ export class ShopController {
   @UseInterceptors(FileInterceptor('file'))
   importPrice(@UploadedFile() file: { buffer: Buffer; originalname: string }) {
     return this.shopService.importPriceFile(file);
+  }
+
+  @Get('products/export-price')
+  @UseGuards(JwtAuthGuard)
+  async exportPrice(@Res() response: Response) {
+    const file = await this.shopService.exportPriceFile();
+    response
+      .status(200)
+      .set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename="choobohonar-product-prices.xlsx"',
+        'Cache-Control': 'no-store',
+      })
+      .send(file);
   }
 
   @Post('collections/seed')

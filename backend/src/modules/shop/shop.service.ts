@@ -174,8 +174,93 @@ export class ShopService implements OnModuleInit {
 
   async importPriceFile(file?: { buffer: Buffer; originalname: string }) {
     if (!file?.buffer?.length || !/\.xlsx$/i.test(file.originalname)) throw new ConflictException('فایل اکسل معتبر نیست');
-    const archive = /حذف\s*از\s*تولید/i.test(file.originalname);
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const hasCatalogColumns = workbook.SheetNames.some((sheetName) => {
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null, range: 0 });
+      return rows.some((row) => 'شناسه محصول' in row && 'قیمت جدید (تومان)' in row);
+    });
+    if (hasCatalogColumns) return this.importCatalogPriceFile(workbook);
+    return this.importLegacyPriceFile(workbook, file.originalname);
+  }
+
+  async exportPriceFile() {
+    const products = await this.productModel.find({}).sort({ name: 1 }).lean().exec();
+    const rows = products.flatMap((product) => {
+      const base = {
+        'شناسه محصول': String(product._id),
+        'نام محصول': product.name,
+        'دسته‌بندی': product.category,
+      };
+      if (!product.variants?.length) return [{
+        ...base,
+        'نوع ردیف': 'محصول',
+        'شناسه واریانت': '',
+        'کد کالا': product.externalCode || '',
+        'واریانت': '',
+        'قیمت فعلی (تومان)': product.price ?? '',
+        'قیمت جدید (تومان)': product.price ?? '',
+      }];
+      return product.variants.map((variant: any) => ({
+        ...base,
+        'نوع ردیف': 'واریانت',
+        'شناسه واریانت': String(variant._id || ''),
+        'کد کالا': variant.sku || '',
+        'واریانت': (variant.options || []).map((option) => `${option.name}: ${option.value}`).join('، '),
+        'قیمت فعلی (تومان)': variant.price ?? product.price ?? '',
+        'قیمت جدید (تومان)': variant.price ?? product.price ?? '',
+      }));
+    });
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet['!cols'] = [18, 18, 15, 28, 24, 18, 32, 20, 20].map((wch) => ({ wch }));
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'قیمت محصولات');
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx', compression: true });
+  }
+
+  private priceFromCell(value: unknown): number | undefined {
+    const normalized = String(value ?? '')
+      .replace(/[۰-۹]/g, (char) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(char)))
+      .replace(/[٬,\s]/g, '');
+    const price = Number(normalized);
+    return Number.isFinite(price) && price >= 0 ? Math.round(price) : undefined;
+  }
+
+  private async importCatalogPriceFile(workbook: XLSX.WorkBook) {
+    const catalog = await this.productModel.find({}).select('_id name price variants').lean().exec();
+    const byId = new Map(catalog.map((product) => [String(product._id), product]));
+    let updated = 0, unchanged = 0, skipped = 0;
+    for (const sheetName of workbook.SheetNames) {
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null });
+      for (const row of rows) {
+        const product = byId.get(String(row['شناسه محصول'] ?? '').trim());
+        const price = this.priceFromCell(row['قیمت جدید (تومان)']);
+        if (!product || price === undefined) { skipped++; continue; }
+        const variantId = String(row['شناسه واریانت'] ?? '').trim();
+        const sku = String(row['کد کالا'] ?? '').trim();
+        if (variantId || sku) {
+          const variant = product.variants?.find((item: any) => String(item._id) === variantId || (!variantId && sku && item.sku === sku));
+          if (!variant) { skipped++; continue; }
+          if (variant.price === price) { unchanged++; continue; }
+          await this.productModel.updateOne(
+            { _id: product._id },
+            { $set: { 'variants.$[variant].price': price } },
+            { arrayFilters: [{ 'variant._id': variant._id }] },
+          );
+          variant.price = price;
+          updated++;
+        } else {
+          if (product.price === price) { unchanged++; continue; }
+          await this.productModel.updateOne({ _id: product._id }, { $set: { price } });
+          product.price = price;
+          updated++;
+        }
+      }
+    }
+    return { updated, unchanged, skipped, created: 0, archived: 0, format: 'catalog' };
+  }
+
+  private async importLegacyPriceFile(workbook: XLSX.WorkBook, originalname: string) {
+    const archive = /حذف\s*از\s*تولید/i.test(originalname);
     const catalog = await this.productModel.find({}).select('name externalCode variants').lean().exec();
     let updated = 0, created = 0, archived = 0, skipped = 0;
     for (const sheetName of workbook.SheetNames) {

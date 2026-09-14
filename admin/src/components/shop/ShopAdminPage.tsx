@@ -111,7 +111,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     request.upload.onprogress = (event) => { if (event.lengthComputable) setImportProgress(Math.round((event.loaded / event.total) * 100)); };
     request.onload = () => {
       setImporting(false); setImportProgress(100);
-      try { const result = JSON.parse(request.responseText); if (request.status >= 200 && request.status < 300) { setMessage(`قیمت: ${result.updated} به‌روزرسانی، ${result.created} محصول جدید، ${result.archived} بایگانی شد.`); void loadProducts(); } else setError(result.message || "ورود فایل ناموفق بود"); }
+      try { const result = JSON.parse(request.responseText); if (request.status >= 200 && request.status < 300) { setMessage(`قیمت: ${result.updated} به‌روزرسانی، ${result.unchanged || 0} بدون تغییر، ${result.skipped} رد شد.`); void loadProducts(); } else setError(result.message || "ورود فایل ناموفق بود"); }
       catch { setError("پاسخ ورود فایل معتبر نیست"); }
     };
     request.onerror = () => { setImporting(false); setError("ارتباط با سرویس فروشگاه برقرار نشد"); };
@@ -297,7 +297,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
         {error ? <p className="text-sm text-brick">{error}</p> : null}
 
         <div className="flex flex-wrap gap-2">
-          {tab === "products" ? <label className="cursor-pointer rounded-xl border border-forest/15 bg-white px-3 py-2 text-sm text-forest/70"><input type="file" accept=".xlsx" className="sr-only" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) importPrices(file); event.currentTarget.value = ""; }} />{importing ? `در حال ورود ${importProgress}٪` : "ورود فایل قیمت"}</label> : null}
+          {tab === "products" ? <><a href="/admin/api/shop/products/export-price" className="rounded-xl border border-forest/15 bg-white px-3 py-2 text-sm text-forest/70 hover:border-forest/35">دریافت فایل قیمت</a><label className="cursor-pointer rounded-xl border border-forest/15 bg-white px-3 py-2 text-sm text-forest/70"><input type="file" accept=".xlsx" className="sr-only" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) importPrices(file); event.currentTarget.value = ""; }} />{importing ? `در حال ورود ${importProgress}٪` : "آپلود قیمت‌های ویرایش‌شده"}</label></> : null}
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
