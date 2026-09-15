@@ -40,10 +40,33 @@ export class CollectionsService {
       filter.$or = ['name', 'slug', 'series'].map((field) => ({
         [field]: { $regex: q.trim(), $options: 'i' },
       }));
-    const [items, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       this.model.find(filter).sort({ updatedAt: -1 }).limit(100).lean().exec(),
       this.model.countDocuments(filter),
     ]);
+    const seriesList = [
+      ...new Set(
+        rows.map((row) => String(row.series || '').trim()).filter(Boolean),
+      ),
+    ];
+    const countBySeries = new Map<string, number>();
+    if (seriesList.length) {
+      const grouped = await this.products
+        .aggregate<{ _id: string; productCount: number }>([
+          { $match: { series: { $in: seriesList } } },
+          { $group: { _id: '$series', productCount: { $sum: 1 } } },
+        ])
+        .exec();
+      grouped.forEach((row) =>
+        countBySeries.set(String(row._id), row.productCount),
+      );
+    }
+    const items = rows.map((row) => ({
+      ...row,
+      productCount: row.series
+        ? countBySeries.get(String(row.series)) || 0
+        : 0,
+    }));
     return { items, total };
   }
 

@@ -16,6 +16,7 @@ type Collection = {
   tags: string[];
   publishedAt?: string;
   createdAt?: string;
+  productCount?: number;
 };
 
 type Product = {
@@ -353,32 +354,56 @@ export default function CollectionsWorkspace() {
 
           {notice && <p className="m-4 rounded-xl bg-sage/20 px-3 py-2 text-xs text-forest">{notice}</p>}
 
-          <div className="divide-y divide-forest/[.07]">
-            {loading ? (
-              <p className="p-10 text-center text-xs text-forest/40">در حال دریافت…</p>
-            ) : !items.length ? (
-              <p className="p-10 text-center text-xs text-forest/40">کالکشنی ثبت نشده است. از دکمه «ساخت خودکار» استفاده کنید.</p>
-            ) : (
-              items.map((item) => (
-                <article key={item._id} className="flex flex-wrap items-center gap-3 px-5 py-4">
-                  <div className="min-w-[200px] flex-1">
-                    <h2 className="text-sm font-medium text-forest">{item.name}</h2>
-                    <p className="mt-1 text-[10px] text-forest/45" dir="ltr">{item.slug}{item.series ? ` · series: ${item.series}` : ""}</p>
-                  </div>
-                  <span className={`rounded-full px-2.5 py-1 text-[9px] text-forest ${statusColors[item.status] || "bg-gray-100 text-gray-600"}`}>
-                    {statusLabels[item.status] || item.status}
-                  </span>
-                  <span className="text-[10px] text-forest/45">
-                    {productsBySeries[item.series]?.length || 0} محصول
-                  </span>
-                  <div className="flex gap-2">
-                    <button onClick={() => startEdit(item)} className="text-[10px] text-forest/50 underline">ویرایش</button>
-                    <button onClick={() => remove(item._id)} className="text-[10px] text-red-400 underline">حذف</button>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
+          {loading ? (
+            <p className="p-10 text-center text-xs text-forest/40">در حال دریافت…</p>
+          ) : !items.length ? (
+            <p className="p-10 text-center text-xs text-forest/40">کالکشنی ثبت نشده است. از دکمه «ساخت خودکار» استفاده کنید.</p>
+          ) : (
+            <table className="w-full text-right text-sm">
+              <thead className="border-b border-forest/10 bg-paper/60 text-[10px] text-forest/45">
+                <tr>
+                  <th className="px-5 py-3 font-medium">نام کالکشن</th>
+                  <th className="px-4 py-3 font-medium">وضعیت</th>
+                  <th className="px-4 py-3 font-medium">تعداد</th>
+                  <th className="px-5 py-3 font-medium">عملیات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-forest/[.07]">
+                {items.map((item) => (
+                  <tr key={item._id} className="hover:bg-forest/[0.02]">
+                    <td className="px-5 py-4">
+                      <p className="font-medium text-forest">{item.name}</p>
+                      <p className="mt-1 text-[10px] text-forest/45" dir="ltr">
+                        {item.slug}
+                        {item.series ? ` · series: ${item.series}` : ""}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`rounded-full px-2.5 py-1 text-[9px] ${statusColors[item.status] || "bg-gray-100 text-gray-600"}`}>
+                        {statusLabels[item.status] || item.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 tabular-nums text-forest/70">
+                      {(typeof item.productCount === "number"
+                        ? item.productCount
+                        : productsBySeries[item.series]?.length || 0
+                      ).toLocaleString("fa-IR")}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => startEdit(item)} className="text-[10px] text-forest/50 underline">
+                          ویرایش
+                        </button>
+                        <button type="button" onClick={() => remove(item._id)} className="text-[10px] text-red-400 underline">
+                          حذف
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       </div>
     </main>
