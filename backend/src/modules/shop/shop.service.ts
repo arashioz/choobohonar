@@ -883,13 +883,7 @@ export class ShopService implements OnModuleInit {
           filter: { kind: 'collection', slug },
           update: {
             $setOnInsert: {
-              kind: 'collection',
-              slug,
-              title: `کالکشن ${group.name}`,
-              status: 'published',
-              excerpt: `${productSlugs.length} محصول از سری ${group.name}`,
               description: '',
-              images: firstImage ? [firstImage] : [],
               tags: [group.name],
               publishedAt: new Date(),
             },
