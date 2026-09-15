@@ -691,8 +691,15 @@ export class ShopService implements OnModuleInit {
           | 'carpet'
           | 'lighting'
           | 'dishes',
-        shortDescription: row.shortDescription || '',
-        longDescription: row.longDescription || '',
+        // A previous catalog export may not contain copy at all. In that
+        // case it must never erase WordPress descriptions already merged or
+        // subsequently edited in the admin on every application restart.
+        ...(row.shortDescription?.trim()
+          ? { shortDescription: row.shortDescription.trim() }
+          : {}),
+        ...(row.longDescription?.trim()
+          ? { longDescription: row.longDescription.trim() }
+          : {}),
         image: row.image || '',
         gallery: row.gallery || (row.image ? [row.image] : []),
         shopUrl: row.shopUrl,

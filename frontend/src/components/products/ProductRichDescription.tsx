@@ -58,8 +58,7 @@ function sanitizeProductHtml(value: string): string {
         return `<${normalized}${attributes}>`;
       }
       return `<${normalized}>`;
-    })
-    .replace(/\r?\n/g, "<br>");
+    });
 }
 
 export default function ProductRichDescription({
