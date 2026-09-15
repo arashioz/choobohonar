@@ -91,6 +91,7 @@ export default function ShopProductForm({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [descriptionMode, setDescriptionMode] = useState<"preview" | "html">("preview");
 
   useEffect(() => {
     shopApi.categories().then((rows) => setCategoryOptions(Array.from(new Set(rows.map((row) => row.category).filter(Boolean))))).catch(() => undefined);
@@ -309,12 +310,28 @@ export default function ShopProductForm({
           </Field>
 
           <Field label="توضیح کامل">
-            <textarea
-              className={fieldClass}
-              rows={5}
-              value={form.longDescription}
-              onChange={(e) => set("longDescription", e.target.value)}
-            />
+            <div className="rounded-xl border border-forest/10 bg-[#faf8f5] p-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-[10px] text-forest/45">توضیحات وردپرس شامل پاراگراف، لیست و جدول است.</p>
+                <button
+                  type="button"
+                  onClick={() => setDescriptionMode((mode) => mode === "preview" ? "html" : "preview")}
+                  className="shrink-0 rounded-lg border border-forest/15 bg-white px-3 py-1.5 text-[10px] text-forest"
+                >
+                  {descriptionMode === "preview" ? "ویرایش HTML" : "پیش‌نمایش"}
+                </button>
+              </div>
+              {descriptionMode === "html" ? (
+                <textarea
+                  className={`${fieldClass} min-h-72 font-mono text-xs leading-6`}
+                  value={form.longDescription}
+                  onChange={(e) => set("longDescription", e.target.value)}
+                  dir="rtl"
+                />
+              ) : (
+                <ProductDescriptionPreview html={form.longDescription} />
+              )}
+            </div>
           </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -443,6 +460,14 @@ export default function ShopProductForm({
 function parsePrice(value: string) { return Number(value.replace(/[^0-9]/g, "")); }
 function formatPrice(value: string) { const digits = value.replace(/[^0-9]/g, ""); return digits ? Number(digits).toLocaleString("en-US") : ""; }
 function compactDimensions(form: FormState) { const dimensions = { width: Number(form.width) || undefined, depth: Number(form.depth) || undefined, height: Number(form.height) || undefined }; return Object.values(dimensions).some(Boolean) ? dimensions : undefined; }
+
+function ProductDescriptionPreview({ html }: { html: string }) {
+  const document = `<!doctype html><html dir="rtl"><head><meta charset="utf-8"><style>
+    *{box-sizing:border-box} body{margin:0;padding:16px;background:#fff;color:#294238;font-family:Tahoma,Arial,sans-serif;font-size:14px;line-height:2;text-align:right}
+    p{margin:0 0 16px} ul,ol{margin:0 0 16px;padding-right:22px} table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px} td,th{border:1px solid #d8dfda;padding:10px;vertical-align:top} td p,th p{margin:0} th{background:#f3f6f3}
+  </style></head><body>${html || "<p>هنوز توضیح کاملی ثبت نشده است.</p>"}</body></html>`;
+  return <iframe title="پیش‌نمایش توضیح محصول" sandbox="" srcDoc={document} className="h-[420px] w-full rounded-lg border border-forest/10 bg-white" />;
+}
 
 type ProductDetailRow = { label?: string; value?: string; title?: string; description?: string };
 
