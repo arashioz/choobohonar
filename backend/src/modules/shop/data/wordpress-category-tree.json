@@ -1,10 +1,9 @@
 {
   "source": "wc-product-export-15-9-2026-1789498910475.csv",
-  "generatedAt": "2026-09-15T19:36:19.154Z",
+  "generatedAt": "2026-09-15T19:48:27.950Z",
   "productScope": {
-    "allParentProducts": 438,
-    "seedProducts": 438,
-    "retainedVariations": 528
+    "catalogProducts": 966,
+    "standaloneVariations": 527
   },
   "normalization": {
     "carpetAndRug": "همه مسیرهای فرش و گلیم به دستهٔ واحد «فرش و گلیم» تبدیل شده‌اند و زیر‌دسته ندارند."
@@ -13,48 +12,48 @@
     {
       "name": "اتاق خواب",
       "slug": "اتاق-خواب",
-      "productCount": 61,
+      "productCount": 147,
       "children": [
         {
           "name": "آینه",
           "slug": "اینه",
-          "productCount": 10,
+          "productCount": 21,
           "children": []
         },
         {
           "name": "پاتختی",
           "slug": "پاتختی",
-          "productCount": 10,
+          "productCount": 20,
           "children": []
         },
         {
           "name": "تخت خواب",
           "slug": "تخت-خواب",
-          "productCount": 9,
+          "productCount": 41,
           "children": []
         },
         {
           "name": "دراور",
           "slug": "دراور",
-          "productCount": 7,
+          "productCount": 14,
           "children": []
         },
         {
           "name": "صندلی میزآرایش",
           "slug": "صندلی-میزارایش",
-          "productCount": 9,
+          "productCount": 18,
           "children": []
         },
         {
           "name": "لاوست",
           "slug": "لاوست",
-          "productCount": 6,
+          "productCount": 12,
           "children": []
         },
         {
           "name": "میزآرایش",
           "slug": "میزارایش",
-          "productCount": 10,
+          "productCount": 21,
           "children": []
         }
       ]
@@ -62,7 +61,7 @@
     {
       "name": "دکور",
       "slug": "دکور",
-      "productCount": 120,
+      "productCount": 219,
       "children": [
         {
           "name": "آینه",
@@ -85,19 +84,19 @@
         {
           "name": "دکوراتیو",
           "slug": "دکوراتیو",
-          "productCount": 30,
+          "productCount": 36,
           "children": []
         },
         {
           "name": "رانر",
           "slug": "رانر",
-          "productCount": 1,
+          "productCount": 3,
           "children": []
         },
         {
           "name": "ساعت",
           "slug": "ساعت",
-          "productCount": 3,
+          "productCount": 9,
           "children": []
         },
         {
@@ -109,19 +108,19 @@
         {
           "name": "شمع دکوراتیو",
           "slug": "شمع-دکوراتیو",
-          "productCount": 11,
+          "productCount": 44,
           "children": []
         },
         {
           "name": "شمعدان",
           "slug": "شمعدان",
-          "productCount": 11,
+          "productCount": 20,
           "children": []
         },
         {
           "name": "ظروف",
           "slug": "ظروف",
-          "productCount": 36,
+          "productCount": 69,
           "children": []
         },
         {
@@ -133,7 +132,7 @@
         {
           "name": "گلدان",
           "slug": "گلدان",
-          "productCount": 14,
+          "productCount": 24,
           "children": []
         }
       ]
@@ -141,12 +140,12 @@
     {
       "name": "روشنایی",
       "slug": "روشنایی",
-      "productCount": 37,
+      "productCount": 59,
       "children": [
         {
           "name": "آباژور ایستاده",
           "slug": "اباژور-ایستاده",
-          "productCount": 12,
+          "productCount": 27,
           "children": []
         },
         {
@@ -158,19 +157,19 @@
         {
           "name": "آویز",
           "slug": "اویز",
-          "productCount": 3,
+          "productCount": 5,
           "children": []
         },
         {
           "name": "دیوارکوب",
           "slug": "دیوارکوب",
-          "productCount": 1,
+          "productCount": 3,
           "children": []
         },
         {
           "name": "لوستر",
           "slug": "لوستر",
-          "productCount": 6,
+          "productCount": 9,
           "children": []
         }
       ]
@@ -178,23 +177,23 @@
     {
       "name": "غذاخوری",
       "slug": "غذاخوری",
-      "productCount": 13,
+      "productCount": 40,
       "children": [
         {
           "name": "صندلی غذاخوری",
           "slug": "صندلی-غذاخوری",
-          "productCount": 8,
+          "productCount": 17,
           "children": [
             {
               "name": "صندلی غذاخوری",
               "slug": "صندلی-غذاخوری",
-              "productCount": 5,
+              "productCount": 12,
               "children": []
             },
             {
               "name": "صندلی کانتر",
               "slug": "صندلی-کانتر",
-              "productCount": 2,
+              "productCount": 4,
               "children": []
             }
           ]
@@ -202,7 +201,7 @@
         {
           "name": "میز غذاخوری",
           "slug": "میز-غذاخوری",
-          "productCount": 5,
+          "productCount": 23,
           "children": []
         }
       ]
@@ -210,72 +209,78 @@
     {
       "name": "فرش و گلیم",
       "slug": "فرش-و-گلیم",
-      "productCount": 16,
+      "productCount": 44,
       "children": []
     },
     {
       "name": "کالای خواب",
       "slug": "کالای-خواب",
-      "productCount": 123,
+      "productCount": 298,
       "children": [
         {
           "name": "بالش",
           "slug": "بالش",
-          "productCount": 18,
+          "productCount": 36,
           "children": []
         },
         {
           "name": "پتو",
           "slug": "پتو",
-          "productCount": 22,
+          "productCount": 53,
           "children": []
         },
         {
           "name": "تشک",
           "slug": "تشک",
-          "productCount": 10,
+          "productCount": 57,
           "children": []
         },
         {
           "name": "سرویس روتختی",
           "slug": "سرویس-روتختی",
-          "productCount": 39,
+          "productCount": 47,
           "children": []
         },
         {
           "name": "سرویس ملحفه",
           "slug": "سرویس-ملحفه",
-          "productCount": 25,
+          "productCount": 65,
           "children": []
         },
         {
           "name": "لحاف",
           "slug": "لحاف",
-          "productCount": 7,
+          "productCount": 28,
           "children": []
         },
         {
           "name": "محافظ تشک",
           "slug": "محافظ-تشک",
-          "productCount": 2,
+          "productCount": 12,
           "children": []
         }
       ]
     },
     {
+      "name": "محصولات بدون والد وردپرس",
+      "slug": "محصولات-بدون-والد-وردپرس",
+      "productCount": 1,
+      "children": []
+    },
+    {
       "name": "نشیمن",
       "slug": "نشیمن",
-      "productCount": 68,
+      "productCount": 158,
       "children": [
         {
           "name": "صندلی",
           "slug": "صندلی",
-          "productCount": 1,
+          "productCount": 2,
           "children": [
             {
               "name": "صندلی راک",
               "slug": "صندلی-راک",
-              "productCount": 1,
+              "productCount": 2,
               "children": []
             }
           ]
@@ -283,30 +288,30 @@
         {
           "name": "کاناپه",
           "slug": "کاناپه",
-          "productCount": 5,
+          "productCount": 16,
           "children": []
         },
         {
           "name": "کمد کنسول",
           "slug": "کمد-کنسول",
-          "productCount": 5,
+          "productCount": 12,
           "children": [
             {
               "name": "بوفه",
               "slug": "بوفه",
-              "productCount": 2,
+              "productCount": 6,
               "children": []
             },
             {
               "name": "کمد بار",
               "slug": "کمد-بار",
-              "productCount": 1,
+              "productCount": 2,
               "children": []
             },
             {
               "name": "کنسول",
               "slug": "کنسول",
-              "productCount": 2,
+              "productCount": 4,
               "children": []
             }
           ]
@@ -314,24 +319,24 @@
         {
           "name": "مبل ال",
           "slug": "مبل-ال",
-          "productCount": 17,
+          "productCount": 33,
           "children": []
         },
         {
           "name": "مبل تک نفره",
           "slug": "مبل-تک-نفره",
-          "productCount": 9,
+          "productCount": 18,
           "children": []
         },
         {
           "name": "مبلمان فضای باز",
           "slug": "مبلمان-فضای-باز",
-          "productCount": 4,
+          "productCount": 14,
           "children": [
             {
               "name": "تخت آفتاب",
               "slug": "تخت-افتاب",
-              "productCount": 1,
+              "productCount": 3,
               "children": []
             },
             {
@@ -343,13 +348,13 @@
             {
               "name": "میز جلو مبلی",
               "slug": "میز-جلو-مبلی",
-              "productCount": 1,
+              "productCount": 7,
               "children": []
             },
             {
               "name": "نیمکت",
               "slug": "نیمکت",
-              "productCount": 1,
+              "productCount": 3,
               "children": []
             }
           ]
@@ -357,30 +362,30 @@
         {
           "name": "میز",
           "slug": "میز",
-          "productCount": 27,
+          "productCount": 63,
           "children": [
             {
               "name": "جلو مبلی",
               "slug": "جلو-مبلی",
-              "productCount": 10,
+              "productCount": 24,
               "children": []
             },
             {
               "name": "کنار مبلی",
               "slug": "کنار-مبلی",
-              "productCount": 12,
+              "productCount": 26,
               "children": []
             },
             {
               "name": "میز خاطره",
               "slug": "میز-خاطره",
-              "productCount": 1,
+              "productCount": 2,
               "children": []
             },
             {
               "name": "میزتلویزیون",
               "slug": "میزتلویزیون",
-              "productCount": 4,
+              "productCount": 11,
               "children": []
             }
           ]

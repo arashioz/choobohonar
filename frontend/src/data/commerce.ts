@@ -91,11 +91,9 @@ export const commerceCategories: CommerceCategory[] = [
     story: "فرش، لایه‌ای میان معماری و زندگی است؛ بافت، مقیاس و رنگ آن ریتم فضا را کامل می‌کند.",
     image: "https://choobohonar.com/wp-content/uploads/2025/07/فرش-زاب-کرم-1.jpg",
     room: "carpet",
-    children: [
-      { slug: "handmade", label: "دستبافت" },
-      { slug: "machine", label: "ماشینی" },
-      { slug: "rug", label: "گلیم" },
-    ],
+    // The WordPress import normalizes all carpet/rug products into one
+    // category, so the storefront must not expose stale child routes.
+    children: [],
   },
   {
     slug: "lighting",

@@ -30,7 +30,7 @@ type CatalogVariant = {
   enabled?: boolean;
 };
 type CatalogRow = {
-  id: number;
+  externalCode?: string;
   slug: string;
   name: string;
   category: string;
@@ -44,6 +44,8 @@ type CatalogRow = {
   attributes?: CatalogAttribute[];
   variants?: CatalogVariant[];
   prices?: { value?: string | null; regularValue?: string | null } | null;
+  stockQty?: number;
+  trackInventory?: boolean;
   sortOrder?: number;
 };
 
@@ -51,7 +53,7 @@ const mongoUri =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
 const catalogPath = join(
   process.cwd(),
-  'src/modules/shop/data/shop-catalog.json',
+  'src/modules/shop/data/wordpress-csv-catalog.json',
 );
 
 function seriesFrom(attributes: CatalogAttribute[]): string | undefined {
@@ -82,7 +84,7 @@ async function main() {
     mongoose.model('ShopProduct', ShopProductSchema);
 
   const docs = catalog.map((row, index) => ({
-    externalCode: String(row.id),
+    externalCode: row.externalCode,
     slug: row.slug,
     name: row.name,
     category: row.category,
@@ -100,11 +102,13 @@ async function main() {
     compareAtPrice: row.prices?.regularValue
       ? Number(row.prices.regularValue)
       : undefined,
-    stockQty: (row.variants || []).reduce(
-      (total, variant) => total + (variant.stockQty || 0),
-      0,
-    ),
-    trackInventory: false,
+    stockQty:
+      row.stockQty ??
+      (row.variants || []).reduce(
+        (total, variant) => total + (variant.stockQty || 0),
+        0,
+      ),
+    trackInventory: Boolean(row.trackInventory),
     specs: row.specs || [],
     highlights: [],
     attributes: (row.attributes || [])

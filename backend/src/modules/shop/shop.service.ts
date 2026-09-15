@@ -25,6 +25,7 @@ import {
 } from './dto/shop-product.dto';
 
 type CatalogSeedRow = {
+  externalCode?: string;
   slug: string;
   name: string;
   category: string;
@@ -49,6 +50,8 @@ type CatalogSeedRow = {
   specs?: { label: string; value: string }[];
   sortOrder?: number;
   shopUrl?: string;
+  stockQty?: number;
+  trackInventory?: boolean;
 };
 
 type CatalogCollectionTerm = { name: string; slug?: string };
@@ -654,17 +657,19 @@ export class ShopService implements OnModuleInit {
       // replacement migration from the WooCommerce export.
       await this.productModel.deleteMany({});
     } else if (force) {
-      await this.productModel.deleteMany({ source: 'catalog' });
+      await this.productModel.deleteMany({
+        source: { $in: ['catalog', 'wordpress-csv-2026-09-15'] },
+      });
     }
 
     const filePath = join(
       process.cwd(),
-      'src/modules/shop/data/shop-catalog.json',
+      'src/modules/shop/data/wordpress-csv-catalog.json',
     );
     const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
 
     const protectedProducts = await this.productModel
-      .find({ source: { $ne: 'catalog' } })
+      .find({ source: { $nin: ['catalog', 'wordpress-csv-2026-09-15'] } })
       .select('slug')
       .lean()
       .exec();
@@ -674,6 +679,7 @@ export class ShopService implements OnModuleInit {
     const docs = rows
       .filter((row) => !protectedSlugs.has(row.slug))
       .map((row, index) => ({
+        externalCode: row.externalCode,
         slug: row.slug,
         name: row.name,
         category: row.category,
@@ -702,13 +708,15 @@ export class ShopService implements OnModuleInit {
         status: row.status || 'published',
         featured: false,
         suggested: false,
-        stockQty: row.variants?.length
-          ? row.variants.reduce(
-              (total, variant) => total + (variant.stockQty || 0),
-              0,
-            )
-          : 0,
-        trackInventory: false,
+        stockQty:
+          row.stockQty ??
+          (row.variants?.length
+            ? row.variants.reduce(
+                (total, variant) => total + (variant.stockQty || 0),
+                0,
+              )
+            : 0),
+        trackInventory: Boolean(row.trackInventory),
         specs: row.specs || [],
         highlights: [] as { title: string; description: string }[],
         attributes: ((row.attributes || []) as CatalogAttribute[])
@@ -780,7 +788,7 @@ export class ShopService implements OnModuleInit {
   async seedCollectionsFromCatalog() {
     const filePath = join(
       process.cwd(),
-      'src/modules/shop/data/shop-catalog.json',
+      'src/modules/shop/data/wordpress-csv-catalog.json',
     );
     const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
     const groups = new Map<

@@ -1,5 +1,5 @@
 /**
- * Safe WordPress CSV seed: upserts every WordPress product and its variants.
+ * Safe WordPress CSV seed: upserts every WordPress CSV row as a product.
  * It never deletes products; re-running it updates the same imported records.
  *
  * Run: npm run catalog:seed-wordpress-csv
@@ -54,13 +54,7 @@ const catalogPath = join(
 
 async function main() {
   const catalog = JSON.parse(readFileSync(catalogPath, 'utf8')) as CatalogRow[];
-  const sourceRows = catalog.reduce(
-    (total, row) =>
-      total +
-      (row.variants?.length || 0) +
-      (row.category === 'محصولات بدون والد وردپرس' ? 0 : 1),
-    0,
-  );
+  const sourceRows = catalog.length;
   if (sourceRows !== 966) {
     throw new Error(`Expected all 966 WordPress CSV rows, received ${sourceRows}.`);
   }
@@ -106,7 +100,10 @@ async function main() {
             enabled: variant.enabled !== false,
           })),
           sortOrder: row.sortOrder || 0,
-          source: row.source || 'wordpress-csv-2026-09-15',
+          // Keep the same source as the in-app seed. This makes the admin's
+          // «سینک کامل وردپرس» and «جایگزینی کامل» controls manage exactly
+          // these imported records on later runs.
+          source: 'catalog',
         },
         $setOnInsert: {
           slug: row.slug,

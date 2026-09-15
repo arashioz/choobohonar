@@ -269,7 +269,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 disabled={busy}
                 className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs text-forest/70 disabled:opacity-50"
               >
-                سینک کاتالوگ
+                سینک کامل وردپرس
               </button>
               <button
                 type="button"
@@ -277,7 +277,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 disabled={busy}
                 className="rounded-xl border border-brick/20 bg-white px-3 py-2 text-xs text-brick disabled:opacity-50"
               >
-                جایگزینی کامل کاتالوگ
+                جایگزینی کامل با وردپرس
               </button>
               <Link
                 href="/admin/manage/products/new"

@@ -161,35 +161,30 @@ function matchVariationParent(variation, variableParents) {
 function makeCatalog(rows) {
   const slugs = new Map();
   const variableParents = rows.filter((row) => text(row["نوع"]) === "variable");
-  const variantsByParentRow = new Map();
-  const orphanVariants = [];
+  const variationParents = new Map();
   for (const row of rows.filter((item) => text(item["نوع"]) === "variation")) {
     const parent = matchVariationParent(row, variableParents);
-    if (!parent) orphanVariants.push(row);
-    else {
-      const variants = variantsByParentRow.get(parent.__row) || [];
-      variants.push(variantFrom(row));
-      variantsByParentRow.set(parent.__row, variants);
-    }
+    if (parent) variationParents.set(row.__row, parent);
   }
+
+  const allocateSlug = (name, externalCode, fallback) => {
+    const baseSlug = slugify(name);
+    const duplicate = slugs.get(baseSlug) || 0;
+    slugs.set(baseSlug, duplicate + 1);
+    return duplicate ? `${baseSlug}-${externalCode || fallback || duplicate + 1}` : baseSlug;
+  };
 
   const parentProducts = rows
     .filter((row) => ["simple", "variable"].includes(text(row["نوع"])))
     .map((row, sortOrder) => {
       const name = text(row["نام"]);
       const externalCode = asciiDigits(row["شناسه محصول"]);
-      const baseSlug = slugify(name);
-      const duplicate = slugs.get(baseSlug) || 0;
-      slugs.set(baseSlug, duplicate + 1);
-      const slug = duplicate ? `${baseSlug}-${externalCode || duplicate + 1}` : baseSlug;
+      const slug = allocateSlug(name, externalCode, row.__row);
       const gallery = splitList(row["تصاویر"]);
       const category = primaryCategory(row["دسته‌ها"]);
       const salePrice = number(row["قیمت فروش ویژه"]);
       const regularPrice = number(row["قیمت عادی"]);
       const stockQty = number(row["انبار"]);
-      const variants = variantsByParentRow.get(row.__row) || [];
-      const variantPrices = variants.map((variant) => variant.price).filter(Number.isFinite);
-      const productPrice = salePrice ?? regularPrice ?? (variantPrices.length ? Math.min(...variantPrices) : null);
 
       return {
         externalCode: externalCode || undefined,
@@ -207,46 +202,56 @@ function makeCatalog(rows) {
         gallery,
         attributes: attributesFrom(row),
         prices: {
-          value: productPrice,
+          value: salePrice ?? regularPrice ?? null,
           regularValue: salePrice && regularPrice && salePrice < regularPrice ? regularPrice : null,
         },
-        stockQty: stockQty ?? variants.reduce((total, variant) => total + variant.stockQty, 0),
-        trackInventory: Boolean(text(row["انبار"])) || variants.length > 0,
+        stockQty: stockQty ?? 0,
+        trackInventory: Boolean(text(row["انبار"])),
         inStock: text(row["در انبار؟"]) === "1",
-        variants,
+        variants: [],
         sortOrder,
         source: "wordpress-csv-2026-09-15",
       };
     });
 
-  const orphanProducts = orphanVariants.map((row, index) => {
+  const parentProductsBySourceRow = new Map(parentProducts.map((product) => [product.sourceRow, product]));
+  const variationProducts = rows
+    .filter((row) => text(row["نوع"]) === "variation")
+    .map((row, index) => {
     const variant = variantFrom(row);
-    return {
-      externalCode: variant.sku,
-      slug: `${slugify(row["نام"])}-orphan-${row.__row}`,
-      name: text(row["نام"]),
+    const parent = parentProductsBySourceRow.get(variationParents.get(row.__row)?.__row);
+    const fallbackCategory = {
       category: "محصولات بدون والد وردپرس",
       room: "decor",
-      categoryPath: ["محصولات بدون والد وردپرس"],
-      status: "draft",
-      sourceType: "orphaned-variation",
+      path: ["محصولات بدون والد وردپرس"],
+    };
+    const inherited = parent || fallbackCategory;
+    return {
+      externalCode: variant.sku,
+      slug: allocateSlug(row["نام"], variant.sku, row.__row),
+      name: text(row["نام"]),
+      category: inherited.category,
+      room: inherited.room,
+      categoryPath: inherited.categoryPath || inherited.path,
+      status: text(row["منتشر شده"]) === "1" ? "published" : "draft",
+      sourceType: parent ? "variation" : "orphaned-variation",
       sourceRow: row.__row,
-      shortDescription: "",
-      longDescription: "",
-      image: variant.image || "",
-      gallery: variant.image ? [variant.image] : [],
+      shortDescription: parent?.shortDescription || "",
+      longDescription: parent?.longDescription || "",
+      image: variant.image || parent?.image || "",
+      gallery: variant.image ? [variant.image, ...(parent?.gallery || []).filter((image) => image !== variant.image)] : parent?.gallery || [],
       attributes: variant.options.map((option) => ({ name: option.name, terms: [{ name: option.value, slug: slugify(option.value) }], hasVariations: true })),
       prices: { value: variant.price ?? null, regularValue: variant.compareAtPrice ?? null },
       stockQty: variant.stockQty,
       trackInventory: true,
       inStock: variant.enabled,
-      variants: [variant],
+      variants: [],
       sortOrder: parentProducts.length + index,
       source: "wordpress-csv-2026-09-15",
     };
   });
 
-  return [...parentProducts, ...orphanProducts];
+  return [...parentProducts, ...variationProducts];
 }
 
 function addTreePath(root, path) {
@@ -262,12 +267,9 @@ function addTreePath(root, path) {
   }
 }
 
-function makeCategoryTree(rows) {
+function makeCategoryTree(catalog) {
   const tree = { name: "دسته‌بندی محصولات", children: [] };
-  for (const row of rows) {
-    if (!["simple", "variable"].includes(text(row["نوع"]))) continue;
-    addTreePath(tree, primaryCategory(row["دسته‌ها"]).path);
-  }
+  for (const product of catalog) addTreePath(tree, product.categoryPath);
   const sortTree = (node) => {
     node.children.sort((a, b) => a.name.localeCompare(b.name, "fa"));
     node.children.forEach(sortTree);
@@ -277,9 +279,8 @@ function makeCategoryTree(rows) {
     source: "wc-product-export-15-9-2026-1789498910475.csv",
     generatedAt: new Date().toISOString(),
     productScope: {
-      allParentProducts: rows.filter((row) => ["simple", "variable"].includes(text(row["نوع"]))).length,
-      seedProducts: rows.filter((row) => ["simple", "variable"].includes(text(row["نوع"]))).length,
-      retainedVariations: rows.filter((row) => text(row["نوع"]) === "variation").length,
+      catalogProducts: catalog.length,
+      standaloneVariations: catalog.filter((product) => product.sourceType === "variation").length,
     },
     normalization: {
       carpetAndRug: "همه مسیرهای فرش و گلیم به دستهٔ واحد «فرش و گلیم» تبدیل شده‌اند و زیر‌دسته ندارند.",
@@ -292,7 +293,7 @@ const workbook = XLSX.readFile(inputPath, { raw: true });
 const sheet = workbook.Sheets[workbook.SheetNames[0]];
 const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }).map((row, index) => ({ ...row, __row: index + 2 }));
 const catalog = makeCatalog(rows);
-const categoryTree = makeCategoryTree(rows);
+const categoryTree = makeCategoryTree(catalog);
 
 mkdirSync(outputDir, { recursive: true });
 writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
@@ -302,11 +303,6 @@ const counts = catalog.reduce((result, item) => {
   result[item.status] = (result[item.status] || 0) + 1;
   return result;
 }, {});
-const variantCount = catalog.reduce((total, product) => total + product.variants.length, 0);
-const retainedRows = catalog.reduce(
-  (total, product) => total + product.variants.length + (product.sourceType === "orphaned-variation" ? 0 : 1),
-  0,
-);
-console.log(`Created ${catalog.length} products with ${variantCount} variants (${retainedRows} of ${rows.length} CSV rows): ${JSON.stringify(counts)}`);
+console.log(`Created ${catalog.length} standalone products (${catalog.length} of ${rows.length} CSV rows): ${JSON.stringify(counts)}`);
 console.log(`Wrote ${catalogPath}`);
 console.log(`Wrote ${categoryTreePath}`);
