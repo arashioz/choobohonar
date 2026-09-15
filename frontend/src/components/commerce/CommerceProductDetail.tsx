@@ -41,7 +41,12 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
     return attribute?.options.find((item) => item.id === selected[attribute.id])?.label === option.value;
   })), [attributes, product.variants, selected]);
   const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
-  const canAddToCart = product.isPurchasable && Number.isFinite(priceValue) && priceValue > 0 && (!product.variants?.length || Boolean(selectedVariant && selectedVariant.stockQty > 0));
+  const canAddToCart =
+    product.isInStock &&
+    product.isPurchasable &&
+    Number.isFinite(priceValue) &&
+    priceValue > 0 &&
+    (!product.variants?.length || Boolean(selectedVariant && selectedVariant.stockQty > 0));
 
   useEffect(() => {
     if (selectedVariant?.image) setActiveImage(selectedVariant.image);
@@ -94,8 +99,13 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
                   />
                 ) : null}
                 <div className="absolute right-5 top-5 flex flex-col gap-2">
-                  <span className="rounded-full bg-paper/90 px-4 py-2 text-xs font-medium text-forest backdrop-blur-md">
-                    {product.isInStock ? "آماده سفارش" : "تولید سفارشی"}
+                  <span
+                    className={cn(
+                      "rounded-full px-4 py-2 text-xs font-medium backdrop-blur-md",
+                      product.isInStock ? "bg-paper/90 text-forest" : "bg-paper/90 text-brick",
+                    )}
+                  >
+                    {product.isInStock ? "آماده سفارش" : "ناموجود"}
                   </span>
                   {collection ? (
                     <span className="rounded-full bg-forest/85 px-4 py-2 text-xs font-medium text-paper backdrop-blur-md">

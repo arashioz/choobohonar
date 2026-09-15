@@ -32,6 +32,7 @@ export type ShopProduct = {
   compareAtPrice?: number;
   stockQty: number;
   trackInventory: boolean;
+  inStock?: boolean;
   dimensions?: { width?: number; depth?: number; height?: number };
   specs: { label: string; value: string }[];
   highlights: { title: string; description: string }[];
@@ -81,6 +82,15 @@ export const STATUS_LABELS: Record<ShopProductStatus, string> = {
   published: "منتشر شده",
   archived: "آرشیو",
 };
+
+export function isProductInStock(product: Pick<ShopProduct, "inStock" | "trackInventory" | "stockQty" | "variants">) {
+  if (typeof product.inStock === "boolean") return product.inStock;
+  if (product.variants?.length) {
+    return product.variants.some((variant) => variant.enabled !== false && (variant.stockQty || 0) > 0);
+  }
+  if (product.trackInventory) return (product.stockQty || 0) > 0;
+  return true;
+}
 
 async function shopFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `/admin/api/shop${path}`;
@@ -177,6 +187,7 @@ export const shopApi = {
     shopFetch<{ category: string; room: string; count: number }[]>(
       "/categories",
     ),
+  series: () => shopFetch<{ series: string }[]>("/series"),
 
   orders: {
     list: (params: Record<string, string | number | undefined> = {}) => {

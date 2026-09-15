@@ -164,6 +164,10 @@ export class CreateShopProductDto {
   trackInventory?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  inStock?: boolean;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => DimensionsDto)
   dimensions?: DimensionsDto;
@@ -277,6 +281,10 @@ export class UpdateShopProductDto {
   @IsOptional()
   @IsBoolean()
   trackInventory?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  inStock?: boolean;
 
   @IsOptional()
   @ValidateNested()

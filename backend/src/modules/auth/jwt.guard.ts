@@ -6,7 +6,9 @@ import {
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme_secret';
+function jwtSecret(): string {
+  return process.env.JWT_SECRET || 'changeme_secret';
+}
 
 function readCookie(
   req: { headers?: { cookie?: string } },
@@ -41,7 +43,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException();
 
     try {
-      const payload = jwt.verify(token, JWT_SECRET);
+      const payload = jwt.verify(token, jwtSecret());
       req.user = payload;
       return true;
     } catch {

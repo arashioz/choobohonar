@@ -113,6 +113,60 @@ function getSeriesFromProduct(
   );
 }
 
+type StockShape = {
+  inStock?: boolean;
+  trackInventory?: boolean;
+  stockQty?: number;
+  variants?: {
+    sku?: string;
+    options?: { name: string; value: string }[];
+    price?: number;
+    compareAtPrice?: number;
+    stockQty?: number;
+    image?: string;
+    enabled?: boolean;
+  }[];
+};
+
+function deriveInStock(product: StockShape): boolean {
+  if (typeof product.inStock === 'boolean') return product.inStock;
+  if (product.variants?.length) {
+    return product.variants.some(
+      (variant) => variant.enabled !== false && (variant.stockQty || 0) > 0,
+    );
+  }
+  if (product.trackInventory) return (product.stockQty || 0) > 0;
+  return true;
+}
+
+function applyInStockFlag<T extends StockShape>(product: T, inStock: boolean): T {
+  const variants = (product.variants || []).map((variant, index) => ({
+    sku: variant.sku,
+    options: (variant.options || []).map((option) => ({
+      name: option.name,
+      value: option.value,
+    })),
+    price: variant.price,
+    compareAtPrice: variant.compareAtPrice,
+    image: variant.image,
+    enabled: variant.enabled !== false,
+    stockQty: inStock
+      ? Math.max(Number(variant.stockQty || 0), index === 0 ? 1 : Number(variant.stockQty || 0))
+      : 0,
+  }));
+  if (inStock && variants.length && !variants.some((variant) => variant.enabled && variant.stockQty > 0)) {
+    variants[0].enabled = true;
+    variants[0].stockQty = Math.max(variants[0].stockQty, 1);
+  }
+  return {
+    ...product,
+    inStock,
+    trackInventory: true,
+    stockQty: inStock ? Math.max(Number(product.stockQty || 0), 1) : 0,
+    variants,
+  };
+}
+
 @Injectable()
 export class ShopService implements OnModuleInit {
   constructor(
@@ -442,7 +496,7 @@ export class ShopService implements OnModuleInit {
       dto.series === undefined
         ? await this.seriesFromProductName(dto.name)
         : undefined;
-    return this.productModel.create({
+    const created = {
       ...dto,
       ...(autoSeries ? { series: autoSeries } : {}),
       shortDescription: dto.shortDescription ?? '',
@@ -458,8 +512,11 @@ export class ShopService implements OnModuleInit {
       specs: dto.specs ?? [],
       highlights: dto.highlights ?? [],
       sortOrder: dto.sortOrder ?? 0,
-      source: 'admin',
-    });
+      source: 'admin' as const,
+    };
+    const withStock =
+      dto.inStock === undefined ? created : applyInStockFlag(created, dto.inStock);
+    return this.productModel.create(withStock);
   }
 
   async update(id: string, dto: UpdateShopProductDto) {
@@ -475,12 +532,32 @@ export class ShopService implements OnModuleInit {
       dto.name !== undefined && dto.series === undefined
         ? await this.seriesFromProductName(dto.name)
         : undefined;
+    const existing = await this.productModel.findById(id).exec();
+    if (!existing) throw new NotFoundException('محصول پیدا نشد');
+
+    let patch: Record<string, unknown> = {
+      ...dto,
+      ...(autoSeries ? { series: autoSeries } : {}),
+    };
+    if (dto.inStock !== undefined) {
+      patch = applyInStockFlag(
+        {
+          inStock: dto.inStock,
+          trackInventory: dto.trackInventory ?? existing.trackInventory,
+          stockQty: dto.stockQty ?? existing.stockQty,
+          variants: dto.variants ?? existing.variants,
+        },
+        dto.inStock,
+      );
+      patch = {
+        ...dto,
+        ...(autoSeries ? { series: autoSeries } : {}),
+        ...patch,
+      };
+    }
+
     const updated = await this.productModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { ...dto, ...(autoSeries ? { series: autoSeries } : {}) } },
-        { new: true },
-      )
+      .findByIdAndUpdate(id, { $set: patch }, { new: true })
       .exec();
     if (!updated) throw new NotFoundException('محصول پیدا نشد');
     return updated;
@@ -723,6 +800,18 @@ export class ShopService implements OnModuleInit {
               )
             : 0),
         trackInventory: Boolean(row.trackInventory),
+        inStock: deriveInStock({
+          trackInventory: Boolean(row.trackInventory),
+          stockQty:
+            row.stockQty ??
+            (row.variants?.length
+              ? row.variants.reduce(
+                  (total, variant) => total + (variant.stockQty || 0),
+                  0,
+                )
+              : 0),
+          variants: row.variants,
+        }),
         specs: row.specs || [],
         highlights: [] as { title: string; description: string }[],
         attributes: ((row.attributes || []) as CatalogAttribute[])
@@ -954,6 +1043,30 @@ export class ShopService implements OnModuleInit {
       room: r._id.room as string,
       count: r.count as number,
     }));
+  }
+
+  async series() {
+    const [namedCollections, cmsCollections, productSeries] = await Promise.all([
+      this.namedCollectionModel.find({}).select('name series').lean().exec(),
+      this.collectionModel.find({ kind: 'collection' }).select('title data').lean().exec(),
+      this.productModel.distinct('series'),
+    ]);
+    const names = new Set<string>();
+    for (const collection of namedCollections) {
+      if (collection.series?.trim()) names.add(collection.series.trim());
+      if (collection.name?.trim()) names.add(collection.name.trim());
+    }
+    for (const collection of cmsCollections) {
+      const data = (collection.data || {}) as { series?: string; seriesName?: string };
+      const series = String(data.seriesName || data.series || collection.title || '').trim();
+      if (series) names.add(series);
+    }
+    for (const series of productSeries) {
+      if (typeof series === 'string' && series.trim()) names.add(series.trim());
+    }
+    return [...names]
+      .sort((a, b) => a.localeCompare(b, 'fa'))
+      .map((series) => ({ series }));
   }
 
   async seedCategoriesFromCatalog(replaceAll = false) {

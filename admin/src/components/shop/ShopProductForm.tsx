@@ -40,8 +40,9 @@ type FormState = {
   height: string;
   specs: { label: string; value: string }[];
   highlights: { title: string; description: string }[];
-  attributes: { name: string; values: string }[];
-  variants: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[];
+  attributes: { name: string; values: string[] }[];
+  variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[];
+  inStock: boolean;
 };
 
 function fromProduct(p?: ShopProduct): FormState {
@@ -70,8 +71,9 @@ function fromProduct(p?: ShopProduct): FormState {
     height: p?.dimensions?.height != null ? String(p.dimensions.height) : "",
     specs: p?.specs || [],
     highlights: p?.highlights || [],
-    attributes: (p?.attributes || []).map((attribute) => ({ name: attribute.name, values: attribute.values.join("، ") })),
-    variants: (p?.variants || []).map((variant) => ({ sku: variant.sku || "", options: variant.options.map((option) => `${option.name}: ${option.value}`).join("، "), price: variant.price != null ? formatPrice(String(variant.price)) : "", compareAtPrice: variant.compareAtPrice != null ? formatPrice(String(variant.compareAtPrice)) : "", stockQty: String(variant.stockQty ?? 0), enabled: variant.enabled !== false })),
+    attributes: (p?.attributes || []).map((attribute) => ({ name: attribute.name, values: attribute.values.length ? attribute.values : [""] })),
+    variants: (p?.variants || []).map((variant) => ({ sku: variant.sku || "", options: variant.options || [], price: variant.price != null ? formatPrice(String(variant.price)) : "", compareAtPrice: variant.compareAtPrice != null ? formatPrice(String(variant.compareAtPrice)) : "", stockQty: String(variant.stockQty ?? 0), enabled: variant.enabled !== false })),
+    inStock: typeof p?.inStock === "boolean" ? p.inStock : (p?.variants?.length ? p.variants.some((variant) => variant.enabled !== false && (variant.stockQty || 0) > 0) : (p?.trackInventory ? (p.stockQty || 0) > 0 : true)),
   };
 }
 
@@ -92,9 +94,11 @@ export default function ShopProductForm({
   const [error, setError] = useState("");
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [descriptionMode, setDescriptionMode] = useState<"preview" | "html">("preview");
+  const [seriesOptions, setSeriesOptions] = useState<string[]>([]);
 
   useEffect(() => {
     shopApi.categories().then((rows) => setCategoryOptions(Array.from(new Set(rows.map((row) => row.category).filter(Boolean))))).catch(() => undefined);
+    shopApi.series().then((rows) => setSeriesOptions(Array.from(new Set(rows.map((row) => row.series).filter(Boolean))))).catch(() => undefined);
   }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -133,8 +137,9 @@ export default function ShopProductForm({
       dimensions: compactDimensions(form),
       specs: form.specs.filter((item) => item.label.trim() && item.value.trim()),
       highlights: form.highlights.filter((item) => item.title.trim() && item.description.trim()),
-      attributes: form.attributes.filter((attribute) => attribute.name.trim() && attribute.values.trim()).map((attribute) => ({ name: attribute.name.trim(), values: attribute.values.split(/[،,]/).map((value) => value.trim()).filter(Boolean), required: true })),
-      variants: form.variants.map((variant) => ({ sku: variant.sku.trim() || undefined, options: variant.options.split(/[،,]/).map((item) => item.trim()).filter(Boolean).map((item) => { const [name, ...value] = item.split(":"); return { name: name.trim(), value: value.join(":").trim() }; }).filter((option) => option.name && option.value), price: variant.price ? parsePrice(variant.price) : undefined, compareAtPrice: variant.compareAtPrice ? parsePrice(variant.compareAtPrice) : undefined, stockQty: Number(variant.stockQty) || 0, enabled: variant.enabled })),
+      attributes: form.attributes.filter((attribute) => attribute.name.trim() && attribute.values.some((value) => value.trim())).map((attribute) => ({ name: attribute.name.trim(), values: attribute.values.map((value) => value.trim()).filter(Boolean), required: true })),
+      variants: form.variants.map((variant) => ({ sku: variant.sku.trim() || undefined, options: variant.options.filter((option) => option.name.trim() && option.value.trim()), price: variant.price ? parsePrice(variant.price) : undefined, compareAtPrice: variant.compareAtPrice ? parsePrice(variant.compareAtPrice) : undefined, stockQty: Number(variant.stockQty) || 0, enabled: variant.enabled })),
+      inStock: form.inStock,
     };
 
     try {
@@ -292,11 +297,22 @@ export default function ShopProductForm({
               </select>
             </Field>
             <Field label="سری / کالکشن">
-              <input
+              <select
                 className={fieldClass}
                 value={form.series}
                 onChange={(e) => set("series", e.target.value)}
-              />
+              >
+                <option value="">بدون کالکشن</option>
+                {seriesOptions.map((series) => (
+                  <option key={series} value={series}>
+                    {series}
+                  </option>
+                ))}
+                {form.series && !seriesOptions.includes(form.series) ? (
+                  <option value={form.series}>{form.series}</option>
+                ) : null}
+              </select>
+              <span className="mt-1 block text-[9px] text-forest/35">لیست از کالکشن‌های ثبت‌شده در بک‌اند خوانده می‌شود.</span>
             </Field>
           </div>
 
@@ -411,6 +427,14 @@ export default function ShopProductForm({
             <label className="flex items-center gap-2 text-sm text-forest">
               <input
                 type="checkbox"
+                checked={form.inStock}
+                onChange={(e) => set("inStock", e.target.checked)}
+              />
+              موجود در فروشگاه
+            </label>
+            <label className="flex items-center gap-2 text-sm text-forest">
+              <input
+                type="checkbox"
                 checked={form.trackInventory}
                 onChange={(e) => set("trackInventory", e.target.checked)}
               />
@@ -477,14 +501,108 @@ function ProductDetailsEditor({ label, description, rows, onChange, left, right 
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
 }
 
-function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { attributes: { name: string; values: string }[]; variants: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; onAttributes: (value: { name: string; values: string }[]) => void; onVariants: (value: { sku: string; options: string; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
-  const nextAttribute = () => onAttributes([...attributes, { name: "", values: "" }]);
-  const nextVariant = () => onVariants([...variants, { sku: "", options: "", price: "", compareAtPrice: "", stockQty: "0", enabled: true }]);
-  return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-5">
-    <div><h2 className="text-sm font-medium text-forest">ویژگی‌ها و متغیرها</h2><p className="mt-1 text-[10px] leading-5 text-forest/40">مثل وردپرس: ابتدا ویژگی را تعریف کنید (رنگ: گردویی، کرم) و سپس برای هر ترکیب، قیمت و موجودی جداگانه ثبت کنید.</p></div>
-    <div className="space-y-2"><p className="text-xs font-medium text-forest/60">ویژگی‌ها</p>{attributes.map((attribute, index) => <div key={index} className="grid grid-cols-[1fr_1.6fr_36px] gap-2"><input className={fieldClass} placeholder="مثلاً رنگ" value={attribute.name} onChange={(e) => onAttributes(attributes.map((item, i) => i === index ? { ...item, name: e.target.value } : item))} /><input className={fieldClass} placeholder="گردویی، کرم، مشکی" value={attribute.values} onChange={(e) => onAttributes(attributes.map((item, i) => i === index ? { ...item, values: e.target.value } : item))} /><button type="button" className="rounded-xl border border-forest/10 text-brick" onClick={() => onAttributes(attributes.filter((_, i) => i !== index))}>×</button></div>)}<button type="button" onClick={nextAttribute} className="text-[10px] font-medium text-brick">+ افزودن ویژگی</button></div>
-    <div className="space-y-3"><p className="text-xs font-medium text-forest/60">ترکیب‌ها / متغیرها</p>{variants.map((variant, index) => <div key={index} className="rounded-xl border border-forest/10 p-3"><div className="grid gap-2 sm:grid-cols-2"><input className={fieldClass} placeholder="ویژگی‌ها: رنگ: گردویی، سایز: ۳ نفره" value={variant.options} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, options: e.target.value } : item))} /><input className={fieldClass} dir="ltr" placeholder="SKU (اختیاری)" value={variant.sku} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, sku: e.target.value } : item))} /><input className={fieldClass} inputMode="numeric" placeholder="قیمت تومان" value={variant.price} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, price: formatPrice(e.target.value) } : item))} /><input className={fieldClass} inputMode="numeric" placeholder="قیمت قبل از تخفیف" value={variant.compareAtPrice} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, compareAtPrice: formatPrice(e.target.value) } : item))} /><input className={fieldClass} type="number" placeholder="موجودی" value={variant.stockQty} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, stockQty: e.target.value } : item))} /><label className="flex items-center gap-2 text-xs text-forest"><input type="checkbox" checked={variant.enabled} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, enabled: e.target.checked } : item))} />قابل فروش</label></div><button type="button" onClick={() => onVariants(variants.filter((_, i) => i !== index))} className="mt-2 text-[10px] text-brick">حذف این ترکیب</button></div>)}<button type="button" onClick={nextVariant} className="text-[10px] font-medium text-brick">+ افزودن ترکیب</button></div>
-  </section>;
+function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { attributes: { name: string; values: string[] }[]; variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; onAttributes: (value: { name: string; values: string[] }[]) => void; onVariants: (value: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
+  const nextAttribute = () => onAttributes([...attributes, { name: "", values: [""] }]);
+  const nextVariant = () => onVariants([...variants, { sku: "", options: attributes.filter((attribute) => attribute.name.trim()).map((attribute) => ({ name: attribute.name, value: attribute.values.find((value) => value.trim()) || "" })), price: "", compareAtPrice: "", stockQty: "0", enabled: true }]);
+
+  function setAttributeName(index: number, name: string) {
+    const previousName = attributes[index]?.name;
+    onAttributes(attributes.map((item, i) => (i === index ? { ...item, name } : item)));
+    if (previousName) {
+      onVariants(variants.map((variant) => ({
+        ...variant,
+        options: variant.options.map((option) => (option.name === previousName ? { ...option, name } : option)),
+      })));
+    }
+  }
+
+  function setAttributeValue(attributeIndex: number, valueIndex: number, value: string) {
+    onAttributes(attributes.map((item, i) => i === attributeIndex ? { ...item, values: item.values.map((entry, j) => (j === valueIndex ? value : entry)) } : item));
+  }
+
+  function addAttributeValue(attributeIndex: number) {
+    onAttributes(attributes.map((item, i) => (i === attributeIndex ? { ...item, values: [...item.values, ""] } : item)));
+  }
+
+  function removeAttributeValue(attributeIndex: number, valueIndex: number) {
+    onAttributes(attributes.map((item, i) => (i === attributeIndex ? { ...item, values: item.values.filter((_, j) => j !== valueIndex) } : item)));
+  }
+
+  function setVariantOption(variantIndex: number, attributeName: string, value: string) {
+    onVariants(variants.map((item, i) => {
+      if (i !== variantIndex) return item;
+      const options = item.options.some((option) => option.name === attributeName)
+        ? item.options.map((option) => (option.name === attributeName ? { ...option, value } : option))
+        : [...item.options, { name: attributeName, value }];
+      return { ...item, options };
+    }));
+  }
+
+  return (
+    <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-5">
+      <div>
+        <h2 className="text-sm font-medium text-forest">ویژگی‌ها و متغیرها</h2>
+        <p className="mt-1 text-[10px] leading-5 text-forest/40">هر ویژگی و هر متغیر یک ردیف جدا در لیست است. مقدارها را هم به‌صورت لیست اضافه کنید، نه با ویرگول.</p>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-forest/60">ویژگی‌ها</p>
+        {(attributes.length ? attributes : []).map((attribute, index) => (
+          <div key={index} className="rounded-xl border border-forest/10 p-3 space-y-2">
+            <div className="flex gap-2">
+              <input className={fieldClass} placeholder="نام ویژگی؛ مثلاً رنگ" value={attribute.name} onChange={(e) => setAttributeName(index, e.target.value)} />
+              <button type="button" className="rounded-xl border border-forest/10 px-3 text-brick" onClick={() => onAttributes(attributes.filter((_, i) => i !== index))}>×</button>
+            </div>
+            <ul className="space-y-2">
+              {(attribute.values.length ? attribute.values : [""]).map((value, valueIndex) => (
+                <li key={valueIndex} className="flex gap-2">
+                  <input className={fieldClass} placeholder={`مقدار ${valueIndex + 1}`} value={value} onChange={(e) => setAttributeValue(index, valueIndex, e.target.value)} />
+                  <button type="button" className="rounded-xl border border-forest/10 px-3 text-brick" onClick={() => removeAttributeValue(index, valueIndex)}>×</button>
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={() => addAttributeValue(index)} className="text-[10px] font-medium text-brick">+ افزودن مقدار</button>
+          </div>
+        ))}
+        <button type="button" onClick={nextAttribute} className="text-[10px] font-medium text-brick">+ افزودن ویژگی</button>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-forest/60">متغیرها</p>
+        {variants.map((variant, index) => (
+          <div key={index} className="rounded-xl border border-forest/10 p-3 space-y-2">
+            {attributes.filter((attribute) => attribute.name.trim()).map((attribute) => (
+              <label key={attribute.name} className="block">
+                <span className="mb-1 block text-[10px] text-forest/45">{attribute.name}</span>
+                <select
+                  className={fieldClass}
+                  value={variant.options.find((option) => option.name === attribute.name)?.value || ""}
+                  onChange={(e) => setVariantOption(index, attribute.name, e.target.value)}
+                >
+                  <option value="">انتخاب {attribute.name}</option>
+                  {attribute.values.filter((value) => value.trim()).map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input className={fieldClass} dir="ltr" placeholder="SKU (اختیاری)" value={variant.sku} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, sku: e.target.value } : item))} />
+              <input className={fieldClass} inputMode="numeric" placeholder="قیمت تومان" value={variant.price} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, price: formatPrice(e.target.value) } : item))} />
+              <input className={fieldClass} inputMode="numeric" placeholder="قیمت قبل از تخفیف" value={variant.compareAtPrice} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, compareAtPrice: formatPrice(e.target.value) } : item))} />
+              <input className={fieldClass} type="number" placeholder="موجودی" value={variant.stockQty} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, stockQty: e.target.value } : item))} />
+              <label className="flex items-center gap-2 text-xs text-forest">
+                <input type="checkbox" checked={variant.enabled} onChange={(e) => onVariants(variants.map((item, i) => i === index ? { ...item, enabled: e.target.checked } : item))} />
+                قابل فروش
+              </label>
+            </div>
+            <button type="button" onClick={() => onVariants(variants.filter((_, i) => i !== index))} className="text-[10px] text-brick">حذف این متغیر</button>
+          </div>
+        ))}
+        <button type="button" onClick={nextVariant} className="text-[10px] font-medium text-brick">+ افزودن متغیر</button>
+      </div>
+    </section>
+  );
 }
 
 function ProductMediaGallery({ images, uploading, uploadProgress, onUpload, onChange }: { images: string[]; uploading: boolean; uploadProgress: number; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onChange: (images: string[]) => void }) {

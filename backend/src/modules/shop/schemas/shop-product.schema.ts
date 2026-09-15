@@ -95,6 +95,10 @@ export class ShopProduct {
   @Prop({ default: false })
   trackInventory: boolean;
 
+  /** Admin-controlled availability shown on the storefront. */
+  @Prop({ index: true })
+  inStock?: boolean;
+
   @Prop({ type: Object })
   dimensions?: { width?: number; depth?: number; height?: number };
 

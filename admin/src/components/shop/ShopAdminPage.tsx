@@ -7,6 +7,7 @@ import {
   ORDER_STATUS_LABELS,
   ROOM_LABELS,
   STATUS_LABELS,
+  isProductInStock,
   shopApi,
   type OrderStats,
   type ShopInvoice,
@@ -110,6 +111,8 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [error, setError] = useState("");
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [stockBusyId, setStockBusyId] = useState("");
+  const [deleteBusyId, setDeleteBusyId] = useState("");
 
   function importPrices(file: File) {
     setImporting(true); setImportProgress(0); setError(""); setMessage("");
@@ -165,20 +168,23 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   );
 
   const loadProducts = useCallback(async () => {
-    const [list, st, sug] = await Promise.all([
-      shopApi.list({
-        q: q || undefined,
-        room: activeRoom || undefined,
-        status: activeProductStatus || undefined,
-        limit: 1000,
-      }),
+    const list = await shopApi.list({
+      q: q || undefined,
+      room: activeRoom || undefined,
+      status: activeProductStatus || undefined,
+      limit: 1000,
+    });
+    setProducts(list.items);
+    setProductTotal(list.total);
+
+    const [statsResult, suggestionsResult] = await Promise.allSettled([
       shopApi.stats(),
       shopApi.suggestions(),
     ]);
-    setProducts(list.items);
-    setProductTotal(list.total);
-    setStats(st);
-    setSuggestions(sug.items);
+    if (statsResult.status === "fulfilled") setStats(statsResult.value);
+    if (suggestionsResult.status === "fulfilled") {
+      setSuggestions(suggestionsResult.value.items);
+    }
   }, [q, activeRoom, activeProductStatus]);
 
   const loadOrders = useCallback(async () => {
@@ -663,6 +669,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                                     <th>نام</th>
                                     <th>قیمت</th>
                                     <th>وضعیت</th>
+                                    <th>موجودی</th>
                                     <th>عملیات</th>
                                   </tr>
                                 </thead>
@@ -684,12 +691,64 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                                         {STATUS_LABELS[p.status] || p.status}
                                       </td>
                                       <td className="px-4 py-3">
-                                        <Link
-                                          href={`/admin/manage/products/${p._id}`}
-                                          className="text-forest hover:underline"
-                                        >
-                                          ویرایش
-                                        </Link>
+                                        <input
+                                          type="checkbox"
+                                          className="h-4 w-4 cursor-pointer accent-forest"
+                                          aria-label={`موجود در فروشگاه: ${p.name}`}
+                                          checked={isProductInStock(p)}
+                                          disabled={stockBusyId === p._id}
+                                          onChange={async (event) => {
+                                            const inStock = event.target.checked;
+                                            setStockBusyId(p._id);
+                                            setError("");
+                                            try {
+                                              const updated = await shopApi.update(p._id, { inStock });
+                                              setProducts((current) =>
+                                                current.map((item) => (item._id === p._id ? { ...item, ...updated } : item)),
+                                              );
+                                            } catch (err) {
+                                              setError(err instanceof Error ? err.message : "تغییر موجودی ناموفق بود");
+                                            } finally {
+                                              setStockBusyId("");
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <div className="flex items-center gap-3">
+                                          <Link
+                                            href={`/admin/manage/products/${p._id}`}
+                                            className="text-forest hover:underline"
+                                          >
+                                            ویرایش
+                                          </Link>
+                                          <button
+                                            type="button"
+                                            title="حذف محصول"
+                                            aria-label={`حذف ${p.name}`}
+                                            disabled={deleteBusyId === p._id}
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-forest/45 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                                            onClick={async () => {
+                                              if (!window.confirm(`محصول «${p.name}» حذف شود؟`)) return;
+                                              setDeleteBusyId(p._id);
+                                              setError("");
+                                              try {
+                                                await shopApi.remove(p._id);
+                                                setProducts((current) => current.filter((item) => item._id !== p._id));
+                                                setProductTotal((total) => Math.max(0, total - 1));
+                                              } catch (err) {
+                                                setError(err instanceof Error ? err.message : "حذف محصول ناموفق بود");
+                                              } finally {
+                                                setDeleteBusyId("");
+                                              }
+                                            }}
+                                          >
+                                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                                              <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m1 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12Z" strokeLinecap="round" strokeLinejoin="round" />
+                                              <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+                                            </svg>
+                                          </button>
+                                        </div>
                                       </td>
                                     </tr>
                                   ))}

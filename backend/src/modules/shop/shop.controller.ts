@@ -67,6 +67,11 @@ export class ShopController {
     return this.shopService.categories();
   }
 
+  @Get('series')
+  series() {
+    return this.shopService.series();
+  }
+
   @Post('categories/seed')
   @UseGuards(JwtAuthGuard)
   seedCategories(@Body() body: { replaceAll?: boolean }) {
