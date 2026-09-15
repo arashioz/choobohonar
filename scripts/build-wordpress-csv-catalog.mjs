@@ -231,7 +231,10 @@ function makeCatalog(rows) {
   const orphanProducts = orphanVariants.map((row, index) => {
     const variant = variantFrom(row);
     return {
-      externalCode: variant.sku,
+      // This orphan's SKU is already used by a regular WordPress product.
+      // Keep it inside `variants`, but do not violate ShopProduct's unique
+      // externalCode index on the hidden fallback product.
+      externalCode: undefined,
       slug: `${slugify(row["نام"])}-orphan-${row.__row}`,
       name: text(row["نام"]),
       category: "محصولات بدون والد وردپرس",

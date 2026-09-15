@@ -7,7 +7,7 @@
  */
 import * as dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { ShopProductSchema } from '../modules/shop/schemas/shop-product.schema';
 
@@ -48,10 +48,11 @@ type CatalogRow = {
 
 const mongoUri =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
-const catalogPath = join(
-  process.cwd(),
-  'src/modules/shop/data/wordpress-csv-catalog.json',
-);
+const catalogDataDir = join(process.cwd(), 'src/modules/shop/data');
+const localCatalogPath = join(catalogDataDir, 'wordpress-csv-catalog.local.json');
+const catalogPath = existsSync(localCatalogPath)
+  ? localCatalogPath
+  : join(catalogDataDir, 'wordpress-csv-catalog.json');
 
 async function main() {
   const catalog = JSON.parse(readFileSync(catalogPath, 'utf8')) as CatalogRow[];
