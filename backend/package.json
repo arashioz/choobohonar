@@ -26,6 +26,7 @@
     "catalog:clear-categories": "ts-node -r tsconfig-paths/register src/migrations/clear-shop-data.ts --categories",
     "catalog:seed-categories": "ts-node -r tsconfig-paths/register src/migrations/seed-wordpress-categories.ts",
     "catalog:localize-media": "node ../scripts/localize-wordpress-catalog-media.mjs",
+    "catalog:merge-wordpress-content": "node ../scripts/merge-wordpress-product-content.mjs",
     "collections:sync-products": "ts-node -r tsconfig-paths/register src/migrations/sync-product-series-from-collections.ts"
   },
   "dependencies": {
