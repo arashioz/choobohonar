@@ -855,12 +855,27 @@ export class ShopService implements OnModuleInit {
       groups.set(key, group);
     }
 
-    // Import every WordPress collection, including a single-product series.
-    // Its explicit taxonomy membership is still a real collection and the
-    // admin can enrich its image and story later.
+    // A collection represents a shared series. Single-product series remain
+    // regular products and must not create a redundant collection page.
     const sharedGroups = [...groups.values()].filter(
-      (group) => group.products.length >= 1,
+      (group) => group.products.length >= 2,
     );
+    const singleProductSlugs = [...groups.values()]
+      .filter((group) => group.products.length < 2)
+      .map((group) => group.slug);
+    // Hide only automatically generated single-product collections. Manually
+    // managed collections retain their own source and are never touched here.
+    if (singleProductSlugs.length)
+      await this.collectionModel
+        .updateMany(
+          {
+            kind: 'collection',
+            slug: { $in: singleProductSlugs },
+            'data.source': 'catalog-series',
+          },
+          { $set: { status: 'archived' } },
+        )
+        .exec();
     // Older releases named generated records `series-*`. Archive those
     // generated duplicates and keep the original WordPress collection slug as
     // the single canonical public/admin record (e.g. `/collection/solo`).
