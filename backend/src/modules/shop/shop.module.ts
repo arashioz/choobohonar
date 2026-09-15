@@ -6,6 +6,7 @@ import { OrderService } from './order.service';
 import { ShopProduct, ShopProductSchema } from './schemas/shop-product.schema';
 import { ShopOrder, ShopOrderSchema } from './schemas/shop-order.schema';
 import { ShopInvoice, ShopInvoiceSchema } from './schemas/shop-invoice.schema';
+import { ShopCategory, ShopCategorySchema } from './schemas/shop-category.schema';
 import { CmsEntry, CmsEntrySchema } from '../cms/schemas/cms-entry.schema';
 import {
   Collection,
@@ -18,6 +19,7 @@ import {
       { name: ShopProduct.name, schema: ShopProductSchema },
       { name: ShopOrder.name, schema: ShopOrderSchema },
       { name: ShopInvoice.name, schema: ShopInvoiceSchema },
+      { name: ShopCategory.name, schema: ShopCategorySchema },
       { name: CmsEntry.name, schema: CmsEntrySchema },
       { name: Collection.name, schema: CollectionSchema },
     ]),

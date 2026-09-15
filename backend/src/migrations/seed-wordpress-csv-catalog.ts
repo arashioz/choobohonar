@@ -1,5 +1,6 @@
 /**
- * Safe WordPress CSV seed: upserts every WordPress CSV row as a product.
+ * Safe WordPress CSV seed: upserts parent products with their WordPress
+ * variations nested on the same product.
  * It never deletes products; re-running it updates the same imported records.
  *
  * Run: npm run catalog:seed-wordpress-csv
@@ -54,7 +55,13 @@ const catalogPath = join(
 
 async function main() {
   const catalog = JSON.parse(readFileSync(catalogPath, 'utf8')) as CatalogRow[];
-  const sourceRows = catalog.length;
+  const sourceRows = catalog.reduce(
+    (total, row) =>
+      total +
+      (row.variants?.length || 0) +
+      (row.category === 'محصولات بدون والد وردپرس' ? 0 : 1),
+    0,
+  );
   if (sourceRows !== 966) {
     throw new Error(`Expected all 966 WordPress CSV rows, received ${sourceRows}.`);
   }

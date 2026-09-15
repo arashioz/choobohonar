@@ -67,6 +67,12 @@ export class ShopController {
     return this.shopService.categories();
   }
 
+  @Post('categories/seed')
+  @UseGuards(JwtAuthGuard)
+  seedCategories(@Body() body: { replaceAll?: boolean }) {
+    return this.shopService.seedCategoriesFromCatalog(Boolean(body?.replaceAll));
+  }
+
   @Get('stats')
   @UseGuards(JwtAuthGuard)
   stats() {
@@ -93,6 +99,19 @@ export class ShopController {
   @UseInterceptors(FileInterceptor('file'))
   importPrice(@UploadedFile() file: { buffer: Buffer; originalname: string }) {
     return this.shopService.importPriceFile(file);
+  }
+
+  @Post('products/import-catalog')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 100 * 1024 * 1024 } }))
+  importCatalog(
+    @UploadedFile() file: { buffer: Buffer; originalname: string },
+    @Body('replaceAll') replaceAll?: string | boolean,
+  ) {
+    return this.shopService.importCatalogFile(
+      file,
+      replaceAll === true || replaceAll === 'true',
+    );
   }
 
   @Get('products/export-price')

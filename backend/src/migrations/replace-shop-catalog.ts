@@ -7,9 +7,10 @@
 
 import * as dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { ShopProductSchema } from '../modules/shop/schemas/shop-product.schema';
+import { ShopCategorySchema } from '../modules/shop/schemas/shop-category.schema';
 
 dotenv.config();
 
@@ -51,10 +52,12 @@ type CatalogRow = {
 
 const mongoUri =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
-const catalogPath = join(
-  process.cwd(),
-  'src/modules/shop/data/wordpress-csv-catalog.json',
-);
+const catalogDataDir = join(process.cwd(), 'src/modules/shop/data');
+const localCatalogPath = join(catalogDataDir, 'wordpress-csv-catalog.local.json');
+const catalogPath = existsSync(localCatalogPath)
+  ? localCatalogPath
+  : join(catalogDataDir, 'wordpress-csv-catalog.json');
+const categoryTreePath = join(catalogDataDir, 'wordpress-category-tree.json');
 
 function seriesFrom(attributes: CatalogAttribute[]): string | undefined {
   return attributes.find(
@@ -82,6 +85,9 @@ async function main() {
   const ShopProduct =
     mongoose.models.ShopProduct ||
     mongoose.model('ShopProduct', ShopProductSchema);
+  const ShopCategory =
+    mongoose.models.ShopCategory ||
+    mongoose.model('ShopCategory', ShopCategorySchema);
 
   const docs = catalog.map((row, index) => ({
     externalCode: row.externalCode,
@@ -133,8 +139,26 @@ async function main() {
 
   const deleted = await ShopProduct.deleteMany({});
   const inserted = await ShopProduct.insertMany(docs, { ordered: true });
+  const categoryTree = JSON.parse(readFileSync(categoryTreePath, 'utf8')) as {
+    categories?: Array<{ name: string; slug: string; productCount: number; children?: unknown[] }>;
+  };
+  const roomByRoot: Record<string, string> = {
+    نشیمن: 'living', 'اتاق خواب': 'bedroom', 'کالای خواب': 'bedding', غذاخوری: 'dining', روشنایی: 'lighting', دکور: 'decor', اکسسوری: 'decor', ظروف: 'dishes', 'فرش و گلیم': 'carpet',
+  };
+  const categoryDocs: Array<Record<string, unknown>> = [];
+  const visit = (nodes: Array<{ name: string; slug: string; productCount: number; children?: unknown[] }>, parentSlug = '', room = '') => {
+    nodes.forEach((node) => {
+      const nodeRoom = room || roomByRoot[node.name] || 'decor';
+      const slug = parentSlug ? `${parentSlug}/${node.slug}` : node.slug;
+      categoryDocs.push({ slug, name: node.name, parentSlug, room: nodeRoom, productCount: node.productCount, depth: parentSlug ? parentSlug.split('/').length : 0, sortOrder: categoryDocs.length, source: 'wordpress-csv-2026-09-15' });
+      visit((node.children || []) as Array<{ name: string; slug: string; productCount: number; children?: unknown[] }>, slug, nodeRoom);
+    });
+  };
+  visit(categoryTree.categories || []);
+  await ShopCategory.deleteMany({});
+  if (categoryDocs.length) await ShopCategory.insertMany(categoryDocs, { ordered: true });
   console.log(
-    `Deleted ${deleted.deletedCount} existing products; seeded ${inserted.length} catalog products.`,
+    `Deleted ${deleted.deletedCount} existing products; seeded ${inserted.length} catalog products and ${categoryDocs.length} categories.`,
   );
   await mongoose.disconnect();
 }

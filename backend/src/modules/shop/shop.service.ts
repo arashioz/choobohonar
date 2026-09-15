@@ -6,14 +6,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { basename, join } from 'path';
 import * as XLSX from 'xlsx';
 import {
   ShopProduct,
   ShopProductDocument,
   ProductRoom,
 } from './schemas/shop-product.schema';
+import { ShopCategory, ShopCategoryDocument } from './schemas/shop-category.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 import {
   Collection,
@@ -121,6 +122,8 @@ export class ShopService implements OnModuleInit {
     private collectionModel: Model<CmsEntryDocument>,
     @InjectModel(Collection.name)
     private readonly namedCollectionModel: Model<CollectionDocument>,
+    @InjectModel(ShopCategory.name)
+    private readonly categoryModel: Model<ShopCategoryDocument>,
   ) {}
 
   async onModuleInit() {
@@ -662,11 +665,7 @@ export class ShopService implements OnModuleInit {
       });
     }
 
-    const filePath = join(
-      process.cwd(),
-      'src/modules/shop/data/wordpress-csv-catalog.json',
-    );
-    const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
+    const rows = this.readWordPressCatalog();
 
     const protectedProducts = await this.productModel
       .find({ source: { $nin: ['catalog', 'wordpress-csv-2026-09-15'] } })
@@ -775,22 +774,68 @@ export class ShopService implements OnModuleInit {
       ? await this.productModel.bulkWrite(ops as never)
       : { upsertedCount: 0, modifiedCount: 0 };
     const total = await this.productModel.countDocuments();
+    const categoryResult = await this.seedCategoriesFromCatalog(replaceAll);
 
     return {
       ok: true,
       upserted: result.upsertedCount,
       modified: result.modifiedCount,
       total,
+      categories: categoryResult.categories,
       replaced: replaceAll,
     };
   }
 
-  async seedCollectionsFromCatalog() {
-    const filePath = join(
-      process.cwd(),
-      'src/modules/shop/data/wordpress-csv-catalog.json',
+  /**
+   * Imports a portable catalog JSON uploaded through the admin API. Image
+   * references may be full `/uploads/...` URLs or just filenames placed in
+   * `uploads/products`; bare filenames are made public automatically.
+   */
+  async importCatalogFile(
+    file: { buffer: Buffer; originalname: string },
+    replaceAll = false,
+  ) {
+    if (!file?.buffer?.length || !/\.json$/i.test(file.originalname)) {
+      throw new ConflictException('فایل JSON کاتالوگ معتبر نیست');
+    }
+    let rows: unknown;
+    try {
+      rows = JSON.parse(file.buffer.toString('utf8'));
+    } catch {
+      throw new ConflictException('محتوای JSON کاتالوگ معتبر نیست');
+    }
+    if (
+      !Array.isArray(rows) ||
+      !rows.length ||
+      !rows.every(
+        (row) =>
+          row &&
+          typeof row === 'object' &&
+          typeof (row as CatalogSeedRow).slug === 'string' &&
+          typeof (row as CatalogSeedRow).name === 'string' &&
+          typeof (row as CatalogSeedRow).category === 'string' &&
+          typeof (row as CatalogSeedRow).room === 'string',
+      )
+    ) {
+      throw new ConflictException('هر محصول باید slug، نام، دسته و فضا داشته باشد');
+    }
+
+    const normalizedRows = (rows as CatalogSeedRow[]).map((row) => ({
+      ...row,
+      image: this.localMediaUrl(row.image),
+      gallery: (row.gallery || []).map((image) => this.localMediaUrl(image)),
+    }));
+    const importDir = join(process.cwd(), 'uploads', 'imports');
+    mkdirSync(importDir, { recursive: true });
+    writeFileSync(
+      join(importDir, 'wordpress-csv-catalog.local.json'),
+      `${JSON.stringify(normalizedRows, null, 2)}\n`,
     );
-    const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
+    return this.seedFromCatalog(false, replaceAll);
+  }
+
+  async seedCollectionsFromCatalog() {
+    const rows = this.readWordPressCatalog();
     const groups = new Map<
       string,
       { name: string; slug: string; products: CatalogSeedRow[] }
@@ -882,6 +927,21 @@ export class ShopService implements OnModuleInit {
   }
 
   async categories() {
+    const seededCategories = await this.categoryModel
+      .find({ source: 'wordpress-csv-2026-09-15' })
+      .sort({ sortOrder: 1 })
+      .lean()
+      .exec();
+    if (seededCategories.length) {
+      return seededCategories.map((category) => ({
+        slug: category.slug,
+        parentSlug: category.parentSlug,
+        category: category.name,
+        room: category.room,
+        count: category.productCount,
+        depth: category.depth,
+      }));
+    }
     const rows = await this.productModel.aggregate([
       {
         $group: {
@@ -896,6 +956,102 @@ export class ShopService implements OnModuleInit {
       room: r._id.room as string,
       count: r.count as number,
     }));
+  }
+
+  async seedCategoriesFromCatalog(replaceAll = false) {
+    const treePath = join(
+      process.cwd(),
+      'src/modules/shop/data/wordpress-category-tree.json',
+    );
+    const tree = JSON.parse(readFileSync(treePath, 'utf8')) as {
+      categories?: Array<{
+        name: string;
+        slug: string;
+        productCount: number;
+        children?: unknown[];
+      }>;
+    };
+    const roomByRoot: Record<string, ProductRoom> = {
+      نشیمن: 'living',
+      'اتاق خواب': 'bedroom',
+      'کالای خواب': 'bedding',
+      غذاخوری: 'dining',
+      روشنایی: 'lighting',
+      دکور: 'decor',
+      اکسسوری: 'decor',
+      ظروف: 'dishes',
+      'فرش و گلیم': 'carpet',
+    };
+    const rows: Array<{
+      slug: string;
+      name: string;
+      parentSlug: string;
+      room: ProductRoom;
+      productCount: number;
+      depth: number;
+      sortOrder: number;
+      source: string;
+    }> = [];
+    const visit = (
+      nodes: Array<{ name: string; slug: string; productCount: number; children?: unknown[] }>,
+      parentSlug: string,
+      inheritedRoom: ProductRoom | undefined,
+      depth: number,
+    ) => {
+      nodes.forEach((node, index) => {
+        const room = inheritedRoom || roomByRoot[node.name] || 'decor';
+        const slug = parentSlug ? `${parentSlug}/${node.slug}` : node.slug;
+        rows.push({
+          slug,
+          name: node.name,
+          parentSlug,
+          room,
+          productCount: node.productCount,
+          depth,
+          sortOrder: rows.length + index,
+          source: 'wordpress-csv-2026-09-15',
+        });
+        visit((node.children || []) as Array<{ name: string; slug: string; productCount: number; children?: unknown[] }>, slug, room, depth + 1);
+      });
+    };
+    visit(tree.categories || [], '', undefined, 0);
+
+    if (replaceAll) await this.categoryModel.deleteMany({}).exec();
+    const ops = rows.map((row) => ({
+      updateOne: {
+        filter: { slug: row.slug },
+        update: { $set: row },
+        upsert: true,
+      },
+    }));
+    if (ops.length) await this.categoryModel.bulkWrite(ops as never);
+    return { ok: true, categories: rows.length };
+  }
+
+  /** Prefer the portable catalog with local `/uploads/products` media when
+   * it has been generated and deployed alongside the downloaded images. */
+  private readWordPressCatalog(): CatalogSeedRow[] {
+    const dataDir = join(process.cwd(), 'src/modules/shop/data');
+    const importedPath = join(
+      process.cwd(),
+      'uploads',
+      'imports',
+      'wordpress-csv-catalog.local.json',
+    );
+    const localPath = join(dataDir, 'wordpress-csv-catalog.local.json');
+    const sourcePath = existsSync(importedPath)
+      ? importedPath
+      : existsSync(localPath)
+        ? localPath
+        : join(dataDir, 'wordpress-csv-catalog.json');
+    return JSON.parse(readFileSync(sourcePath, 'utf8')) as CatalogSeedRow[];
+  }
+
+  private localMediaUrl(value?: string): string {
+    if (!value) return '';
+    if (/^(?:https?:)?\/\//i.test(value) || value.startsWith('/uploads/'))
+      return value;
+    return `/uploads/products/${basename(value)}`;
   }
 
   private async seriesFromProductName(
