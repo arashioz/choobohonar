@@ -21,7 +21,10 @@ import { CollectionsModule } from './modules/collections/collections.module';
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('MONGODB_URI', 'mongodb://localhost:27017/choob-va-honar'),
+        uri: config.get<string>(
+          'MONGODB_URI',
+          'mongodb://localhost:27017/choob-va-honar',
+        ),
       }),
     }),
     BullModule.forRootAsync({
@@ -50,4 +53,3 @@ import { CollectionsModule } from './modules/collections/collections.module';
   ],
 })
 export class AppModule {}
-

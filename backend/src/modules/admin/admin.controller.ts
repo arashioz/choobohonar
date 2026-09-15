@@ -35,15 +35,15 @@ export class AdminController {
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!adminUser || !adminPass || !jwtSecret) {
-      throw new InternalServerErrorException('Admin authentication is not configured');
+      throw new InternalServerErrorException(
+        'Admin authentication is not configured',
+      );
     }
 
     if (body.username === adminUser && body.password === adminPass) {
-      const token = jwt.sign(
-        { sub: body.username },
-        jwtSecret,
-        { expiresIn: '8h' },
-      );
+      const token = jwt.sign({ sub: body.username }, jwtSecret, {
+        expiresIn: '8h',
+      });
 
       res.cookie('admin_session', token, {
         httpOnly: true,
@@ -80,10 +80,7 @@ export class AdminController {
           file.mimetype.startsWith('video/');
 
         if (!ok) {
-          return cb(
-            new Error('Only image and video files are allowed'),
-            false,
-          );
+          return cb(new Error('Only image and video files are allowed'), false);
         }
 
         cb(null, true);
@@ -167,7 +164,10 @@ export class AdminController {
       // ignore if not present
     }
 
-    const targets = knownTargets.map((t) => ({ name: t, mapping: map[t] ?? null }));
+    const targets = knownTargets.map((t) => ({
+      name: t,
+      mapping: map[t] ?? null,
+    }));
     return res.status(HttpStatus.OK).json({ targets });
   }
 

@@ -3,22 +3,43 @@ import { LLM_PROVIDER } from '../../providers/llm/llm.interface';
 import type { ContentJobDocument } from '../../../content/schemas/content-job.schema';
 import { buildProductSystemPrompt } from '../shared/brand-context';
 
-type ProgressCallback = (step: string, message: string, progress: number) => void;
+type ProgressCallback = (
+  step: string,
+  message: string,
+  progress: number,
+) => void;
 
 @Injectable()
 export class ProductPipelineAgent {
   constructor(@Inject(LLM_PROVIDER) private llm: any) {}
 
-  async run(job: ContentJobDocument, onProgress: ProgressCallback): Promise<Record<string, unknown>> {
+  async run(
+    job: ContentJobDocument,
+    onProgress: ProgressCallback,
+  ): Promise<Record<string, unknown>> {
     const isFa = job.language === 'fa';
 
-    onProgress('تحلیل محصول', isFa ? 'در حال تحلیل ویژگی‌های محصول...' : 'Analyzing product features...', 15);
+    onProgress(
+      'تحلیل محصول',
+      isFa
+        ? 'در حال تحلیل ویژگی‌های محصول...'
+        : 'Analyzing product features...',
+      15,
+    );
     await this.sleep(500);
 
-    onProgress('نگارش عنوان', isFa ? 'در حال نوشتن عنوان محصول...' : 'Crafting product title...', 30);
+    onProgress(
+      'نگارش عنوان',
+      isFa ? 'در حال نوشتن عنوان محصول...' : 'Crafting product title...',
+      30,
+    );
     await this.sleep(400);
 
-    onProgress('نگارش توضیحات', isFa ? 'در حال نوشتن توضیحات محصول...' : 'Writing product description...', 50);
+    onProgress(
+      'نگارش توضیحات',
+      isFa ? 'در حال نوشتن توضیحات محصول...' : 'Writing product description...',
+      50,
+    );
 
     const userPrompt = isFa
       ? `نام محصول: ${job.input.productName}\nمواد: ${(job.input.materials || []).join(', ')}\nویژگی‌ها: ${(job.input.features || []).join(', ')}\nزبان: fa`
@@ -30,7 +51,11 @@ export class ProductPipelineAgent {
       maxTokens: 1500,
     });
 
-    onProgress('متن بازاریابی', isFa ? 'در حال نوشتن متن تبلیغاتی...' : 'Crafting marketing copy...', 65);
+    onProgress(
+      'متن بازاریابی',
+      isFa ? 'در حال نوشتن متن تبلیغاتی...' : 'Crafting marketing copy...',
+      65,
+    );
     await this.sleep(400);
 
     try {

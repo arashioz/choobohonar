@@ -1,8 +1,19 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Collection, CollectionDocument, CollectionStatus } from './schemas/collection.schema';
-import { ShopProduct, ShopProductDocument } from '../shop/schemas/shop-product.schema';
+import {
+  Collection,
+  CollectionDocument,
+  CollectionStatus,
+} from './schemas/collection.schema';
+import {
+  ShopProduct,
+  ShopProductDocument,
+} from '../shop/schemas/shop-product.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 
 const statuses: CollectionStatus[] = ['draft', 'published', 'archived'];
@@ -10,15 +21,25 @@ const statuses: CollectionStatus[] = ['draft', 'published', 'archived'];
 @Injectable()
 export class CollectionsService {
   constructor(
-    @InjectModel(Collection.name) private readonly model: Model<CollectionDocument>,
-    @InjectModel(ShopProduct.name) private readonly products: Model<ShopProductDocument>,
-    @InjectModel(CmsEntry.name) private readonly cmsEntries: Model<CmsEntryDocument>,
+    @InjectModel(Collection.name)
+    private readonly model: Model<CollectionDocument>,
+    @InjectModel(ShopProduct.name)
+    private readonly products: Model<ShopProductDocument>,
+    @InjectModel(CmsEntry.name)
+    private readonly cmsEntries: Model<CmsEntryDocument>,
   ) {}
 
-  async list(q?: string, status?: string): Promise<{ items: Record<string, unknown>[]; total: number }> {
+  async list(
+    q?: string,
+    status?: string,
+  ): Promise<{ items: Record<string, unknown>[]; total: number }> {
     const filter: Record<string, unknown> = {};
-    if (status && statuses.includes(status as CollectionStatus)) filter.status = status;
-    if (q?.trim()) filter.$or = ['name', 'slug', 'series'].map((field) => ({ [field]: { $regex: q.trim(), $options: 'i' } }));
+    if (status && statuses.includes(status as CollectionStatus))
+      filter.status = status;
+    if (q?.trim())
+      filter.$or = ['name', 'slug', 'series'].map((field) => ({
+        [field]: { $regex: q.trim(), $options: 'i' },
+      }));
     const [items, total] = await Promise.all([
       this.model.find(filter).sort({ updatedAt: -1 }).limit(100).lean().exec(),
       this.model.countDocuments(filter),
@@ -33,9 +54,12 @@ export class CollectionsService {
   }
 
   async getBySlug(slug: string): Promise<any> {
-    const item = await this.model.findOne({ slug, status: { $ne: 'archived' } }).lean().exec();
+    const item = await this.model
+      .findOne({ slug, status: { $ne: 'archived' } })
+      .lean()
+      .exec();
     if (item) {
-      const products = await this.getProductsForCollection(item as unknown as Record<string, unknown>);
+      const products = await this.getProductsForCollection(item);
       // Product media is the canonical cover: this prevents a stale saved
       // collection image from breaking a card while its product is healthy.
       const image = String(products[0]?.image || item.image || '');
@@ -45,12 +69,18 @@ export class CollectionsService {
     // Collections created from «مدیریت آثار» live in cms_entries, not in the
     // standalone collections table. Expose them through the same storefront
     // API so the admin and frontend never diverge.
-    const cmsItem = await this.cmsEntries.findOne({ kind: 'collection', slug, status: { $ne: 'archived' } }).lean().exec();
+    const cmsItem = await this.cmsEntries
+      .findOne({ kind: 'collection', slug, status: { $ne: 'archived' } })
+      .lean()
+      .exec();
     if (!cmsItem) throw new NotFoundException('کالکشن پیدا نشد');
-    return this.toPublicCmsCollection(cmsItem as unknown as Record<string, unknown>);
+    return this.toPublicCmsCollection(cmsItem);
   }
 
-  async getProductsForCollection(collection: Record<string, unknown>, availableProducts?: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
+  async getProductsForCollection(
+    collection: Record<string, unknown>,
+    availableProducts?: Record<string, unknown>[],
+  ): Promise<Record<string, unknown>[]> {
     // A collection owns every published product whose title contains its
     // name. This stays current automatically as products are created or
     // renamed; no manual product-to-collection assignment is required.
@@ -58,46 +88,61 @@ export class CollectionsService {
     if (!collectionName) return [];
 
     const normalizedCollectionName = this.normalizeForMatch(collectionName);
-    const products = availableProducts || await this.products
-      .find({ status: 'published' })
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .lean()
-      .exec() as unknown as Record<string, unknown>[];
+    const products =
+      availableProducts ||
+      (await this.products
+        .find({ status: 'published' })
+        .sort({ sortOrder: 1, createdAt: -1 })
+        .lean()
+        .exec());
 
-    const normalizedSeries = this.normalizeForMatch(String(collection.series || collectionName));
+    const normalizedSeries = this.normalizeForMatch(
+      String(collection.series || collectionName),
+    );
     return products.filter((product) => {
-      const titleMatches = this.normalizeForMatch(String(product.name || '')).includes(normalizedCollectionName);
-      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(String(product.series || '')) === normalizedSeries;
+      const titleMatches = this.normalizeForMatch(
+        String(product.name || ''),
+      ).includes(normalizedCollectionName);
+      const seriesMatches =
+        Boolean(normalizedSeries) &&
+        this.normalizeForMatch(String(product.series || '')) ===
+          normalizedSeries;
       return titleMatches || seriesMatches;
-    }) as unknown as Record<string, unknown>[];
+    });
   }
 
   async create(input: Record<string, unknown>): Promise<any> {
     const data = this.clean(input, true);
     if (!data['name']) throw new BadRequestException('نام کالکشن الزامی است');
     if (!data['slug']) data['slug'] = this.normalizeSlug(String(data['name']));
-    
+
     // If no image provided but we can find products for this collection, use first product's image
     if (!data['image']) {
-      const products = await this.getProductsBySeries(String(data['series'] || data['name'] || ''));
+      const products = await this.getProductsBySeries(
+        String(data['series'] || data['name'] || ''),
+      );
       if (products.length > 0 && products[0].image) {
-        data['image'] = products[0].image as string;
+        data['image'] = products[0].image;
       }
     }
-    
+
     try {
       const doc = await this.model.create(data);
       return doc.toObject();
     } catch (error: any) {
-      if (error?.code === 11000) throw new BadRequestException('نام یا اسلاگ تکراری است');
+      if (error?.code === 11000)
+        throw new BadRequestException('نام یا اسلاگ تکراری است');
       throw error;
     }
   }
 
   async update(id: string, input: Record<string, unknown>) {
     const data = this.clean(input, false);
-    
-    const item = await this.model.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean().exec();
+
+    const item = await this.model
+      .findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true })
+      .lean()
+      .exec();
     if (!item) throw new NotFoundException('کالکشن پیدا نشد');
     return item;
   }
@@ -113,15 +158,35 @@ export class CollectionsService {
     // active collection that actually owns products, including collections
     // whose membership is inferred from their series or product names.
     const [collections, allProducts, cmsCollections] = await Promise.all([
-      this.model.find({ status: { $ne: 'archived' } }).sort({ updatedAt: -1 }).lean().exec(),
-      this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec(),
-      this.cmsEntries.find({ kind: 'collection', status: { $ne: 'archived' } }).sort({ updatedAt: -1 }).lean().exec(),
+      this.model
+        .find({ status: { $ne: 'archived' } })
+        .sort({ updatedAt: -1 })
+        .lean()
+        .exec(),
+      this.products
+        .find({ status: 'published' })
+        .sort({ sortOrder: 1, createdAt: -1 })
+        .lean()
+        .exec(),
+      this.cmsEntries
+        .find({ kind: 'collection', status: { $ne: 'archived' } })
+        .sort({ updatedAt: -1 })
+        .lean()
+        .exec(),
     ]);
-    const publishedProducts = allProducts as unknown as Record<string, unknown>[];
+    const publishedProducts = allProducts as unknown as Record<
+      string,
+      unknown
+    >[];
 
-    const withProducts: Array<Record<string, unknown> & { products: Record<string, unknown>[] }> = await Promise.all(
+    const withProducts: Array<
+      Record<string, unknown> & { products: Record<string, unknown>[] }
+    > = await Promise.all(
       collections.map(async (collection) => {
-        const products = await this.getProductsForCollection(collection as unknown as Record<string, unknown>, publishedProducts);
+        const products = await this.getProductsForCollection(
+          collection,
+          publishedProducts,
+        );
         const image = String(products[0]?.image || collection.image || '');
         return {
           ...collection,
@@ -132,29 +197,58 @@ export class CollectionsService {
       }),
     );
     const cmsWithProducts = await Promise.all(
-      cmsCollections.map((collection) => this.toPublicCmsCollection(collection as unknown as Record<string, unknown>, publishedProducts, false)),
+      cmsCollections.map((collection) =>
+        this.toPublicCmsCollection(
+          collection as unknown as Record<string, unknown>,
+          publishedProducts,
+          false,
+        ),
+      ),
     );
 
     // CMS is the source used by «مدیریت آثار»; when a legacy standalone
     // collection has the same slug, keep the CMS version and its membership.
     const result = new Map<string, Record<string, unknown>>();
     for (const collection of cmsWithProducts) {
-      if (Number(collection.productCount || 0) > 0) result.set(String(collection.slug), collection);
+      if (Number(collection.productCount || 0) > 0)
+        result.set(String(collection.slug), collection);
     }
     for (const collection of withProducts) {
-      if (Number(collection.productCount || 0) > 0 && !result.has(String(collection.slug))) result.set(String(collection.slug), collection);
+      if (
+        Number(collection.productCount || 0) > 0 &&
+        !result.has(String(collection.slug))
+      )
+        result.set(String(collection.slug), collection);
     }
     return [...result.values()];
   }
 
-  private async toPublicCmsCollection(collection: Record<string, unknown>, availableProducts?: Record<string, unknown>[], includeProducts = true): Promise<Record<string, unknown> & { products: Record<string, unknown>[] }> {
-    const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
+  private async toPublicCmsCollection(
+    collection: Record<string, unknown>,
+    availableProducts?: Record<string, unknown>[],
+    includeProducts = true,
+  ): Promise<
+    Record<string, unknown> & { products: Record<string, unknown>[] }
+  > {
+    const data = (
+      collection.data && typeof collection.data === 'object'
+        ? collection.data
+        : {}
+    ) as Record<string, unknown>;
     const title = String(collection.title || '').trim();
-    const series = String(data.seriesName || data.series || title.replace(/^کالکشن\s+/u, '')).trim();
-    const products = await this.getProductsForCmsCollection(collection, series, availableProducts);
+    const series = String(
+      data.seriesName || data.series || title.replace(/^کالکشن\s+/u, ''),
+    ).trim();
+    const products = await this.getProductsForCmsCollection(
+      collection,
+      series,
+      availableProducts,
+    );
     // The first actual product is the collection cover everywhere. This keeps
     // the listing and detail header in sync and bypasses stale legacy covers.
-    const savedImages = Array.isArray(collection.images) ? collection.images.map(String).filter(Boolean) : [];
+    const savedImages = Array.isArray(collection.images)
+      ? collection.images.map(String).filter(Boolean)
+      : [];
     const productCover = String(products[0]?.image || '');
     const processedImages = productCover
       ? [productCover, ...savedImages.filter((image) => image !== productCover)]
@@ -176,29 +270,52 @@ export class CollectionsService {
     };
   }
 
-  private async getProductsForCmsCollection(collection: Record<string, unknown>, series: string, availableProducts?: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
-    const data = (collection.data && typeof collection.data === 'object' ? collection.data : {}) as Record<string, unknown>;
+  private async getProductsForCmsCollection(
+    collection: Record<string, unknown>,
+    series: string,
+    availableProducts?: Record<string, unknown>[],
+  ): Promise<Record<string, unknown>[]> {
+    const data = (
+      collection.data && typeof collection.data === 'object'
+        ? collection.data
+        : {}
+    ) as Record<string, unknown>;
     const references = new Set(
       [data.productSlugs, data.productIds]
-        .flatMap((value) => Array.isArray(value) ? value : [])
+        .flatMap((value) => (Array.isArray(value) ? value : []))
         .map((value) => String(value).trim())
         .filter(Boolean),
     );
     const normalizedSeries = this.normalizeForMatch(series);
-    const products = availableProducts || await this.products.find({ status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec() as unknown as Record<string, unknown>[];
+    const products =
+      availableProducts ||
+      (await this.products
+        .find({ status: 'published' })
+        .sort({ sortOrder: 1, createdAt: -1 })
+        .lean()
+        .exec());
     return products.filter((product) => {
-      const explicitlyAssigned = references.has(String(product.slug)) || references.has(String(product._id));
-      const seriesMatches = Boolean(normalizedSeries) && this.normalizeForMatch(String(product.series || '')) === normalizedSeries;
+      const explicitlyAssigned =
+        references.has(String(product.slug)) ||
+        references.has(String(product._id));
+      const seriesMatches =
+        Boolean(normalizedSeries) &&
+        this.normalizeForMatch(String(product.series || '')) ===
+          normalizedSeries;
       return explicitlyAssigned || seriesMatches;
-    }) as unknown as Record<string, unknown>[];
+    });
   }
 
   async seedFromProducts(): Promise<{ created: number; series: string[] }> {
-    const results = await this.products.aggregate<{ _id: string }>([
-      { $match: { series: { $type: 'string', $ne: '' } } },
-      { $group: { _id: '$series' } },
-      { $sort: { _id: 1 } },
-    ]).exec();
+    const results = await this.products
+      .aggregate<{
+        _id: string;
+      }>([
+        { $match: { series: { $type: 'string', $ne: '' } } },
+        { $group: { _id: '$series' } },
+        { $sort: { _id: 1 } },
+      ])
+      .exec();
 
     const seriesList = results.map((r) => r._id).filter(Boolean);
     let created = 0;
@@ -209,7 +326,9 @@ export class CollectionsService {
 
       const name = series.charAt(0).toUpperCase() + series.slice(1);
       const slug = this.normalizeSlug(series);
-      const productCount = await this.products.countDocuments({ series, status: 'published' }).exec();
+      const productCount = await this.products
+        .countDocuments({ series, status: 'published' })
+        .exec();
 
       await this.model.create({
         name: `کالکشن ${name}`,
@@ -226,22 +345,38 @@ export class CollectionsService {
     return { created, series: seriesList };
   }
 
-  async updateProductSeries(productId: string, series: string): Promise<Record<string, unknown>> {
-    const product = await this.products.findByIdAndUpdate(
-      productId,
-      { $set: { series: series.trim() } },
-      { new: true, runValidators: true },
-    ).lean().exec();
+  async updateProductSeries(
+    productId: string,
+    series: string,
+  ): Promise<Record<string, unknown>> {
+    const product = await this.products
+      .findByIdAndUpdate(
+        productId,
+        { $set: { series: series.trim() } },
+        { new: true, runValidators: true },
+      )
+      .lean()
+      .exec();
     if (!product) throw new NotFoundException('محصول پیدا نشد');
     return product as Record<string, unknown>;
   }
 
-  async getProductsBySeries(series: string): Promise<Record<string, unknown>[]> {
-    return this.products.find({ series: series.trim(), status: 'published' }).sort({ sortOrder: 1, createdAt: -1 }).lean().exec();
+  async getProductsBySeries(
+    series: string,
+  ): Promise<Record<string, unknown>[]> {
+    return this.products
+      .find({ series: series.trim(), status: 'published' })
+      .sort({ sortOrder: 1, createdAt: -1 })
+      .lean()
+      .exec();
   }
 
   async getAllProducts(): Promise<Record<string, unknown>[]> {
-    return this.products.find({ status: 'published' }).sort({ series: 1, sortOrder: 1 }).lean().exec();
+    return this.products
+      .find({ status: 'published' })
+      .sort({ series: 1, sortOrder: 1 })
+      .lean()
+      .exec();
   }
 
   /** Assign products by matching a collection name in the product title. */
@@ -253,13 +388,26 @@ export class CollectionsService {
     unmatched: number;
   }> {
     const [collections, products] = await Promise.all([
-      this.model.find({ status: { $ne: 'archived' } }).select('name series').lean().exec(),
+      this.model
+        .find({ status: { $ne: 'archived' } })
+        .select('name series')
+        .lean()
+        .exec(),
       this.products.find({}).select('name series').lean().exec(),
     ]);
     const rules = collections
-      .map((collection) => ({ name: this.collectionName(collection as unknown as Record<string, unknown>), series: String(collection.series || '').trim() }))
+      .map((collection) => ({
+        name: this.collectionName(
+          collection as unknown as Record<string, unknown>,
+        ),
+        series: String(collection.series || '').trim(),
+      }))
       .filter((rule) => rule.name)
-      .sort((a, b) => this.normalizeForMatch(b.name).length - this.normalizeForMatch(a.name).length);
+      .sort(
+        (a, b) =>
+          this.normalizeForMatch(b.name).length -
+          this.normalizeForMatch(a.name).length,
+      );
 
     const operations: any[] = [];
     const ambiguous: string[] = [];
@@ -267,39 +415,89 @@ export class CollectionsService {
     let alreadyCorrect = 0;
     for (const product of products) {
       const title = this.normalizeForMatch(product.name || '');
-      const matches = rules.filter((rule) => title.includes(this.normalizeForMatch(rule.name)));
+      const matches = rules.filter((rule) =>
+        title.includes(this.normalizeForMatch(rule.name)),
+      );
       if (!matches.length) continue;
       const best = matches[0];
-      if (matches.length > 1 && this.normalizeForMatch(matches[1].name).length === this.normalizeForMatch(best.name).length) {
+      if (
+        matches.length > 1 &&
+        this.normalizeForMatch(matches[1].name).length ===
+          this.normalizeForMatch(best.name).length
+      ) {
         ambiguous.push(product.name);
         continue;
       }
       matched++;
       const series = best.series || best.name;
-      if (this.normalizeForMatch(product.series || '') === this.normalizeForMatch(series)) {
+      if (
+        this.normalizeForMatch(product.series || '') ===
+        this.normalizeForMatch(series)
+      ) {
         alreadyCorrect++;
         continue;
       }
-      operations.push({ updateOne: { filter: { _id: product._id }, update: { $set: { series } } } });
+      operations.push({
+        updateOne: {
+          filter: { _id: product._id },
+          update: { $set: { series } },
+        },
+      });
     }
     if (operations.length) await this.products.bulkWrite(operations);
-    return { matched, updated: operations.length, alreadyCorrect, ambiguous, unmatched: products.length - matched - ambiguous.length };
+    return {
+      matched,
+      updated: operations.length,
+      alreadyCorrect,
+      ambiguous,
+      unmatched: products.length - matched - ambiguous.length,
+    };
   }
 
   private clean(input: Record<string, unknown>, required: boolean) {
     const data: Record<string, unknown> = {};
-    for (const key of ['name', 'slug', 'excerpt', 'description', 'image', 'series']) {
+    for (const key of [
+      'name',
+      'slug',
+      'excerpt',
+      'description',
+      'image',
+      'series',
+    ]) {
       if (input[key] !== undefined) data[key] = String(input[key] || '').trim();
     }
-    if (input.status !== undefined) data.status = statuses.includes(input.status as CollectionStatus) ? input.status : 'draft';
-    if (input.tags !== undefined) data.tags = Array.isArray(input.tags) ? input.tags.map(String).map((v) => v.trim()).filter(Boolean) : [];
-    if (input.gallery !== undefined) data.gallery = Array.isArray(input.gallery) ? input.gallery.map(String).map((v) => v.trim()).filter(Boolean) : [];
+    if (input.status !== undefined)
+      data.status = statuses.includes(input.status as CollectionStatus)
+        ? input.status
+        : 'draft';
+    if (input.tags !== undefined)
+      data.tags = Array.isArray(input.tags)
+        ? input.tags
+            .map(String)
+            .map((v) => v.trim())
+            .filter(Boolean)
+        : [];
+    if (input.gallery !== undefined)
+      data.gallery = Array.isArray(input.gallery)
+        ? input.gallery
+            .map(String)
+            .map((v) => v.trim())
+            .filter(Boolean)
+        : [];
     if (input.publishedAt !== undefined) data.publishedAt = input.publishedAt;
     return data;
   }
 
   private normalizeSlug(value: string): string {
-    return value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\p{L}\p{N}-]+/gu, '').replace(/-+/g, '-').replace(/^-|-$/g, '') || `collection-${Date.now()}`;
+    return (
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\p{L}\p{N}-]+/gu, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || `collection-${Date.now()}`
+    );
   }
 
   private collectionName(collection: Record<string, unknown>): string {

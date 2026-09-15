@@ -63,7 +63,10 @@ class VariantOptionDto {
 
 class ProductVariantDto {
   @IsOptional() @IsString() sku?: string;
-  @IsArray() @ValidateNested({ each: true }) @Type(() => VariantOptionDto) options: VariantOptionDto[];
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VariantOptionDto)
+  options: VariantOptionDto[];
   @IsOptional() @IsNumber() price?: number;
   @IsOptional() @IsNumber() compareAtPrice?: number;
   @IsOptional() @IsNumber() stockQty?: number;
@@ -177,10 +180,16 @@ export class CreateShopProductDto {
   @Type(() => HighlightDto)
   highlights?: HighlightDto[];
 
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductAttributeDto)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeDto)
   attributes?: ProductAttributeDto[];
 
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductVariantDto)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantDto)
   variants?: ProductVariantDto[];
 
   @IsOptional()
@@ -286,10 +295,16 @@ export class UpdateShopProductDto {
   @Type(() => HighlightDto)
   highlights?: HighlightDto[];
 
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductAttributeDto)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeDto)
   attributes?: ProductAttributeDto[];
 
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ProductVariantDto)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantDto)
   variants?: ProductVariantDto[];
 
   @IsOptional()

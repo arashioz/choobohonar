@@ -136,7 +136,10 @@ export class ShopOrder {
   @Prop({ type: OrderShipping, required: true })
   shipping: OrderShipping;
 
-  @Prop({ type: OrderPayment, default: () => ({ method: 'mock', status: 'pending' }) })
+  @Prop({
+    type: OrderPayment,
+    default: () => ({ method: 'mock', status: 'pending' }),
+  })
   payment: OrderPayment;
 
   @Prop({ type: Object, required: true })

@@ -1,0 +1,391 @@
+{
+  "source": "wc-product-export-15-9-2026-1789498910475.csv",
+  "generatedAt": "2026-09-15T19:36:19.154Z",
+  "productScope": {
+    "allParentProducts": 438,
+    "seedProducts": 438,
+    "retainedVariations": 528
+  },
+  "normalization": {
+    "carpetAndRug": "همه مسیرهای فرش و گلیم به دستهٔ واحد «فرش و گلیم» تبدیل شده‌اند و زیر‌دسته ندارند."
+  },
+  "categories": [
+    {
+      "name": "اتاق خواب",
+      "slug": "اتاق-خواب",
+      "productCount": 61,
+      "children": [
+        {
+          "name": "آینه",
+          "slug": "اینه",
+          "productCount": 10,
+          "children": []
+        },
+        {
+          "name": "پاتختی",
+          "slug": "پاتختی",
+          "productCount": 10,
+          "children": []
+        },
+        {
+          "name": "تخت خواب",
+          "slug": "تخت-خواب",
+          "productCount": 9,
+          "children": []
+        },
+        {
+          "name": "دراور",
+          "slug": "دراور",
+          "productCount": 7,
+          "children": []
+        },
+        {
+          "name": "صندلی میزآرایش",
+          "slug": "صندلی-میزارایش",
+          "productCount": 9,
+          "children": []
+        },
+        {
+          "name": "لاوست",
+          "slug": "لاوست",
+          "productCount": 6,
+          "children": []
+        },
+        {
+          "name": "میزآرایش",
+          "slug": "میزارایش",
+          "productCount": 10,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "دکور",
+      "slug": "دکور",
+      "productCount": 120,
+      "children": [
+        {
+          "name": "آینه",
+          "slug": "اینه",
+          "productCount": 7,
+          "children": []
+        },
+        {
+          "name": "تابلو دکوراتیو",
+          "slug": "تابلو-دکوراتیو",
+          "productCount": 4,
+          "children": []
+        },
+        {
+          "name": "دستمال سفره",
+          "slug": "دستمال-سفره",
+          "productCount": 1,
+          "children": []
+        },
+        {
+          "name": "دکوراتیو",
+          "slug": "دکوراتیو",
+          "productCount": 30,
+          "children": []
+        },
+        {
+          "name": "رانر",
+          "slug": "رانر",
+          "productCount": 1,
+          "children": []
+        },
+        {
+          "name": "ساعت",
+          "slug": "ساعت",
+          "productCount": 3,
+          "children": []
+        },
+        {
+          "name": "شال مبل",
+          "slug": "شال-مبل",
+          "productCount": 1,
+          "children": []
+        },
+        {
+          "name": "شمع دکوراتیو",
+          "slug": "شمع-دکوراتیو",
+          "productCount": 11,
+          "children": []
+        },
+        {
+          "name": "شمعدان",
+          "slug": "شمعدان",
+          "productCount": 11,
+          "children": []
+        },
+        {
+          "name": "ظروف",
+          "slug": "ظروف",
+          "productCount": 36,
+          "children": []
+        },
+        {
+          "name": "کوسن",
+          "slug": "کوسن",
+          "productCount": 1,
+          "children": []
+        },
+        {
+          "name": "گلدان",
+          "slug": "گلدان",
+          "productCount": 14,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "روشنایی",
+      "slug": "روشنایی",
+      "productCount": 37,
+      "children": [
+        {
+          "name": "آباژور ایستاده",
+          "slug": "اباژور-ایستاده",
+          "productCount": 12,
+          "children": []
+        },
+        {
+          "name": "آباژور رومیزی",
+          "slug": "اباژور-رومیزی",
+          "productCount": 15,
+          "children": []
+        },
+        {
+          "name": "آویز",
+          "slug": "اویز",
+          "productCount": 3,
+          "children": []
+        },
+        {
+          "name": "دیوارکوب",
+          "slug": "دیوارکوب",
+          "productCount": 1,
+          "children": []
+        },
+        {
+          "name": "لوستر",
+          "slug": "لوستر",
+          "productCount": 6,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "غذاخوری",
+      "slug": "غذاخوری",
+      "productCount": 13,
+      "children": [
+        {
+          "name": "صندلی غذاخوری",
+          "slug": "صندلی-غذاخوری",
+          "productCount": 8,
+          "children": [
+            {
+              "name": "صندلی غذاخوری",
+              "slug": "صندلی-غذاخوری",
+              "productCount": 5,
+              "children": []
+            },
+            {
+              "name": "صندلی کانتر",
+              "slug": "صندلی-کانتر",
+              "productCount": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "میز غذاخوری",
+          "slug": "میز-غذاخوری",
+          "productCount": 5,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "فرش و گلیم",
+      "slug": "فرش-و-گلیم",
+      "productCount": 16,
+      "children": []
+    },
+    {
+      "name": "کالای خواب",
+      "slug": "کالای-خواب",
+      "productCount": 123,
+      "children": [
+        {
+          "name": "بالش",
+          "slug": "بالش",
+          "productCount": 18,
+          "children": []
+        },
+        {
+          "name": "پتو",
+          "slug": "پتو",
+          "productCount": 22,
+          "children": []
+        },
+        {
+          "name": "تشک",
+          "slug": "تشک",
+          "productCount": 10,
+          "children": []
+        },
+        {
+          "name": "سرویس روتختی",
+          "slug": "سرویس-روتختی",
+          "productCount": 39,
+          "children": []
+        },
+        {
+          "name": "سرویس ملحفه",
+          "slug": "سرویس-ملحفه",
+          "productCount": 25,
+          "children": []
+        },
+        {
+          "name": "لحاف",
+          "slug": "لحاف",
+          "productCount": 7,
+          "children": []
+        },
+        {
+          "name": "محافظ تشک",
+          "slug": "محافظ-تشک",
+          "productCount": 2,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "نشیمن",
+      "slug": "نشیمن",
+      "productCount": 68,
+      "children": [
+        {
+          "name": "صندلی",
+          "slug": "صندلی",
+          "productCount": 1,
+          "children": [
+            {
+              "name": "صندلی راک",
+              "slug": "صندلی-راک",
+              "productCount": 1,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "کاناپه",
+          "slug": "کاناپه",
+          "productCount": 5,
+          "children": []
+        },
+        {
+          "name": "کمد کنسول",
+          "slug": "کمد-کنسول",
+          "productCount": 5,
+          "children": [
+            {
+              "name": "بوفه",
+              "slug": "بوفه",
+              "productCount": 2,
+              "children": []
+            },
+            {
+              "name": "کمد بار",
+              "slug": "کمد-بار",
+              "productCount": 1,
+              "children": []
+            },
+            {
+              "name": "کنسول",
+              "slug": "کنسول",
+              "productCount": 2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "مبل ال",
+          "slug": "مبل-ال",
+          "productCount": 17,
+          "children": []
+        },
+        {
+          "name": "مبل تک نفره",
+          "slug": "مبل-تک-نفره",
+          "productCount": 9,
+          "children": []
+        },
+        {
+          "name": "مبلمان فضای باز",
+          "slug": "مبلمان-فضای-باز",
+          "productCount": 4,
+          "children": [
+            {
+              "name": "تخت آفتاب",
+              "slug": "تخت-افتاب",
+              "productCount": 1,
+              "children": []
+            },
+            {
+              "name": "مبل تک نفره فضای باز",
+              "slug": "مبل-تک-نفره-فضای-باز",
+              "productCount": 1,
+              "children": []
+            },
+            {
+              "name": "میز جلو مبلی",
+              "slug": "میز-جلو-مبلی",
+              "productCount": 1,
+              "children": []
+            },
+            {
+              "name": "نیمکت",
+              "slug": "نیمکت",
+              "productCount": 1,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "میز",
+          "slug": "میز",
+          "productCount": 27,
+          "children": [
+            {
+              "name": "جلو مبلی",
+              "slug": "جلو-مبلی",
+              "productCount": 10,
+              "children": []
+            },
+            {
+              "name": "کنار مبلی",
+              "slug": "کنار-مبلی",
+              "productCount": 12,
+              "children": []
+            },
+            {
+              "name": "میز خاطره",
+              "slug": "میز-خاطره",
+              "productCount": 1,
+              "children": []
+            },
+            {
+              "name": "میزتلویزیون",
+              "slug": "میزتلویزیون",
+              "productCount": 4,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

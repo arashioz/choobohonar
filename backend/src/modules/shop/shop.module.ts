@@ -7,7 +7,10 @@ import { ShopProduct, ShopProductSchema } from './schemas/shop-product.schema';
 import { ShopOrder, ShopOrderSchema } from './schemas/shop-order.schema';
 import { ShopInvoice, ShopInvoiceSchema } from './schemas/shop-invoice.schema';
 import { CmsEntry, CmsEntrySchema } from '../cms/schemas/cms-entry.schema';
-import { Collection, CollectionSchema } from '../collections/schemas/collection.schema';
+import {
+  Collection,
+  CollectionSchema,
+} from '../collections/schemas/collection.schema';
 
 @Module({
   imports: [

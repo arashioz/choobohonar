@@ -24,7 +24,14 @@ const MOCK_BLOG_FA = {
   metaTitle: 'انتخاب چوب برای دکوراسیون داخلی | خانه چوب و هنر',
   metaDescription:
     'راهنمای کاربردی انتخاب چوب برای دکوراسیون داخلی: تفاوت چوب ماسیو و صفحات مهندسی، گردو و بلوط و راش، و انتخاب بر اساس کاربرد.',
-  keywords: ['انتخاب چوب', 'چوب دکوراسیون', 'چوب ماسیو', 'چوب گردو', 'چوب بلوط', 'دکوراسیون داخلی'],
+  keywords: [
+    'انتخاب چوب',
+    'چوب دکوراسیون',
+    'چوب ماسیو',
+    'چوب گردو',
+    'چوب بلوط',
+    'دکوراسیون داخلی',
+  ],
   marketingCopy: 'انتخاب درستِ چوب، از همان ابتدا در دوام دیده می‌شود.',
 };
 
@@ -51,8 +58,16 @@ For a working surface like a dining table, durability comes first; for a decorat
   metaTitle: 'Choosing Wood for Interior Design | ChooboHonar Home',
   metaDescription:
     'A practical guide to choosing wood for interiors: solid wood vs. engineered panels, walnut, oak and beech, and how to choose by use.',
-  keywords: ['choosing wood', 'interior design wood', 'solid wood', 'walnut', 'oak', 'wood décor'],
-  marketingCopy: 'Choose the right wood at the start; you will see it in how it lasts.',
+  keywords: [
+    'choosing wood',
+    'interior design wood',
+    'solid wood',
+    'walnut',
+    'oak',
+    'wood décor',
+  ],
+  marketingCopy:
+    'Choose the right wood at the start; you will see it in how it lasts.',
 };
 
 const MOCK_PRODUCT_FA = {
@@ -65,8 +80,15 @@ const MOCK_PRODUCT_FA = {
 - پرداخت: روغن طبیعی
 - ظرفیت: ۸ نفر`,
   metaTitle: 'میز ناهارخوری گردو ماسیو | خانه چوب و هنر',
-  metaDescription: 'میز ناهارخوری دست‌ساز از چوب گردو ماسیو با پرداخت روغن طبیعی. ابعاد ۲۰۰×۱۰۰، ظرفیت ۸ نفر.',
-  keywords: ['میز گردو ماسیو', 'میز ناهارخوری چوبی', 'میز چوب گردو', 'مبلمان دست‌ساز', 'میز ۸ نفره'],
+  metaDescription:
+    'میز ناهارخوری دست‌ساز از چوب گردو ماسیو با پرداخت روغن طبیعی. ابعاد ۲۰۰×۱۰۰، ظرفیت ۸ نفر.',
+  keywords: [
+    'میز گردو ماسیو',
+    'میز ناهارخوری چوبی',
+    'میز چوب گردو',
+    'مبلمان دست‌ساز',
+    'میز ۸ نفره',
+  ],
   marketingCopy: 'یک صفحهٔ گردو ماسیو، با رگه‌ای که در طول میز ادامه دارد.',
 };
 
@@ -82,8 +104,15 @@ const MOCK_PRODUCT_EN = {
   metaTitle: 'Solid Walnut Dining Table | ChooboHonar Home',
   metaDescription:
     'Handcrafted solid walnut dining table with a natural-oil finish. 200×100 cm, seats 8. Grain runs unbroken along the top.',
-  keywords: ['solid walnut dining table', 'wooden dining table', 'handcrafted table', 'walnut furniture', 'seats 8 table'],
-  marketingCopy: 'A solid walnut top, with the grain running the length of the table.',
+  keywords: [
+    'solid walnut dining table',
+    'wooden dining table',
+    'handcrafted table',
+    'walnut furniture',
+    'seats 8 table',
+  ],
+  marketingCopy:
+    'A solid walnut top, with the grain running the length of the table.',
 };
 
 function delay(ms: number) {
@@ -97,8 +126,14 @@ export class MockLLMProvider implements LLMProvider {
     await delay(800 + Math.floor(Math.random() * 400));
 
     const prompt = request.userPrompt.toLowerCase();
-    const isFarsi = prompt.includes('fa') || prompt.includes('فارسی') || prompt.includes('persian');
-    const isBlog = prompt.includes('blog') || prompt.includes('بلاگ') || prompt.includes('topic');
+    const isFarsi =
+      prompt.includes('fa') ||
+      prompt.includes('فارسی') ||
+      prompt.includes('persian');
+    const isBlog =
+      prompt.includes('blog') ||
+      prompt.includes('بلاگ') ||
+      prompt.includes('topic');
     const isProduct = prompt.includes('product') || prompt.includes('محصول');
 
     if (isBlog) {
@@ -109,13 +144,24 @@ export class MockLLMProvider implements LLMProvider {
     }
 
     // Generic mock for individual steps
-    if (prompt.includes('keyword') || prompt.includes('seo') || prompt.includes('کلیدواژه')) {
+    if (
+      prompt.includes('keyword') ||
+      prompt.includes('seo') ||
+      prompt.includes('کلیدواژه')
+    ) {
       return JSON.stringify({
-        keywords: ['چوب ماسیو', 'دکوراسیون چوبی', 'مبلمان دست‌ساز', 'طراحی داخلی'],
+        keywords: [
+          'چوب ماسیو',
+          'دکوراسیون چوبی',
+          'مبلمان دست‌ساز',
+          'طراحی داخلی',
+        ],
         outline: ['مقدمه', 'موضوع اصلی', 'نتیجه‌گیری'],
       });
     }
 
-    return JSON.stringify({ content: 'محتوای نمونهٔ خانه چوب و هنر (نسخهٔ آزمایشی)' });
+    return JSON.stringify({
+      content: 'محتوای نمونهٔ خانه چوب و هنر (نسخهٔ آزمایشی)',
+    });
   }
 }

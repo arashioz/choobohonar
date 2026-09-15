@@ -8,8 +8,14 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { Model } from 'mongoose';
 import { ContentJob, ContentJobDocument } from './schemas/content-job.schema';
-import { ContentFeedback, ContentFeedbackDocument } from './schemas/content-feedback.schema';
-import { ContentExample, ContentExampleDocument } from './schemas/content-example.schema';
+import {
+  ContentFeedback,
+  ContentFeedbackDocument,
+} from './schemas/content-feedback.schema';
+import {
+  ContentExample,
+  ContentExampleDocument,
+} from './schemas/content-example.schema';
 import { CreateJobDto } from './dto/create-job.dto';
 import { ReviewJobDto } from './dto/review-job.dto';
 import { CONTENT_QUEUE } from '../content-queue/content-generation.processor';
@@ -18,8 +24,10 @@ import { CONTENT_QUEUE } from '../content-queue/content-generation.processor';
 export class ContentService {
   constructor(
     @InjectModel(ContentJob.name) private jobModel: Model<ContentJobDocument>,
-    @InjectModel(ContentFeedback.name) private feedbackModel: Model<ContentFeedbackDocument>,
-    @InjectModel(ContentExample.name) private exampleModel: Model<ContentExampleDocument>,
+    @InjectModel(ContentFeedback.name)
+    private feedbackModel: Model<ContentFeedbackDocument>,
+    @InjectModel(ContentExample.name)
+    private exampleModel: Model<ContentExampleDocument>,
     @InjectQueue(CONTENT_QUEUE) private contentQueue: Queue,
   ) {}
 
@@ -47,7 +55,9 @@ export class ContentService {
     await this.contentQueue.add(
       'generate',
       { jobId: job._id.toString() },
-      { priority: dto.priority === 'high' ? 1 : dto.priority === 'low' ? 10 : 5 },
+      {
+        priority: dto.priority === 'high' ? 1 : dto.priority === 'low' ? 10 : 5,
+      },
     );
 
     return job;
@@ -84,7 +94,8 @@ export class ContentService {
   async reviewJob(id: string, dto: ReviewJobDto): Promise<ContentJobDocument> {
     const job = await this.getJob(id);
 
-    const qualityScore = dto.action === 'approved' ? 1.0 : dto.action === 'edited' ? 0.7 : 0.0;
+    const qualityScore =
+      dto.action === 'approved' ? 1.0 : dto.action === 'edited' ? 0.7 : 0.0;
 
     const editDiff: { field: string; before: string; after: string }[] = [];
     let finalResult: Record<string, unknown> = {
@@ -96,8 +107,12 @@ export class ContentService {
         const before = (job.result as Record<string, unknown>)[field];
         editDiff.push({
           field,
-          before: typeof before === 'string' ? before : JSON.stringify(before ?? ''),
-          after: typeof newValue === 'string' ? newValue : JSON.stringify(newValue ?? ''),
+          before:
+            typeof before === 'string' ? before : JSON.stringify(before ?? ''),
+          after:
+            typeof newValue === 'string'
+              ? newValue
+              : JSON.stringify(newValue ?? ''),
         });
       }
       finalResult = { ...finalResult, ...dto.changes };
@@ -150,15 +165,16 @@ export class ContentService {
   }
 
   async getQueueStats() {
-    const [pending, processing, awaitingReview, completedToday] = await Promise.all([
-      this.jobModel.countDocuments({ status: 'pending' }),
-      this.jobModel.countDocuments({ status: 'processing' }),
-      this.jobModel.countDocuments({ status: 'awaiting_review' }),
-      this.jobModel.countDocuments({
-        status: 'published',
-        publishedAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-      }),
-    ]);
+    const [pending, processing, awaitingReview, completedToday] =
+      await Promise.all([
+        this.jobModel.countDocuments({ status: 'pending' }),
+        this.jobModel.countDocuments({ status: 'processing' }),
+        this.jobModel.countDocuments({ status: 'awaiting_review' }),
+        this.jobModel.countDocuments({
+          status: 'published',
+          publishedAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+        }),
+      ]);
     return { pending, processing, awaitingReview, completedToday };
   }
 }

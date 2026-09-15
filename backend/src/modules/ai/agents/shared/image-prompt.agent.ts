@@ -6,7 +6,10 @@ import { buildImagePrompt, Lang } from './brand-context';
 export class ImagePromptAgent {
   constructor(@Inject(LLM_PROVIDER) private llm: any) {}
 
-  async run(content: Record<string, unknown>, language: string): Promise<string> {
+  async run(
+    content: Record<string, unknown>,
+    language: string,
+  ): Promise<string> {
     // Brand-aligned art direction (forest-green + peach, architectural minimalism,
     // material honesty). Built deterministically so it works in demo/mock mode too.
     return buildImagePrompt(content, (language as Lang) === 'en' ? 'en' : 'fa');

@@ -9,6 +9,7 @@ export type ShopRoom =
   | "dishes";
 
 export type ShopProductStatus = "draft" | "published" | "archived";
+export type ShopProductStatusFilter = ShopProductStatus | "unpublished";
 
 export type ShopProduct = {
   _id: string;
@@ -45,6 +46,7 @@ export type ShopProduct = {
 export type ShopStats = {
   total: number;
   published: number;
+  unpublished: number;
   draft: number;
   archived: number;
   featured: number;

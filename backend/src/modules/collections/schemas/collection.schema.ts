@@ -12,7 +12,11 @@ export class Collection {
   @Prop({ required: true, trim: true, unique: true, index: true })
   slug: string;
 
-  @Prop({ enum: ['draft', 'published', 'archived'], default: 'draft', index: true })
+  @Prop({
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft',
+    index: true,
+  })
   status: CollectionStatus;
 
   @Prop({ default: '' })

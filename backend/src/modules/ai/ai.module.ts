@@ -11,7 +11,10 @@ import { BlogPipelineAgent } from './agents/blog/blog-pipeline.agent';
 import { ProductPipelineAgent } from './agents/product/product-pipeline.agent';
 import { ImagePromptAgent } from './agents/shared/image-prompt.agent';
 import { ImageGeneratorAgent } from './agents/shared/image-generator.agent';
-import { ContentJob, ContentJobSchema } from '../content/schemas/content-job.schema';
+import {
+  ContentJob,
+  ContentJobSchema,
+} from '../content/schemas/content-job.schema';
 import { BrandChunk, BrandChunkSchema } from './schemas/brand-chunk.schema';
 import { LocalEmbeddingService } from './services/local-embedding.service';
 import { BrandRagService } from './services/brand-rag.service';
@@ -56,4 +59,3 @@ import { BrandChatController } from './controllers/brand-chat.controller';
   exports: [OrchestratorAgent, BrandRagService, LocalEmbeddingService],
 })
 export class AiModule {}
-

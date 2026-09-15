@@ -7,7 +7,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
+const mongoUri =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
 const uploadRoot = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
 const mediaRoot = join(uploadRoot, 'migrated');
 const publicPrefix = '/uploads/migrated';
@@ -26,7 +27,14 @@ function isMediaKey(key: string) {
 function extension(contentType: string, source: string) {
   const fromUrl = extname(new URL(source).pathname).toLowerCase();
   if (/^\.(jpe?g|png|webp|gif|avif|svg)$/i.test(fromUrl)) return fromUrl;
-  const map: Record<string, string> = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif', 'image/svg+xml': '.svg' };
+  const map: Record<string, string> = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+    'image/avif': '.avif',
+    'image/svg+xml': '.svg',
+  };
   return map[contentType.split(';')[0].trim().toLowerCase()] || '.bin';
 }
 
@@ -39,18 +47,30 @@ async function localizeUrl(source: string): Promise<string> {
     if (dryRun) return `${publicPrefix}/${hash}.jpg`;
     try {
       mkdirSync(mediaRoot, { recursive: true });
-      const response = await fetch(source, { signal: AbortSignal.timeout(30000), headers: { 'User-Agent': 'ChooboHonar-media-migration/1.0' } });
-      if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+      const response = await fetch(source, {
+        signal: AbortSignal.timeout(30000),
+        headers: { 'User-Agent': 'ChooboHonar-media-migration/1.0' },
+      });
+      if (!response.ok || !response.body)
+        throw new Error(`HTTP ${response.status}`);
       const contentType = response.headers.get('content-type') || '';
-      if (!contentType.toLowerCase().startsWith('image/')) throw new Error(`not an image (${contentType || 'unknown'})`);
+      if (!contentType.toLowerCase().startsWith('image/'))
+        throw new Error(`not an image (${contentType || 'unknown'})`);
       const file = `${hash}${extension(contentType, source)}`;
       const target = join(mediaRoot, file);
-      if (!existsSync(target)) await pipeline(response.body as unknown as NodeJS.ReadableStream, createWriteStream(target));
+      if (!existsSync(target))
+        await pipeline(
+          response.body as unknown as NodeJS.ReadableStream,
+          createWriteStream(target),
+        );
       stats.localized += 1;
       return `${publicPrefix}/${file}`;
     } catch (error) {
       stats.failed += 1;
-      console.warn(`[media] keeping remote URL (${source}):`, error instanceof Error ? error.message : error);
+      console.warn(
+        `[media] keeping remote URL (${source}):`,
+        error instanceof Error ? error.message : error,
+      );
       return source;
     }
   })();
@@ -60,10 +80,12 @@ async function localizeUrl(source: string): Promise<string> {
 
 async function localize(value: unknown, key = ''): Promise<unknown> {
   if (isRemote(value) && (isMediaKey(key) || !key)) return localizeUrl(value);
-  if (Array.isArray(value)) return Promise.all(value.map((item) => localize(item, key)));
+  if (Array.isArray(value))
+    return Promise.all(value.map((item) => localize(item, key)));
   if (value && typeof value === 'object') {
     const result: Record<string, unknown> = {};
-    for (const [childKey, childValue] of Object.entries(value)) result[childKey] = await localize(childValue, childKey);
+    for (const [childKey, childValue] of Object.entries(value))
+      result[childKey] = await localize(childValue, childKey);
     return result;
   }
   return value;
@@ -77,9 +99,11 @@ async function migrateCollection(name: string, mediaFields: string[]) {
     if (!document) continue;
     const update: Record<string, unknown> = {};
     for (const field of mediaFields) {
-      if (document[field] !== undefined) update[field] = await localize(document[field], field);
+      if (document[field] !== undefined)
+        update[field] = await localize(document[field], field);
     }
-    if (!dryRun && Object.keys(update).length) await collection.updateOne({ _id: document._id }, { $set: update });
+    if (!dryRun && Object.keys(update).length)
+      await collection.updateOne({ _id: document._id }, { $set: update });
   }
 }
 
@@ -88,7 +112,9 @@ async function main() {
   await mongoose.connect(mongoUri);
   await migrateCollection('shop_products', ['image', 'gallery']);
   await migrateCollection('cms_entries', ['images', 'data']);
-  console.log(`[media] scanned=${stats.scanned} localized=${stats.localized} skipped=${stats.skipped} failed=${stats.failed}`);
+  console.log(
+    `[media] scanned=${stats.scanned} localized=${stats.localized} skipped=${stats.skipped} failed=${stats.failed}`,
+  );
   await mongoose.disconnect();
 }
 

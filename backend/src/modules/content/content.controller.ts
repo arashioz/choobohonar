@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+} from '@nestjs/common';
 import { ContentService } from './content.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { ReviewJobDto } from './dto/review-job.dto';

@@ -12,6 +12,7 @@ import {
   type ShopInvoice,
   type ShopOrder,
   type ShopProduct,
+  type ShopProductStatusFilter,
   type ShopRoom,
   type ShopStats,
   type ShopSuggestionGroup,
@@ -31,6 +32,10 @@ function isTab(v: string | null): v is Tab {
 
 function isRoom(v: string | null): v is ShopRoom {
   return Boolean(v && v in ROOM_LABELS);
+}
+
+function isProductStatusFilter(v: string | null): v is ShopProductStatusFilter {
+  return v === "published" || v === "draft" || v === "archived" || v === "unpublished";
 }
 
 type ProductGroup = {
@@ -80,10 +85,12 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const roomParam = searchParams.get("room");
+  const statusParam = searchParams.get("status");
   const requestedTab: Tab = isTab(tabParam) ? tabParam : roomParam ? "products" : "orders";
   // Products have one canonical workspace: مدیریت آثار ← محصولات.
   const tab: Tab = productsOnly ? "products" : requestedTab === "products" ? "orders" : requestedTab;
   const activeRoom = isRoom(roomParam) ? roomParam : "";
+  const activeProductStatus = isProductStatusFilter(statusParam) ? statusParam : "";
 
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [productTotal, setProductTotal] = useState(0);
@@ -129,7 +136,10 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     updateParams((params) => {
       if (next === "orders") params.delete("tab");
       else params.set("tab", next);
-      if (next !== "products") params.delete("room");
+      if (next !== "products") {
+        params.delete("room");
+        params.delete("status");
+      }
     });
   }
 
@@ -138,6 +148,14 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
       params.set("tab", "products");
       if (room) params.set("room", room);
       else params.delete("room");
+    });
+  }
+
+  function setProductStatusFilter(status: ShopProductStatusFilter | "") {
+    updateParams((params) => {
+      params.set("tab", "products");
+      if (status) params.set("status", status);
+      else params.delete("status");
     });
   }
 
@@ -151,6 +169,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
       shopApi.list({
         q: q || undefined,
         room: activeRoom || undefined,
+        status: activeProductStatus || undefined,
         limit: 1000,
       }),
       shopApi.stats(),
@@ -160,7 +179,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     setProductTotal(list.total);
     setStats(st);
     setSuggestions(sug.items);
-  }, [q, activeRoom]);
+  }, [q, activeRoom, activeProductStatus]);
 
   const loadOrders = useCallback(async () => {
     const [list, st] = await Promise.all([
@@ -502,8 +521,8 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   ["کل", stats.total],
-                  ["منتشر", stats.published],
-                  ["پیش‌نویس", stats.draft],
+                  ["منتشر شده", stats.published],
+                  ["منتشر نشده", stats.unpublished],
                   ["پیشنهادی", stats.suggested],
                 ].map(([label, value]) => (
                   <div
@@ -516,6 +535,28 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 ))}
               </div>
             ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "", label: "همه وضعیت‌ها", count: stats?.total },
+                { value: "published", label: "منتشر شده", count: stats?.published },
+                { value: "unpublished", label: "منتشر نشده", count: stats?.unpublished },
+              ].map(({ value, label, count }) => (
+                <button
+                  key={value || "all-statuses"}
+                  type="button"
+                  onClick={() => setProductStatusFilter(value as ShopProductStatusFilter | "")}
+                  className={`rounded-xl px-3 py-1.5 text-xs transition ${
+                    activeProductStatus === value
+                      ? "bg-forest text-peach"
+                      : "border border-forest/10 bg-white text-forest/60 hover:bg-forest/5"
+                  }`}
+                >
+                  {label}
+                  {count != null ? ` (${count})` : ""}
+                </button>
+              ))}
+            </div>
 
             <div className="flex flex-wrap gap-2">
               <button

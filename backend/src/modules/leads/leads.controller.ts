@@ -33,10 +33,7 @@ export class LeadsController {
 
   @Get('lead')
   @UseGuards(JwtAuthGuard)
-  listLeads(
-    @Query('type') type?: string,
-    @Query('status') status?: string,
-  ) {
+  listLeads(@Query('type') type?: string, @Query('status') status?: string) {
     return this.leadsService.listLeads(type, status);
   }
 

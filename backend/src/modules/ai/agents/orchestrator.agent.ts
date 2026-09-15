@@ -2,7 +2,10 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ContentJob, ContentJobDocument } from '../../content/schemas/content-job.schema';
+import {
+  ContentJob,
+  ContentJobDocument,
+} from '../../content/schemas/content-job.schema';
 import { BlogPipelineAgent } from './blog/blog-pipeline.agent';
 import { ProductPipelineAgent } from './product/product-pipeline.agent';
 import { ImagePromptAgent } from './shared/image-prompt.agent';
@@ -33,7 +36,11 @@ export class OrchestratorAgent {
     if (!job) throw new Error(`Job ${jobId} not found`);
 
     try {
-      await this.updateJob(job, { status: 'processing', progress: 5, currentStep: 'شروع پردازش...' });
+      await this.updateJob(job, {
+        status: 'processing',
+        progress: 5,
+        currentStep: 'شروع پردازش...',
+      });
       this.emit(jobId, 'شروع', 'آغاز پایپلاین تولید محتوا', 5);
 
       let result: Record<string, unknown> = {};
@@ -50,7 +57,11 @@ export class OrchestratorAgent {
         });
       }
 
-      await this.updateJob(job, { status: 'image_generation', progress: 75, currentStep: 'تولید تصویر...' });
+      await this.updateJob(job, {
+        status: 'image_generation',
+        progress: 75,
+        currentStep: 'تولید تصویر...',
+      });
       this.emit(jobId, 'تصویر', 'در حال ساخت تصویر با هوش مصنوعی...', 75);
 
       const imagePrompt = await this.imagePromptAgent.run(result, job.language);
@@ -82,10 +93,18 @@ export class OrchestratorAgent {
   }
 
   private emit(jobId: string, step: string, message: string, progress: number) {
-    this.eventEmitter.emit('content.progress', { jobId, step, message, progress } as ProgressEvent);
+    this.eventEmitter.emit('content.progress', {
+      jobId,
+      step,
+      message,
+      progress,
+    });
   }
 
-  private updateJob(job: ContentJobDocument, update: Partial<ContentJobDocument>) {
+  private updateJob(
+    job: ContentJobDocument,
+    update: Partial<ContentJobDocument>,
+  ) {
     return this.jobModel.findByIdAndUpdate(job._id, update);
   }
 }

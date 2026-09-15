@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CollectionsService } from './collections.service';
 
@@ -8,7 +19,10 @@ export class CollectionsAdminController {
   constructor(private readonly collections: CollectionsService) {}
 
   @Get()
-  list(@Query('q') q?: string, @Query('status') status?: string): Promise<{ items: Record<string, unknown>[]; total: number }> {
+  list(
+    @Query('q') q?: string,
+    @Query('status') status?: string,
+  ): Promise<{ items: Record<string, unknown>[]; total: number }> {
     return this.collections.list(q, status);
   }
 
@@ -33,12 +47,17 @@ export class CollectionsAdminController {
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  create(
+    @Body() body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     return this.collections.create(body);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  update(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     return this.collections.update(id, body);
   }
 

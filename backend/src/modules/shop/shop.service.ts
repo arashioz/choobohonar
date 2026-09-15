@@ -15,7 +15,10 @@ import {
   ProductRoom,
 } from './schemas/shop-product.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
-import { Collection, CollectionDocument } from '../collections/schemas/collection.schema';
+import {
+  Collection,
+  CollectionDocument,
+} from '../collections/schemas/collection.schema';
 import {
   CreateShopProductDto,
   UpdateShopProductDto,
@@ -49,7 +52,12 @@ type CatalogSeedRow = {
 };
 
 type CatalogCollectionTerm = { name: string; slug?: string };
-type CatalogAttribute = { taxonomy?: string; name?: string; hasVariations?: boolean; terms?: CatalogCollectionTerm[] };
+type CatalogAttribute = {
+  taxonomy?: string;
+  name?: string;
+  hasVariations?: boolean;
+  terms?: CatalogCollectionTerm[];
+};
 
 const SERIES_ALIASES: Record<string, string> = {
   alder: 'آلدر',
@@ -80,16 +88,25 @@ function canonicalSeriesName(value: string): string {
   return SERIES_ALIASES[normalizeSeriesValue(value)] || value.trim();
 }
 
-function getSeriesFromProduct(row: CatalogSeedRow): CatalogCollectionTerm | undefined {
+function getSeriesFromProduct(
+  row: CatalogSeedRow,
+): CatalogCollectionTerm | undefined {
   const attributes = (row.attributes || []) as CatalogAttribute[];
   const terms = attributes
-    .filter((attribute) => attribute.taxonomy === 'pa_collection' || attribute.name === 'کالکشن')
+    .filter(
+      (attribute) =>
+        attribute.taxonomy === 'pa_collection' || attribute.name === 'کالکشن',
+    )
     .flatMap((attribute) => attribute.terms || []);
   const normalizedName = normalizeSeriesValue(row.name);
 
   // Product titles are the authority here. Some legacy products carry extra
   // collection terms that do not appear in their names.
-  return terms.find((term) => normalizedName.includes(normalizeSeriesValue(canonicalSeriesName(term.name))));
+  return terms.find((term) =>
+    normalizedName.includes(
+      normalizeSeriesValue(canonicalSeriesName(term.name)),
+    ),
+  );
 }
 
 @Injectable()
@@ -126,7 +143,13 @@ export class ShopService implements OnModuleInit {
 
     if (query.room) filter.room = query.room;
     if (query.category) filter.category = query.category;
-    if (query.status) filter.status = query.status;
+    // "unpublished" is an admin-facing aggregate: both drafts and archived
+    // products are intentionally absent from the public catalog.
+    if (query.status === 'unpublished') {
+      filter.status = { $in: ['draft', 'archived'] };
+    } else if (query.status) {
+      filter.status = query.status;
+    }
     if (query.featured === 'true') filter.featured = true;
     if (query.featured === 'false') filter.featured = false;
     if (query.suggested === 'true') filter.suggested = true;
@@ -173,48 +196,69 @@ export class ShopService implements OnModuleInit {
   }
 
   async importPriceFile(file?: { buffer: Buffer; originalname: string }) {
-    if (!file?.buffer?.length || !/\.xlsx$/i.test(file.originalname)) throw new ConflictException('فایل اکسل معتبر نیست');
+    if (!file?.buffer?.length || !/\.xlsx$/i.test(file.originalname))
+      throw new ConflictException('فایل اکسل معتبر نیست');
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     const hasCatalogColumns = workbook.SheetNames.some((sheetName) => {
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null, range: 0 });
-      return rows.some((row) => 'شناسه محصول' in row && 'قیمت جدید (تومان)' in row);
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        workbook.Sheets[sheetName],
+        { defval: null, range: 0 },
+      );
+      return rows.some(
+        (row) => 'شناسه محصول' in row && 'قیمت جدید (تومان)' in row,
+      );
     });
     if (hasCatalogColumns) return this.importCatalogPriceFile(workbook);
     return this.importLegacyPriceFile(workbook, file.originalname);
   }
 
   async exportPriceFile() {
-    const products = await this.productModel.find({}).sort({ name: 1 }).lean().exec();
+    const products = await this.productModel
+      .find({})
+      .sort({ name: 1 })
+      .lean()
+      .exec();
     const rows = products.flatMap((product) => {
       const base = {
         'شناسه محصول': String(product._id),
         'نام محصول': product.name,
-        'دسته‌بندی': product.category,
+        دسته‌بندی: product.category,
       };
-      if (!product.variants?.length) return [{
-        ...base,
-        'نوع ردیف': 'محصول',
-        'شناسه واریانت': '',
-        'کد کالا': product.externalCode || '',
-        'واریانت': '',
-        'قیمت فعلی (تومان)': product.price ?? '',
-        'قیمت جدید (تومان)': product.price ?? '',
-      }];
+      if (!product.variants?.length)
+        return [
+          {
+            ...base,
+            'نوع ردیف': 'محصول',
+            'شناسه واریانت': '',
+            'کد کالا': product.externalCode || '',
+            واریانت: '',
+            'قیمت فعلی (تومان)': product.price ?? '',
+            'قیمت جدید (تومان)': product.price ?? '',
+          },
+        ];
       return product.variants.map((variant: any) => ({
         ...base,
         'نوع ردیف': 'واریانت',
         'شناسه واریانت': String(variant._id || ''),
         'کد کالا': variant.sku || '',
-        'واریانت': (variant.options || []).map((option) => `${option.name}: ${option.value}`).join('، '),
+        واریانت: (variant.options || [])
+          .map((option) => `${option.name}: ${option.value}`)
+          .join('، '),
         'قیمت فعلی (تومان)': variant.price ?? product.price ?? '',
         'قیمت جدید (تومان)': variant.price ?? product.price ?? '',
       }));
     });
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(rows);
-    worksheet['!cols'] = [18, 18, 15, 28, 24, 18, 32, 20, 20].map((wch) => ({ wch }));
+    worksheet['!cols'] = [18, 18, 15, 28, 24, 18, 32, 20, 20].map((wch) => ({
+      wch,
+    }));
     XLSX.utils.book_append_sheet(workbook, worksheet, 'قیمت محصولات');
-    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx', compression: true });
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
   }
 
   private priceFromCell(value: unknown): number | undefined {
@@ -226,22 +270,46 @@ export class ShopService implements OnModuleInit {
   }
 
   private async importCatalogPriceFile(workbook: XLSX.WorkBook) {
-    const catalog = await this.productModel.find({}).select('_id name price variants').lean().exec();
-    const byId = new Map(catalog.map((product) => [String(product._id), product]));
-    let updated = 0, unchanged = 0, skipped = 0;
+    const catalog = await this.productModel
+      .find({})
+      .select('_id name price variants')
+      .lean()
+      .exec();
+    const byId = new Map(
+      catalog.map((product) => [String(product._id), product]),
+    );
+    let updated = 0,
+      unchanged = 0,
+      skipped = 0;
     for (const sheetName of workbook.SheetNames) {
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        workbook.Sheets[sheetName],
+        { defval: null },
+      );
       for (const row of rows) {
         const product = byId.get(String(row['شناسه محصول'] ?? '').trim());
         const price = this.priceFromCell(row['قیمت جدید (تومان)']);
-        if (!product || price === undefined) { skipped++; continue; }
+        if (!product || price === undefined) {
+          skipped++;
+          continue;
+        }
         const variantId = String(row['شناسه واریانت'] ?? '').trim();
         const sku = String(row['کد کالا'] ?? '').trim();
         if (variantId || sku) {
-          const variantIndex = product.variants?.findIndex((item: any) => String(item._id) === variantId || (!variantId && sku && item.sku === sku));
-          if (variantIndex === undefined || variantIndex === -1) { skipped++; continue; }
+          const variantIndex = product.variants?.findIndex(
+            (item: any) =>
+              String(item._id) === variantId ||
+              (!variantId && sku && item.sku === sku),
+          );
+          if (variantIndex === undefined || variantIndex === -1) {
+            skipped++;
+            continue;
+          }
           const variant = product.variants[variantIndex];
-          if (variant.price === price) { unchanged++; continue; }
+          if (variant.price === price) {
+            unchanged++;
+            continue;
+          }
           await this.productModel.updateOne(
             { _id: product._id },
             { $set: { [`variants.${variantIndex}.price`]: price } },
@@ -249,38 +317,99 @@ export class ShopService implements OnModuleInit {
           variant.price = price;
           updated++;
         } else {
-          if (product.price === price) { unchanged++; continue; }
-          await this.productModel.updateOne({ _id: product._id }, { $set: { price } });
+          if (product.price === price) {
+            unchanged++;
+            continue;
+          }
+          await this.productModel.updateOne(
+            { _id: product._id },
+            { $set: { price } },
+          );
           product.price = price;
           updated++;
         }
       }
     }
-    return { updated, unchanged, skipped, created: 0, archived: 0, format: 'catalog' };
+    return {
+      updated,
+      unchanged,
+      skipped,
+      created: 0,
+      archived: 0,
+      format: 'catalog',
+    };
   }
 
-  private async importLegacyPriceFile(workbook: XLSX.WorkBook, originalname: string) {
+  private async importLegacyPriceFile(
+    workbook: XLSX.WorkBook,
+    originalname: string,
+  ) {
     const archive = /حذف\s*از\s*تولید/i.test(originalname);
-    const catalog = await this.productModel.find({}).select('name externalCode variants').lean().exec();
-    let updated = 0, created = 0, archived = 0, skipped = 0;
+    const catalog = await this.productModel
+      .find({})
+      .select('name externalCode variants')
+      .lean()
+      .exec();
+    let updated = 0,
+      created = 0,
+      archived = 0,
+      skipped = 0;
     for (const sheetName of workbook.SheetNames) {
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName], { defval: null });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        workbook.Sheets[sheetName],
+        { defval: null },
+      );
       for (const row of rows) {
         const code = String(row['کد کالا'] ?? '').trim();
         const name = String(row['شرح کالا'] ?? '').trim();
         const priceRial = Number(row['قیمت جدید'] ?? row['قیمت جدید '] ?? 0);
-        if (!code || !name) { skipped++; continue; }
-        const nameMatches = catalog.filter((product) => normalizeImportName(product.name) === normalizeImportName(name));
-        const existing = catalog.find((product) => product.externalCode === code || product.variants?.some((variant) => variant.sku === code)) || (nameMatches.length === 1 ? nameMatches[0] : null);
-        if (existing) {
-          if (archive) { await this.productModel.updateOne({ _id: existing._id }, { $set: { status: 'archived' } }); archived++; }
-          else if (Number.isFinite(priceRial) && priceRial > 0) { await this.productModel.updateOne({ _id: existing._id }, { $set: { price: Math.round(priceRial / 10), externalCode: code } }); updated++; }
-          else skipped++;
+        if (!code || !name) {
+          skipped++;
           continue;
         }
-        if (archive || !Number.isFinite(priceRial) || priceRial <= 0) { skipped++; continue; }
+        const nameMatches = catalog.filter(
+          (product) =>
+            normalizeImportName(product.name) === normalizeImportName(name),
+        );
+        const existing =
+          catalog.find(
+            (product) =>
+              product.externalCode === code ||
+              product.variants?.some((variant) => variant.sku === code),
+          ) || (nameMatches.length === 1 ? nameMatches[0] : null);
+        if (existing) {
+          if (archive) {
+            await this.productModel.updateOne(
+              { _id: existing._id },
+              { $set: { status: 'archived' } },
+            );
+            archived++;
+          } else if (Number.isFinite(priceRial) && priceRial > 0) {
+            await this.productModel.updateOne(
+              { _id: existing._id },
+              {
+                $set: { price: Math.round(priceRial / 10), externalCode: code },
+              },
+            );
+            updated++;
+          } else skipped++;
+          continue;
+        }
+        if (archive || !Number.isFinite(priceRial) || priceRial <= 0) {
+          skipped++;
+          continue;
+        }
         const category = String(row['دسته بندی'] ?? 'محصول جدید').trim();
-        await this.productModel.create({ externalCode: code, slug: `import-${code}`, name, category, room: this.roomFromCategory(category), price: Math.round(priceRial / 10), status: 'draft', source: 'price-import' });
+        await this.productModel.create({
+          externalCode: code,
+          slug: `import-${code}`,
+          name,
+          category,
+          room: this.roomFromCategory(category),
+          price: Math.round(priceRial / 10),
+          status: 'draft',
+          source: 'price-import',
+        });
         created++;
       }
     }
@@ -288,7 +417,12 @@ export class ShopService implements OnModuleInit {
   }
 
   private roomFromCategory(category: string): ProductRoom {
-    if (/تشک|بالش|روتختی|ملحفه|پتو/.test(category)) return 'bedding';
+    if (
+      /تشک|بالش|روتختی|ملحفه|پتو|لحاف|کاور|روبالشی|سرویس\s*خواب|محافظ\s*تشک/.test(
+        category,
+      )
+    )
+      return 'bedding';
     if (/آباژور|لوستر|چراغ|روشن/.test(category)) return 'lighting';
     if (/فرش|گلیم/.test(category)) return 'carpet';
     return 'decor';
@@ -298,7 +432,10 @@ export class ShopService implements OnModuleInit {
     const exists = await this.productModel.exists({ slug: dto.slug });
     if (exists) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
 
-    const autoSeries = dto.series === undefined ? await this.seriesFromProductName(dto.name) : undefined;
+    const autoSeries =
+      dto.series === undefined
+        ? await this.seriesFromProductName(dto.name)
+        : undefined;
     return this.productModel.create({
       ...dto,
       ...(autoSeries ? { series: autoSeries } : {}),
@@ -328,9 +465,16 @@ export class ShopService implements OnModuleInit {
       if (clash) throw new ConflictException('این اسلاگ قبلاً استفاده شده');
     }
 
-    const autoSeries = dto.name !== undefined && dto.series === undefined ? await this.seriesFromProductName(dto.name) : undefined;
+    const autoSeries =
+      dto.name !== undefined && dto.series === undefined
+        ? await this.seriesFromProductName(dto.name)
+        : undefined;
     const updated = await this.productModel
-      .findByIdAndUpdate(id, { $set: { ...dto, ...(autoSeries ? { series: autoSeries } : {}) } }, { new: true })
+      .findByIdAndUpdate(
+        id,
+        { $set: { ...dto, ...(autoSeries ? { series: autoSeries } : {}) } },
+        { new: true },
+      )
       .exec();
     if (!updated) throw new NotFoundException('محصول پیدا نشد');
     return updated;
@@ -375,6 +519,7 @@ export class ShopService implements OnModuleInit {
     return {
       total,
       published,
+      unpublished: draft + archived,
       draft,
       archived,
       featured,
@@ -491,7 +636,8 @@ export class ShopService implements OnModuleInit {
       items.unshift({
         id: 'manual-suggestions',
         title: 'پیشنهادات علامت‌گذاری‌شده',
-        description: 'محصولاتی که در پنل به‌عنوان پیشنهاد فروشگاهی علامت خورده‌اند.',
+        description:
+          'محصولاتی که در پنل به‌عنوان پیشنهاد فروشگاهی علامت خورده‌اند.',
         severity: 'medium',
         actionHref: '/admin/shop?suggested=true',
         products: marked,
@@ -517,76 +663,109 @@ export class ShopService implements OnModuleInit {
     );
     const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
 
-    const protectedProducts = await this.productModel.find({ source: { $ne: 'catalog' } }).select('slug').lean().exec();
-    const protectedSlugs = new Set(protectedProducts.map((product) => product.slug));
-    const docs = rows.filter((row) => !protectedSlugs.has(row.slug)).map((row, index) => ({
-      slug: row.slug,
-      name: row.name,
-      category: row.category,
-      room: row.room as
-        | 'living'
-        | 'bedroom'
-        | 'bedding'
-        | 'dining'
-        | 'decor'
-        | 'carpet'
-        | 'lighting'
-        | 'dishes',
-      shortDescription: row.shortDescription || '',
-      longDescription: row.longDescription || '',
-      image: row.image || '',
-      gallery: row.gallery || (row.image ? [row.image] : []),
-      shopUrl: row.shopUrl,
-      series: getSeriesFromProduct(row)?.name ? canonicalSeriesName(getSeriesFromProduct(row)!.name) : undefined,
-      price: row.prices?.value ? Number(row.prices.value) : undefined,
-      compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
-      finishes: [] as string[],
-      status: row.status || 'published',
-      featured: false,
-      suggested: false,
-      stockQty: row.variants?.length
-        ? row.variants.reduce((total, variant) => total + (variant.stockQty || 0), 0)
-        : 0,
-      trackInventory: false,
-      specs: row.specs || [],
-      highlights: [] as { title: string; description: string }[],
-      attributes: ((row.attributes || []) as CatalogAttribute[]).map((attribute) => ({
-        name: attribute.name || '',
-        values: (attribute.terms || []).map((term) => term.name).filter(Boolean),
-        required: Boolean(attribute.hasVariations),
-      })).filter((attribute) => attribute.name && attribute.values.length),
-      variants: (row.variants || []).map((variant) => ({
-        sku: variant.sku,
-        options: variant.options || [],
-        price: variant.price,
-        compareAtPrice: variant.compareAtPrice,
-        stockQty: variant.stockQty || 0,
-        image: variant.image,
-        enabled: variant.enabled !== false,
-      })),
-      sortOrder: row.sortOrder ?? index,
-      source: 'catalog',
-    }));
+    const protectedProducts = await this.productModel
+      .find({ source: { $ne: 'catalog' } })
+      .select('slug')
+      .lean()
+      .exec();
+    const protectedSlugs = new Set(
+      protectedProducts.map((product) => product.slug),
+    );
+    const docs = rows
+      .filter((row) => !protectedSlugs.has(row.slug))
+      .map((row, index) => ({
+        slug: row.slug,
+        name: row.name,
+        category: row.category,
+        room: row.room as
+          | 'living'
+          | 'bedroom'
+          | 'bedding'
+          | 'dining'
+          | 'decor'
+          | 'carpet'
+          | 'lighting'
+          | 'dishes',
+        shortDescription: row.shortDescription || '',
+        longDescription: row.longDescription || '',
+        image: row.image || '',
+        gallery: row.gallery || (row.image ? [row.image] : []),
+        shopUrl: row.shopUrl,
+        series: getSeriesFromProduct(row)?.name
+          ? canonicalSeriesName(getSeriesFromProduct(row)!.name)
+          : undefined,
+        price: row.prices?.value ? Number(row.prices.value) : undefined,
+        compareAtPrice: row.prices?.regularValue
+          ? Number(row.prices.regularValue)
+          : undefined,
+        finishes: [] as string[],
+        status: row.status || 'published',
+        featured: false,
+        suggested: false,
+        stockQty: row.variants?.length
+          ? row.variants.reduce(
+              (total, variant) => total + (variant.stockQty || 0),
+              0,
+            )
+          : 0,
+        trackInventory: false,
+        specs: row.specs || [],
+        highlights: [] as { title: string; description: string }[],
+        attributes: ((row.attributes || []) as CatalogAttribute[])
+          .map((attribute) => ({
+            name: attribute.name || '',
+            values: (attribute.terms || [])
+              .map((term) => term.name)
+              .filter(Boolean),
+            required: Boolean(attribute.hasVariations),
+          }))
+          .filter((attribute) => attribute.name && attribute.values.length),
+        variants: (row.variants || []).map((variant) => ({
+          sku: variant.sku,
+          options: variant.options || [],
+          price: variant.price,
+          compareAtPrice: variant.compareAtPrice,
+          stockQty: variant.stockQty || 0,
+          image: variant.image,
+          enabled: variant.enabled !== false,
+        })),
+        sortOrder: row.sortOrder ?? index,
+        source: 'catalog',
+      }));
 
     // bulkWrite upsert by slug
     const ops = docs.map((doc) => {
       // `slug` is the upsert key and must only be present in $setOnInsert;
       // MongoDB rejects updating the same path in both operators.
-      const { slug: _slug, image: seedImage, gallery: seedGallery, ...catalogFields } = doc;
+      const {
+        slug: _slug,
+        image: seedImage,
+        gallery: seedGallery,
+        ...catalogFields
+      } = doc;
       return {
-      updateOne: {
-        filter: { slug: doc.slug },
-        // Keep image URLs edited by admin or localized by the media migration.
-        // New catalog rows still receive the complete seed document.
-        // Every other field is already present in `$set`; repeating it in
-        // `$setOnInsert` makes MongoDB reject the operation as a path conflict.
-        update: { $set: catalogFields, $setOnInsert: { slug: doc.slug, image: seedImage, gallery: seedGallery } },
-        upsert: true,
-      },
+        updateOne: {
+          filter: { slug: doc.slug },
+          // Keep image URLs edited by admin or localized by the media migration.
+          // New catalog rows still receive the complete seed document.
+          // Every other field is already present in `$set`; repeating it in
+          // `$setOnInsert` makes MongoDB reject the operation as a path conflict.
+          update: {
+            $set: catalogFields,
+            $setOnInsert: {
+              slug: doc.slug,
+              image: seedImage,
+              gallery: seedGallery,
+            },
+          },
+          upsert: true,
+        },
       };
     });
 
-    const result = ops.length ? await this.productModel.bulkWrite(ops as never) : { upsertedCount: 0, modifiedCount: 0 };
+    const result = ops.length
+      ? await this.productModel.bulkWrite(ops as never)
+      : { upsertedCount: 0, modifiedCount: 0 };
     const total = await this.productModel.countDocuments();
 
     return {
@@ -599,16 +778,26 @@ export class ShopService implements OnModuleInit {
   }
 
   async seedCollectionsFromCatalog() {
-    const filePath = join(process.cwd(), 'src/modules/shop/data/shop-catalog.json');
+    const filePath = join(
+      process.cwd(),
+      'src/modules/shop/data/shop-catalog.json',
+    );
     const rows = JSON.parse(readFileSync(filePath, 'utf8')) as CatalogSeedRow[];
-    const groups = new Map<string, { name: string; slug: string; products: CatalogSeedRow[] }>();
+    const groups = new Map<
+      string,
+      { name: string; slug: string; products: CatalogSeedRow[] }
+    >();
 
     for (const row of rows) {
       const term = getSeriesFromProduct(row);
       if (!term?.name) continue;
       const name = canonicalSeriesName(term.name);
       const key = normalizeSeriesValue(name);
-      const group = groups.get(key) || { name, slug: term.slug || key, products: [] };
+      const group = groups.get(key) || {
+        name,
+        slug: term.slug || key,
+        products: [],
+      };
       group.products.push(row);
       groups.set(key, group);
     }
@@ -616,23 +805,34 @@ export class ShopService implements OnModuleInit {
     // Import every WordPress collection, including a single-product series.
     // Its explicit taxonomy membership is still a real collection and the
     // admin can enrich its image and story later.
-    const sharedGroups = [...groups.values()].filter((group) => group.products.length >= 1);
+    const sharedGroups = [...groups.values()].filter(
+      (group) => group.products.length >= 1,
+    );
     // Older releases named generated records `series-*`. Archive those
     // generated duplicates and keep the original WordPress collection slug as
     // the single canonical public/admin record (e.g. `/collection/solo`).
-    const legacyGeneratedSlugs = sharedGroups.map((group) => `series-${group.slug}`);
-    if (legacyGeneratedSlugs.length) await this.collectionModel.updateMany(
-      { kind: 'collection', slug: { $in: legacyGeneratedSlugs }, 'data.source': 'catalog-series' },
-      { $set: { status: 'archived' } },
-    ).exec();
+    const legacyGeneratedSlugs = sharedGroups.map(
+      (group) => `series-${group.slug}`,
+    );
+    if (legacyGeneratedSlugs.length)
+      await this.collectionModel
+        .updateMany(
+          {
+            kind: 'collection',
+            slug: { $in: legacyGeneratedSlugs },
+            'data.source': 'catalog-series',
+          },
+          { $set: { status: 'archived' } },
+        )
+        .exec();
     const operations = sharedGroups.map((group) => {
       const productSlugs = group.products.map((product) => product.slug);
       const slug = group.slug;
-      
+
       // Keep the actual catalog URL. A WordPress filename cannot be used to
       // reconstruct a local upload path because downloaded assets are hashed.
       const firstImage = group.products[0]?.image || '';
-      
+
       return {
         updateOne: {
           filter: { kind: 'collection', slug },
@@ -690,18 +890,39 @@ export class ShopService implements OnModuleInit {
     }));
   }
 
-  private async seriesFromProductName(name: string): Promise<string | undefined> {
+  private async seriesFromProductName(
+    name: string,
+  ): Promise<string | undefined> {
     const normalizedName = normalizeSeriesValue(name);
-    const collections = await this.namedCollectionModel.find({ status: { $ne: 'archived' } }).select('name series').lean().exec();
+    const collections = await this.namedCollectionModel
+      .find({ status: { $ne: 'archived' } })
+      .select('name series')
+      .lean()
+      .exec();
     const matches = collections
       .map((collection) => ({
-        name: String(collection.name || '').replace(/^کالکشن\s+/u, '').trim(),
+        name: String(collection.name || '')
+          .replace(/^کالکشن\s+/u, '')
+          .trim(),
         series: String(collection.series || '').trim(),
       }))
-      .filter((collection) => collection.name && normalizedName.includes(normalizeSeriesValue(collection.name)))
-      .sort((a, b) => normalizeSeriesValue(b.name).length - normalizeSeriesValue(a.name).length);
+      .filter(
+        (collection) =>
+          collection.name &&
+          normalizedName.includes(normalizeSeriesValue(collection.name)),
+      )
+      .sort(
+        (a, b) =>
+          normalizeSeriesValue(b.name).length -
+          normalizeSeriesValue(a.name).length,
+      );
     if (!matches.length) return undefined;
-    if (matches.length > 1 && normalizeSeriesValue(matches[0].name).length === normalizeSeriesValue(matches[1].name).length) return undefined;
+    if (
+      matches.length > 1 &&
+      normalizeSeriesValue(matches[0].name).length ===
+        normalizeSeriesValue(matches[1].name).length
+    )
+      return undefined;
     return matches[0].series || matches[0].name;
   }
 }

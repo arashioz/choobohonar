@@ -30,7 +30,16 @@ export class ShopProduct {
 
   @Prop({
     required: true,
-    enum: ['living', 'bedroom', 'bedding', 'dining', 'decor', 'carpet', 'lighting', 'dishes'],
+    enum: [
+      'living',
+      'bedroom',
+      'bedding',
+      'dining',
+      'decor',
+      'carpet',
+      'lighting',
+      'dishes',
+    ],
     index: true,
   })
   room: ProductRoom;
@@ -53,7 +62,11 @@ export class ShopProduct {
   @Prop({ type: [String], default: [] })
   finishes: string[];
 
-  @Prop({ enum: ['draft', 'published', 'archived'], default: 'published', index: true })
+  @Prop({
+    enum: ['draft', 'published', 'archived'],
+    default: 'published',
+    index: true,
+  })
   status: ProductStatus;
 
   /** محصولات منتخب / ویترینی */
@@ -92,12 +105,36 @@ export class ShopProduct {
   highlights: { title: string; description: string }[];
 
   /** گزینه‌های قابل انتخاب، مانند رنگ و ابعاد. */
-  @Prop({ type: [{ name: String, values: [String], required: Boolean }], default: [] })
+  @Prop({
+    type: [{ name: String, values: [String], required: Boolean }],
+    default: [],
+  })
   attributes: { name: string; values: string[]; required: boolean }[];
 
   /** هر ترکیبِ قابل فروش با قیمت و موجودی مستقل. */
-  @Prop({ type: [{ sku: String, options: [{ name: String, value: String }], price: Number, compareAtPrice: Number, stockQty: Number, image: String, enabled: Boolean }], default: [] })
-  variants: { sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; image?: string; enabled: boolean }[];
+  @Prop({
+    type: [
+      {
+        sku: String,
+        options: [{ name: String, value: String }],
+        price: Number,
+        compareAtPrice: Number,
+        stockQty: Number,
+        image: String,
+        enabled: Boolean,
+      },
+    ],
+    default: [],
+  })
+  variants: {
+    sku?: string;
+    options: { name: string; value: string }[];
+    price?: number;
+    compareAtPrice?: number;
+    stockQty: number;
+    image?: string;
+    enabled: boolean;
+  }[];
 
   @Prop({ default: 0 })
   sortOrder: number;
@@ -108,4 +145,8 @@ export class ShopProduct {
 
 export const ShopProductSchema = SchemaFactory.createForClass(ShopProduct);
 
-ShopProductSchema.index({ name: 'text', category: 'text', shortDescription: 'text' });
+ShopProductSchema.index({
+  name: 'text',
+  category: 'text',
+  shortDescription: 'text',
+});

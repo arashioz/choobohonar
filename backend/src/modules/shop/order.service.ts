@@ -5,8 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ShopOrder, ShopOrderDocument, OrderStatus } from './schemas/shop-order.schema';
-import { ShopInvoice, ShopInvoiceDocument } from './schemas/shop-invoice.schema';
+import {
+  ShopOrder,
+  ShopOrderDocument,
+  OrderStatus,
+} from './schemas/shop-order.schema';
+import {
+  ShopInvoice,
+  ShopInvoiceDocument,
+} from './schemas/shop-invoice.schema';
 import {
   CreateOrderDto,
   MockPayDto,
@@ -147,7 +154,8 @@ export class OrderService {
     if (dto.status === 'paid' && order.payment.status !== 'paid') {
       order.payment.status = 'paid';
       order.payment.paidAt = new Date();
-      order.payment.mockRef = order.payment.mockRef || `MOCK-ADMIN-${Date.now()}`;
+      order.payment.mockRef =
+        order.payment.mockRef || `MOCK-ADMIN-${Date.now()}`;
     }
 
     if (dto.status === 'cancelled' && order.payment.status === 'pending') {
@@ -227,7 +235,7 @@ export class OrderService {
       amounts: order.amounts,
     });
 
-    order.invoiceId = invoice._id as Types.ObjectId;
+    order.invoiceId = invoice._id;
     if (order.status === 'pending') {
       order.statusHistory.push({
         from: 'pending',

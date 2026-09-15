@@ -82,7 +82,10 @@ export class ShopController {
   @Post('products/seed')
   @UseGuards(JwtAuthGuard)
   seed(@Body() body: { force?: boolean; replaceAll?: boolean }) {
-    return this.shopService.seedFromCatalog(Boolean(body?.force), Boolean(body?.replaceAll));
+    return this.shopService.seedFromCatalog(
+      Boolean(body?.force),
+      Boolean(body?.replaceAll),
+    );
   }
 
   @Post('products/import-price')
@@ -99,8 +102,10 @@ export class ShopController {
     response
       .status(200)
       .set({
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="choobohonar-product-prices.xlsx"',
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition':
+          'attachment; filename="choobohonar-product-prices.xlsx"',
         'Cache-Control': 'no-store',
       })
       .send(file);
@@ -181,7 +186,10 @@ export class ShopController {
 
   @Patch('orders/:id/status')
   @UseGuards(JwtAuthGuard)
-  updateOrderStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+  updateOrderStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
     return this.orderService.updateStatus(id, dto);
   }
 

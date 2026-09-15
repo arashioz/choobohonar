@@ -2,7 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type MagazineSource = 'static' | 'cms' | 'both';
-export type SmsPanelProvider = 'kavenegar' | 'twilio' | 'smsir' | 'daaghoadaman' | 'mobilepayment' | 'none';
+export type SmsPanelProvider =
+  | 'kavenegar'
+  | 'twilio'
+  | 'smsir'
+  | 'daaghoadaman'
+  | 'mobilepayment'
+  | 'none';
 
 export type SiteSettingsDocument = SiteSettings & Document;
 
@@ -23,7 +29,17 @@ export class SiteSettings {
   @Prop({ default: '' })
   siteDomain: string;
 
-  @Prop({ enum: ['kavenegar', 'twilio', 'smsir', 'daaghoadaman', 'mobilepayment', 'none'], default: 'none' })
+  @Prop({
+    enum: [
+      'kavenegar',
+      'twilio',
+      'smsir',
+      'daaghoadaman',
+      'mobilepayment',
+      'none',
+    ],
+    default: 'none',
+  })
   smsProvider: SmsPanelProvider;
 
   @Prop({ default: '' })

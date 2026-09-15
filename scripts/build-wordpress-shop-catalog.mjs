@@ -260,7 +260,7 @@ async function main() {
     const category = categoryTerms.find((term) => term.slug !== "uncategorized") || categoryTerms[0];
     // The legacy site placed mattresses under "اتاق خواب". In the new shop
     // they have their own customer-facing category, "کالای خواب".
-    const isBeddingProduct = /تشک/.test(post.post_title);
+    const isBeddingProduct = /تشک|بالش|روتختی|ملحفه|پتو|لحاف|کاور|روبالشی|سرویس\s*خواب|محافظ\s*تشک/.test(post.post_title);
     const room = isBeddingProduct ? "bedding" : roomBySlug[category?.slug] || roomBySlug[categoryTerms.map((term) => term.slug).find((slug) => roomBySlug[slug])] || "decor";
     const variationPosts = variationsByParent.get(id) || [];
     const attributeTaxonomies = (relations.get(id) || []).map((taxonomyId) => taxonomies.get(taxonomyId)?.taxonomy).filter((taxonomy) => taxonomy?.startsWith("pa_"));

@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CmsService } from './cms.service';
 
@@ -13,7 +23,12 @@ export class CmsAdminController {
   }
 
   @Get(':kind')
-  list(@Param('kind') kind: string, @Query('q') query?: string, @Query('status') status?: string, @Query('limit') limit?: string) {
+  list(
+    @Param('kind') kind: string,
+    @Query('q') query?: string,
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.cmsService.list(kind, query, status, limit);
   }
 
@@ -33,7 +48,11 @@ export class CmsAdminController {
   }
 
   @Patch(':kind/:id')
-  update(@Param('kind') kind: string, @Param('id') id: string, @Body() body: Record<string, unknown>) {
+  update(
+    @Param('kind') kind: string,
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
     return this.cmsService.update(kind, id, body);
   }
 

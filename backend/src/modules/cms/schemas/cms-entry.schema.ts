@@ -2,12 +2,31 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type CmsEntryDocument = HydratedDocument<CmsEntry>;
-export type CmsEntryKind = 'product' | 'material' | 'project' | 'collection' | 'story' | 'article' | 'page';
+export type CmsEntryKind =
+  | 'product'
+  | 'material'
+  | 'project'
+  | 'collection'
+  | 'story'
+  | 'article'
+  | 'page';
 export type CmsEntryStatus = 'draft' | 'published' | 'archived';
 
 @Schema({ timestamps: true, collection: 'cms_entries' })
 export class CmsEntry {
-  @Prop({ required: true, enum: ['product', 'material', 'project', 'collection', 'story', 'article', 'page'], index: true })
+  @Prop({
+    required: true,
+    enum: [
+      'product',
+      'material',
+      'project',
+      'collection',
+      'story',
+      'article',
+      'page',
+    ],
+    index: true,
+  })
   kind: CmsEntryKind;
 
   @Prop({ required: true, trim: true })
@@ -16,7 +35,11 @@ export class CmsEntry {
   @Prop({ required: true, trim: true })
   slug: string;
 
-  @Prop({ enum: ['draft', 'published', 'archived'], default: 'draft', index: true })
+  @Prop({
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft',
+    index: true,
+  })
   status: CmsEntryStatus;
 
   @Prop({ default: '' })

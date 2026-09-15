@@ -1,9 +1,17 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme_secret';
 
-function readCookie(req: { headers?: { cookie?: string } }, name: string): string | undefined {
+function readCookie(
+  req: { headers?: { cookie?: string } },
+  name: string,
+): string | undefined {
   const raw = req.headers?.cookie;
   if (!raw) return undefined;
   const parts = raw.split(';');

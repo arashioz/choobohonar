@@ -37,7 +37,15 @@ export class ContentJob {
   };
 
   @Prop({
-    enum: ['pending', 'processing', 'image_generation', 'awaiting_review', 'approved', 'rejected', 'published'],
+    enum: [
+      'pending',
+      'processing',
+      'image_generation',
+      'awaiting_review',
+      'approved',
+      'rejected',
+      'published',
+    ],
     default: 'pending',
   })
   status: ContentStatus;

@@ -10,8 +10,14 @@ export class LocalEmbeddingService {
     try {
       // Dynamic import for @xenova/transformers or lightweight local fallback calculation
       const { pipeline } = await eval(`import('@xenova/transformers')`);
-      const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-      const output = await extractor(text, { pooling: 'mean', normalize: true });
+      const extractor = await pipeline(
+        'feature-extraction',
+        'Xenova/all-MiniLM-L6-v2',
+      );
+      const output = await extractor(text, {
+        pooling: 'mean',
+        normalize: true,
+      });
       return Array.from(output.data);
     } catch (e) {
       // Deterministic lightweight local vector generator fallback (for offline dev/test without npm transformers)
@@ -26,7 +32,8 @@ export class LocalEmbeddingService {
       vector[i % dim] = (vector[i % dim] + charCode / 255.0) % 1.0;
     }
     // Normalize vector
-    const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0)) || 1;
+    const magnitude =
+      Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0)) || 1;
     return vector.map((val) => val / magnitude);
   }
 }

@@ -21,6 +21,7 @@
     "seed": "ts-node -r tsconfig-paths/register src/seed.ts",
     "migrate:media": "ts-node -r tsconfig-paths/register src/migrations/migrate-media.ts",
     "catalog:replace": "ts-node -r tsconfig-paths/register src/migrations/replace-shop-catalog.ts",
+    "catalog:seed-wordpress-csv": "ts-node -r tsconfig-paths/register src/migrations/seed-wordpress-csv-catalog.ts",
     "collections:sync-products": "ts-node -r tsconfig-paths/register src/migrations/sync-product-series-from-collections.ts"
   },
   "dependencies": {

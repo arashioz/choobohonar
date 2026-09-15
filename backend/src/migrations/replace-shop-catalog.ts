@@ -14,7 +14,12 @@ import { ShopProductSchema } from '../modules/shop/schemas/shop-product.schema';
 dotenv.config();
 
 type CatalogTerm = { name: string };
-type CatalogAttribute = { name: string; taxonomy?: string | null; hasVariations?: boolean; terms?: CatalogTerm[] };
+type CatalogAttribute = {
+  name: string;
+  taxonomy?: string | null;
+  hasVariations?: boolean;
+  terms?: CatalogTerm[];
+};
 type CatalogVariant = {
   sku?: string;
   options?: { name: string; value: string }[];
@@ -42,27 +47,39 @@ type CatalogRow = {
   sortOrder?: number;
 };
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
-const catalogPath = join(process.cwd(), 'src/modules/shop/data/shop-catalog.json');
+const mongoUri =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/choob-va-honar';
+const catalogPath = join(
+  process.cwd(),
+  'src/modules/shop/data/shop-catalog.json',
+);
 
 function seriesFrom(attributes: CatalogAttribute[]): string | undefined {
-  return attributes
-    .find((attribute) => attribute.taxonomy === 'pa_collection' || attribute.name === 'کالکشن')
-    ?.terms?.[0]?.name;
+  return attributes.find(
+    (attribute) =>
+      attribute.taxonomy === 'pa_collection' || attribute.name === 'کالکشن',
+  )?.terms?.[0]?.name;
 }
 
 async function main() {
   if (!process.argv.includes('--confirm-replace')) {
-    throw new Error('Refusing to delete products. Run with: npm run catalog:replace -- --confirm-replace');
+    throw new Error(
+      'Refusing to delete products. Run with: npm run catalog:replace -- --confirm-replace',
+    );
   }
 
   const catalog = JSON.parse(readFileSync(catalogPath, 'utf8')) as CatalogRow[];
-  if (!catalog.length) throw new Error('Catalog is empty; refusing to replace existing products.');
+  if (!catalog.length)
+    throw new Error('Catalog is empty; refusing to replace existing products.');
 
   await mongoose.connect(mongoUri, {
-    serverSelectionTimeoutMS: Number(process.env.MONGO_CONNECT_TIMEOUT_MS || 10_000),
+    serverSelectionTimeoutMS: Number(
+      process.env.MONGO_CONNECT_TIMEOUT_MS || 10_000,
+    ),
   });
-  const ShopProduct = mongoose.models.ShopProduct || mongoose.model('ShopProduct', ShopProductSchema);
+  const ShopProduct =
+    mongoose.models.ShopProduct ||
+    mongoose.model('ShopProduct', ShopProductSchema);
 
   const docs = catalog.map((row, index) => ({
     externalCode: String(row.id),
@@ -80,13 +97,22 @@ async function main() {
     suggested: false,
     series: seriesFrom(row.attributes || []),
     price: row.prices?.value ? Number(row.prices.value) : undefined,
-    compareAtPrice: row.prices?.regularValue ? Number(row.prices.regularValue) : undefined,
-    stockQty: (row.variants || []).reduce((total, variant) => total + (variant.stockQty || 0), 0),
+    compareAtPrice: row.prices?.regularValue
+      ? Number(row.prices.regularValue)
+      : undefined,
+    stockQty: (row.variants || []).reduce(
+      (total, variant) => total + (variant.stockQty || 0),
+      0,
+    ),
     trackInventory: false,
     specs: row.specs || [],
     highlights: [],
     attributes: (row.attributes || [])
-      .map((attribute) => ({ name: attribute.name, values: (attribute.terms || []).map((term) => term.name), required: Boolean(attribute.hasVariations) }))
+      .map((attribute) => ({
+        name: attribute.name,
+        values: (attribute.terms || []).map((term) => term.name),
+        required: Boolean(attribute.hasVariations),
+      }))
       .filter((attribute) => attribute.name && attribute.values.length),
     variants: (row.variants || []).map((variant) => ({
       sku: variant.sku,
@@ -103,7 +129,9 @@ async function main() {
 
   const deleted = await ShopProduct.deleteMany({});
   const inserted = await ShopProduct.insertMany(docs, { ordered: true });
-  console.log(`Deleted ${deleted.deletedCount} existing products; seeded ${inserted.length} catalog products.`);
+  console.log(
+    `Deleted ${deleted.deletedCount} existing products; seeded ${inserted.length} catalog products.`,
+  );
   await mongoose.disconnect();
 }
 

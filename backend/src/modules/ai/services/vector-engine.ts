@@ -26,57 +26,68 @@ export class StandaloneBrandVectorEngine {
         id: 'chunk-1',
         title: 'تاریخچه و بنیان‌گذار خانه چوب و هنر',
         category: 'FOUNDATION',
-        content: 'تأسیس ۱۳۵۳ توسط غلامحسین شیرپور. نقل قول بنیان‌گذار: "اعتبار و جایگاه یک نام، سال‌ها زمان می‌برد تا ساخته شود. اگر روزی نتوانستید کاری در شأن نام معتبرتان انجام دهید، انجام ندادنش درست‌تر خواهد بود." در سال ۱۳۸۵ برند چوب و هنر و در سال ۱۴۰۱ خانه چوب و هنر شکل گرفت.',
+        content:
+          'تأسیس ۱۳۵۳ توسط غلامحسین شیرپور. نقل قول بنیان‌گذار: "اعتبار و جایگاه یک نام، سال‌ها زمان می‌برد تا ساخته شود. اگر روزی نتوانستید کاری در شأن نام معتبرتان انجام دهید، انجام ندادنش درست‌تر خواهد بود." در سال ۱۳۸۵ برند چوب و هنر و در سال ۱۴۰۱ خانه چوب و هنر شکل گرفت.',
         metadata: { chapter: 1, topic: 'heritage' },
       },
       {
         id: 'chunk-2',
         title: 'بیانیه هدف و هویت خانه چوب و هنر',
         category: 'FOUNDATION',
-        content: 'خانه چوب و هنر تنها یک تولیدکننده مبلمان نیست. ما باور داریم خانه فضایی زنده است که در آن خاطرات ساخته می‌شود و هویت انسان‌ها بازتاب می‌یابد. شعار: ساختن خانه‌هایی با روح (Crafting Homes with Soul).',
+        content:
+          'خانه چوب و هنر تنها یک تولیدکننده مبلمان نیست. ما باور داریم خانه فضایی زنده است که در آن خاطرات ساخته می‌شود و هویت انسان‌ها بازتاب می‌یابد. شعار: ساختن خانه‌هایی با روح (Crafting Homes with Soul).',
         metadata: { chapter: 1, topic: 'purpose' },
       },
       {
         id: 'chunk-3',
         title: 'اصول لحن و شخصیت چوب و هنر (Voice & Personality)',
         category: 'COMMUNICATION',
-        content: 'لحن چوب و هنر: آرام، مطمئن، دقیق، معمارانه و باوقار. مانند یک معمار یا استادکار نجاری صحبت می‌کنیم نه یک فروشنده. از واژگان صفت‌زده مانند لاکچری، بی‌نظیر و رویایی استفاده نمی‌کنیم. تکیه بر صداقت متریال، چوب ماسیو، اتصالات نجاری و دوام.',
+        content:
+          'لحن چوب و هنر: آرام، مطمئن، دقیق، معمارانه و باوقار. مانند یک معمار یا استادکار نجاری صحبت می‌کنیم نه یک فروشنده. از واژگان صفت‌زده مانند لاکچری، بی‌نظیر و رویایی استفاده نمی‌کنیم. تکیه بر صداقت متریال، چوب ماسیو، اتصالات نجاری و دوام.',
         metadata: { chapter: 5, topic: 'voice' },
       },
       {
         id: 'chunk-4',
         title: 'پالت رنگی برند (Brand Color Palette)',
         category: 'VISUAL_IDENTITY',
-        content: 'رنگ اصلی غالب (۸۰٪): سبز جنگلی (Forest Green) با کد HEX #092B1C و CMYK 85-55-80-70. اکسنت گرم (۲۰٪): هلویی (Peach) با کد HEX #FBBEA6. رنگ‌های ثانویه: آجری #C15C3B، سبز رترو #A7D8B7 و قهوه‌ای #5A3830.',
+        content:
+          'رنگ اصلی غالب (۸۰٪): سبز جنگلی (Forest Green) با کد HEX #092B1C و CMYK 85-55-80-70. اکسنت گرم (۲۰٪): هلویی (Peach) با کد HEX #FBBEA6. رنگ‌های ثانویه: آجری #C15C3B، سبز رترو #A7D8B7 و قهوه‌ای #5A3830.',
         metadata: { chapter: 6, topic: 'colors' },
       },
       {
         id: 'chunk-5',
         title: 'آرکی‌تایپ و پرسونای برند',
         category: 'STRATEGY',
-        content: 'آرکی‌تایپ اصلی: خالق مهربان (The Caring Creator). ترکیب خلاقیت، زیبایی‌شناسی و مراقبت از انسان‌ها. مخاطبان: صاحب‌خانه آگاه، علاقه‌مند به طراحی داخلی و خانواده‌های احساسی.',
+        content:
+          'آرکی‌تایپ اصلی: خالق مهربان (The Caring Creator). ترکیب خلاقیت، زیبایی‌شناسی و مراقبت از انسان‌ها. مخاطبان: صاحب‌خانه آگاه، علاقه‌مند به طراحی داخلی و خانواده‌های احساسی.',
         metadata: { chapter: 2, topic: 'archetype' },
       },
       {
         id: 'chunk-6',
         title: 'قانون طلایی معرفی محصول',
         category: 'COMMUNICATION',
-        content: 'به جای «میز چوبی مدل X» بگویید: «میزی که برای سال‌ها همراه لحظات دورهمی خانواده طراحی شده است.» داستان‌سرایی بر پایه ارزش و کاربرد انسانی.',
+        content:
+          'به جای «میز چوبی مدل X» بگویید: «میزی که برای سال‌ها همراه لحظات دورهمی خانواده طراحی شده است.» داستان‌سرایی بر پایه ارزش و کاربرد انسانی.',
         metadata: { chapter: 5, topic: 'product-presentation' },
       },
       {
         id: 'chunk-7',
         title: 'فلسفه متریال و چوب ماسیو',
         category: 'PRODUCT_DESIGN',
-        content: 'چوب فقط یک ماده اولیه نیست؛ یک عنصر زنده است دارای شخصیت، بافت، گرما و داستان. در ساخت محصولات از چوب‌های اصیل گردو، بلوط و راش با پرداخت روغن طبیعی استفاده می‌شود.',
+        content:
+          'چوب فقط یک ماده اولیه نیست؛ یک عنصر زنده است دارای شخصیت، بافت، گرما و داستان. در ساخت محصولات از چوب‌های اصیل گردو، بلوط و راش با پرداخت روغن طبیعی استفاده می‌شود.',
         metadata: { chapter: 3, topic: 'materials' },
       },
     ];
 
-    console.log('⚡ [384d Vector Engine] Starting embedding generation for ChooboHonar Brandbook...');
+    console.log(
+      '⚡ [384d Vector Engine] Starting embedding generation for ChooboHonar Brandbook...',
+    );
 
     for (const item of brandKnowledge) {
-      const vector = await this.embeddingService.generateEmbedding(item.content);
+      const vector = await this.embeddingService.generateEmbedding(
+        item.content,
+      );
       this.store.push({
         ...item,
         embedding: vector,
@@ -84,13 +95,18 @@ export class StandaloneBrandVectorEngine {
     }
 
     this.isInitialized = true;
-    console.log(`✅ [384d Vector Engine] Successfully embedded ${this.store.length} brand chunks (384 Dimensions).`);
+    console.log(
+      `✅ [384d Vector Engine] Successfully embedded ${this.store.length} brand chunks (384 Dimensions).`,
+    );
   }
 
   /**
    * Search top-K similar chunks using 384-dimensional cosine similarity
    */
-  public static async search(query: string, limit = 3): Promise<{ chunk: EmbeddedChunk; score: number }[]> {
+  public static async search(
+    query: string,
+    limit = 3,
+  ): Promise<{ chunk: EmbeddedChunk; score: number }[]> {
     if (!this.isInitialized) {
       await this.initialize();
     }

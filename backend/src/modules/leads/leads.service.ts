@@ -36,7 +36,11 @@ export class LeadsService {
     const filter: Record<string, string> = {};
     if (type) filter.type = type;
     if (status) filter.status = status;
-    return this.leadModel.find(filter).sort({ createdAt: -1 }).limit(100).exec();
+    return this.leadModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .exec();
   }
 
   async getLead(id: string): Promise<LeadDocument> {
@@ -95,7 +99,11 @@ export class LeadsService {
 
   async listInteriorBriefs(status?: string): Promise<InteriorBriefDocument[]> {
     const filter = status ? { status } : {};
-    return this.briefModel.find(filter).sort({ createdAt: -1 }).limit(100).exec();
+    return this.briefModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .exec();
   }
 
   async getInteriorBrief(id: string): Promise<InteriorBriefDocument> {

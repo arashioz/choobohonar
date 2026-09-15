@@ -21,4 +21,5 @@ export class ContentFeedback {
   qualityScore: number;
 }
 
-export const ContentFeedbackSchema = SchemaFactory.createForClass(ContentFeedback);
+export const ContentFeedbackSchema =
+  SchemaFactory.createForClass(ContentFeedback);

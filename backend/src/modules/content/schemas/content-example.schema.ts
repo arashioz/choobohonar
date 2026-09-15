@@ -27,4 +27,5 @@ export class ContentExample {
   useCount: number;
 }
 
-export const ContentExampleSchema = SchemaFactory.createForClass(ContentExample);
+export const ContentExampleSchema =
+  SchemaFactory.createForClass(ContentExample);
