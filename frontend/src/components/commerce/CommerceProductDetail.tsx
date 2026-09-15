@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import ProductRichDescription from "@/components/products/ProductRichDescription";
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName, getProductAttributeOptions } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
@@ -261,7 +262,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
               <h2 className="mt-5 text-4xl font-extralight text-forest md:text-6xl">توضیحات و ابعاد</h2>
             </div>
             <div>
-              {product.longDescription ? <p className="max-w-3xl whitespace-pre-line text-base leading-9 text-forest/70">{product.longDescription}</p> : null}
+              {product.longDescription ? <ProductRichDescription html={product.longDescription} /> : null}
               {product.specs?.length ? (
                 <dl className="mt-8 divide-y divide-forest/10 border-y border-forest/10">
                   {product.specs.map((spec, index) => <div key={`${spec.label}-${index}`} className="grid grid-cols-2 gap-5 py-4 text-sm"><dt className="font-medium text-forest">{spec.label}</dt><dd className="text-forest/65">{spec.value}</dd></div>)}

@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { uploadMedia } from "@/lib/upload";
 
 type Collection = {
   _id: string;
@@ -9,6 +10,7 @@ type Collection = {
   excerpt: string;
   description: string;
   image: string;
+  coverMode?: "product" | "custom";
   gallery: string[];
   series: string;
   tags: string[];
@@ -21,6 +23,7 @@ type Product = {
   slug: string;
   name: string;
   image: string;
+  gallery?: string[];
   category: string;
   series?: string;
   room?: string;
@@ -45,7 +48,7 @@ export default function CollectionsWorkspace() {
   const [productsLoading, setProductsLoading] = useState(false);
 
   const [form, setForm] = useState({
-    name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" as "draft" | "published" | "archived",
+    name: "", slug: "", excerpt: "", description: "", image: "", coverMode: "product" as "product" | "custom", series: "", tags: "", status: "draft" as "draft" | "published" | "archived",
   });
 
   const load = useCallback(async () => {
@@ -81,7 +84,7 @@ export default function CollectionsWorkspace() {
   }, []);
 
   useEffect(() => { const timer = setTimeout(load, 250); return () => clearTimeout(timer); }, [load]);
-  useEffect(() => { if (showProducts && !allProducts.length) loadProducts(); }, [showProducts, allProducts.length, loadProducts]);
+  useEffect(() => { if ((showProducts || creating) && !allProducts.length) loadProducts(); }, [showProducts, creating, allProducts.length, loadProducts]);
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -102,7 +105,7 @@ export default function CollectionsWorkspace() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
-      setForm({ name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" });
+      setForm({ name: "", slug: "", excerpt: "", description: "", image: "", coverMode: "product", series: "", tags: "", status: "draft" });
       setCreating(false);
       setEditing(null);
       await load();
@@ -119,6 +122,7 @@ export default function CollectionsWorkspace() {
       excerpt: item.excerpt || "",
       description: item.description || "",
       image: item.image || "",
+      coverMode: item.coverMode === "custom" ? "custom" : "product",
       series: item.series || "",
       tags: Array.isArray(item.tags) ? item.tags.join(", ") : "",
       status: item.status || "draft",
@@ -133,16 +137,16 @@ export default function CollectionsWorkspace() {
   }
 
   async function seedFromProducts() {
-    if (!confirm("آیا می‌خواهید کالکشن‌ها را از سری محصولات موجود بسازید؟")) return;
+    if (!confirm("کالکشن‌های خودکار با سری‌های دارای حداقل ۲ محصول همگام شوند؟ کالکشن‌های خودکار نامعتبر آرشیو می‌شوند و کالکشن‌های دستی محفوظ می‌مانند.")) return;
     setNotice("");
     try {
       const r = await fetch("/admin/api/collections/seed");
       const data = await r.json();
       if (!r.ok) throw new Error(data.message);
-      setNotice(`✅ ${data.created} کالکشن جدید ساخته شد از ${data.series.length} سری محصول`);
+      setNotice(`✅ همگام‌سازی انجام شد: ${data.created} جدید، ${data.updated} به‌روزرسانی و ${data.archived} کالکشن نامعتبر آرشیو شد؛ ${data.series.length} سری معتبر است${data.protected ? `؛ ${data.protected} کالکشن دستی محفوظ ماند` : ""}`);
       await load();
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : "ساخت خودکار ناموفق بود");
+      setNotice(e instanceof Error ? e.message : "همگام‌سازی ناموفق بود");
     }
   }
 
@@ -178,6 +182,20 @@ export default function CollectionsWorkspace() {
     }
   }
 
+  async function uploadCover(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      setNotice("");
+      const image = await uploadMedia(file);
+      setForm((current) => ({ ...current, image, coverMode: "custom" }));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "آپلود تصویر ناموفق بود");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
   const productsBySeries = useMemo(() => {
     const map: Record<string, Product[]> = {};
     allProducts.forEach((p) => {
@@ -190,6 +208,17 @@ export default function CollectionsWorkspace() {
   }, [allProducts]);
 
   const productsWithoutSeries = useMemo(() => allProducts.filter((p) => !p.series), [allProducts]);
+
+  const collectionImages = useMemo(() => {
+    const series = form.series.trim();
+    if (!series) return [];
+    return allProducts
+      .filter((product) => product.series === series)
+      .flatMap((product) => [product.image, ...(product.gallery || [])])
+      .filter(Boolean)
+      .filter((image, index, images) => images.indexOf(image) === index);
+  }, [allProducts, form.series]);
+  const firstProductImage = collectionImages[0] || "";
 
   return (
     <main className="min-h-screen bg-[#f6f3ee]">
@@ -205,12 +234,12 @@ export default function CollectionsWorkspace() {
               {showProducts ? "بستن محصولات" : "📦 مدیریت محصولات"}
             </button>
             <button onClick={seedFromProducts} className="rounded-xl bg-sage/40 px-4 py-3 text-xs font-medium text-forest">
-              🔄 ساخت خودکار از سری محصولات
+              🔄 همگام‌سازی کالکشن‌ها
             </button>
             <button onClick={syncProductsFromCollectionNames} className="rounded-xl border border-sage/60 bg-white px-4 py-3 text-xs font-medium text-forest">
               ✦ اتصال محصولات از نام
             </button>
-            <button onClick={() => { setCreating(!creating); setEditing(null); setForm({ name: "", slug: "", excerpt: "", description: "", image: "", series: "", tags: "", status: "draft" }); }} className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
+            <button onClick={() => { setCreating(!creating); setEditing(null); setForm({ name: "", slug: "", excerpt: "", description: "", image: "", coverMode: "product", series: "", tags: "", status: "draft" }); }} className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
               {creating ? "بستن فرم" : "+ کالکشن جدید"}
             </button>
           </div>
@@ -230,7 +259,26 @@ export default function CollectionsWorkspace() {
             <input required className={input} placeholder="نام کالکشن (مثلاً آلدر) *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             <input className={input} dir="ltr" placeholder="اسلاگ (اختیاری - خودکار ساخته می‌شود)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
             <input required className={input} placeholder="سری محصول (مثلاً alder) *" dir="ltr" value={form.series} onChange={(e) => setForm({ ...form, series: e.target.value })} />
-            <input className={input} placeholder="لینک تصویر شاخص" dir="ltr" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+            <div className="sm:col-span-2 rounded-xl border border-forest/10 bg-[#faf8f5] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium text-forest">تصویر شاخص</p>
+                  <p className="mt-1 text-[10px] text-forest/45">حالت پیش‌فرض، تصویر اصلی اولین محصول منتشرشدهٔ این سری است.</p>
+                </div>
+                <label className="cursor-pointer rounded-lg border border-forest/15 bg-white px-3 py-2 text-[10px] text-forest">
+                  آپلود تصویر دلخواه
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={uploadCover} />
+                </label>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={() => setForm((current) => ({ ...current, coverMode: "product", image: "" }))} className={`relative h-20 w-20 overflow-hidden rounded-lg border-2 ${form.coverMode === "product" ? "border-brick" : "border-transparent"}`} title="تصویر اولین محصول">
+                  {firstProductImage ? <img src={firstProductImage} alt="تصویر اولین محصول" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center px-1 text-center text-[9px] text-forest/45">پس از انتخاب سری، تصویر محصول اول</span>}
+                  <span className="absolute inset-x-0 bottom-0 bg-black/55 py-1 text-[8px] text-white">پیش‌فرض</span>
+                </button>
+                {collectionImages.map((image) => <button key={image} type="button" onClick={() => setForm((current) => ({ ...current, image, coverMode: "custom" }))} className={`h-20 w-20 overflow-hidden rounded-lg border-2 ${form.coverMode === "custom" && form.image === image ? "border-brick" : "border-transparent"}`} title="انتخاب به عنوان تصویر شاخص"><img src={image} alt="تصویر محصول" className="h-full w-full object-cover" /></button>)}
+                {form.coverMode === "custom" && form.image && !collectionImages.includes(form.image) ? <div className="relative h-20 w-20 overflow-hidden rounded-lg border-2 border-brick"><img src={form.image} alt="تصویر آپلودشده" className="h-full w-full object-cover" /></div> : null}
+              </div>
+            </div>
             <input className={input} placeholder="برچسب‌ها، با ویرگول جدا کنید" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
             <select className={input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "draft" | "published" | "archived" })}>
               {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

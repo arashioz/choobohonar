@@ -28,11 +28,22 @@ export class Collection {
   @Prop({ default: '' })
   image: string;
 
+  // `product` keeps the cover tied to the first published product in the
+  // series. An admin can explicitly switch to `custom` after selecting or
+  // uploading an image in the collection editor.
+  @Prop({ enum: ['product', 'custom'], default: 'product' })
+  coverMode: 'product' | 'custom';
+
   @Prop({ type: [String], default: [] })
   gallery: string[];
 
   @Prop({ default: '' })
   series: string;
+
+  // System-generated collection rows are reconciled by the catalog sync.
+  // Admin-created rows remain untouched by that process.
+  @Prop({ default: 'admin', index: true })
+  source: string;
 
   @Prop({ type: [String], default: [] })
   tags: string[];

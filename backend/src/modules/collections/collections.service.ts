@@ -60,9 +60,10 @@ export class CollectionsService {
       .exec();
     if (item) {
       const products = await this.getProductsForCollection(item);
-      // Product media is the canonical cover: this prevents a stale saved
-      // collection image from breaking a card while its product is healthy.
-      const image = String(products[0]?.image || item.image || '');
+      const image = this.resolveCover(
+        item as unknown as Record<string, unknown>,
+        products,
+      );
       return { ...item, image, products };
     }
 
@@ -115,16 +116,6 @@ export class CollectionsService {
     const data = this.clean(input, true);
     if (!data['name']) throw new BadRequestException('نام کالکشن الزامی است');
     if (!data['slug']) data['slug'] = this.normalizeSlug(String(data['name']));
-
-    // If no image provided but we can find products for this collection, use first product's image
-    if (!data['image']) {
-      const products = await this.getProductsBySeries(
-        String(data['series'] || data['name'] || ''),
-      );
-      if (products.length > 0 && products[0].image) {
-        data['image'] = products[0].image;
-      }
-    }
 
     try {
       const doc = await this.model.create(data);
@@ -187,7 +178,7 @@ export class CollectionsService {
           collection,
           publishedProducts,
         );
-        const image = String(products[0]?.image || collection.image || '');
+        const image = this.resolveCover(collection, products);
         return {
           ...collection,
           image,
@@ -206,16 +197,26 @@ export class CollectionsService {
       ),
     );
 
-    // CMS is the source used by «مدیریت آثار»; when a legacy standalone
-    // collection has the same slug, keep the CMS version and its membership.
+    // CMS is normally the source used by «مدیریت آثار». A deliberately chosen
+    // standalone custom cover is the one exception: it must win so the image
+    // selected in the Collections admin is visible on the storefront too.
     const result = new Map<string, Record<string, unknown>>();
-    for (const collection of cmsWithProducts) {
-      if (Number(collection.productCount || 0) > 0)
+    for (const collection of withProducts) {
+      if (
+        Number(collection.productCount || 0) >= 2 &&
+        collection.coverMode === 'custom' &&
+        collection.image
+      )
         result.set(String(collection.slug), collection);
+    }
+    for (const collection of cmsWithProducts) {
+      if (Number(collection.productCount || 0) >= 2)
+        if (!result.has(String(collection.slug)))
+          result.set(String(collection.slug), collection);
     }
     for (const collection of withProducts) {
       if (
-        Number(collection.productCount || 0) > 0 &&
+        Number(collection.productCount || 0) >= 2 &&
         !result.has(String(collection.slug))
       )
         result.set(String(collection.slug), collection);
@@ -306,43 +307,106 @@ export class CollectionsService {
     });
   }
 
-  async seedFromProducts(): Promise<{ created: number; series: string[] }> {
+  async seedFromProducts(): Promise<{
+    created: number;
+    updated: number;
+    archived: number;
+    protected: number;
+    series: string[];
+  }> {
     const results = await this.products
       .aggregate<{
         _id: string;
+        productCount: number;
       }>([
-        { $match: { series: { $type: 'string', $ne: '' } } },
-        { $group: { _id: '$series' } },
+        {
+          $match: {
+            status: 'published',
+            series: { $type: 'string', $ne: '' },
+          },
+        },
+        { $group: { _id: '$series', productCount: { $sum: 1 } } },
+        { $match: { productCount: { $gte: 2 } } },
         { $sort: { _id: 1 } },
       ])
       .exec();
 
-    const seriesList = results.map((r) => r._id).filter(Boolean);
+    const sharedSeries = results.filter((result) => result._id.trim());
+    const seriesList = sharedSeries.map((result) => result._id);
+    const existingCollections = await this.model.find({}).lean().exec();
+    const automatic = existingCollections.filter((collection) =>
+      this.isAutomaticCollection(collection as unknown as Record<string, unknown>),
+    );
+
+    // This is a true sync: generated collections which no longer have two
+    // published products disappear from the public site. Manually curated
+    // collections are deliberately not included here.
+    const automaticIds = automatic.map((collection) => collection._id);
+    const archived = automaticIds.length
+      ? await this.model.updateMany(
+          { _id: { $in: automaticIds }, status: { $ne: 'archived' } },
+          { $set: { status: 'archived' } },
+        )
+      : { modifiedCount: 0 };
+
+    const automaticBySeries = new Map(
+      automatic
+        .filter((collection) => collection.series)
+        .map((collection) => [collection.series, collection]),
+    );
+    const automaticBySlug = new Map(
+      automatic.map((collection) => [collection.slug, collection]),
+    );
+    const manualCollections = existingCollections.filter(
+      (collection) =>
+        !this.isAutomaticCollection(
+          collection as unknown as Record<string, unknown>,
+        ),
+    );
     let created = 0;
+    let updated = 0;
+    let protectedCount = 0;
 
-    for (const series of seriesList) {
-      const existing = await this.model.findOne({ series }).lean().exec();
-      if (existing) continue;
-
+    for (const { _id: series, productCount } of sharedSeries) {
       const name = series.charAt(0).toUpperCase() + series.slice(1);
       const slug = this.normalizeSlug(series);
-      const productCount = await this.products
-        .countDocuments({ series, status: 'published' })
-        .exec();
-
-      await this.model.create({
+      const data = {
         name: `کالکشن ${name}`,
         slug,
         series,
         status: 'published',
+        source: 'catalog-series',
         excerpt: `مجموعه محصولات سری ${name} — ${productCount} محصول`,
         description: `کالکشن ${name} شامل تمام محصولات این سری است.`,
         publishedAt: new Date(),
-      });
-      created++;
+      };
+      const automaticExisting =
+        automaticBySeries.get(series) || automaticBySlug.get(slug);
+      const manualConflict = manualCollections.some(
+        (collection) => collection.series === series || collection.slug === slug,
+      );
+      if (manualConflict && !automaticExisting) {
+        protectedCount++;
+        continue;
+      }
+      if (automaticExisting) {
+        await this.model
+          .findByIdAndUpdate(automaticExisting._id, { $set: data })
+          .exec();
+        updated++;
+      } else {
+        await this.model.create(data);
+        created++;
+      }
     }
 
-    return { created, series: seriesList };
+    return {
+      created,
+      updated,
+      archived: Number(archived.modifiedCount || 0),
+      protected: protectedCount,
+      series: seriesList,
+    };
   }
 
   async updateProductSeries(
@@ -470,6 +534,8 @@ export class CollectionsService {
       data.status = statuses.includes(input.status as CollectionStatus)
         ? input.status
         : 'draft';
+    if (input.coverMode !== undefined)
+      data.coverMode = input.coverMode === 'custom' ? 'custom' : 'product';
     if (input.tags !== undefined)
       data.tags = Array.isArray(input.tags)
         ? input.tags
@@ -503,6 +569,30 @@ export class CollectionsService {
   private collectionName(collection: Record<string, unknown>): string {
     const name = String(collection.name || collection.series || '').trim();
     return name.replace(/^کالکشن\s+/u, '').trim();
+  }
+
+  private resolveCover(
+    collection: Record<string, unknown>,
+    products: Record<string, unknown>[],
+  ): string {
+    if (collection.coverMode === 'custom' && collection.image)
+      return String(collection.image);
+    return String(products[0]?.image || collection.image || '');
+  }
+
+  private isAutomaticCollection(collection: Record<string, unknown>): boolean {
+    if (collection.source === 'catalog-series') return true;
+    // Rows created by the old "ساخت خودکار" button had no source marker.
+    // Their stock description/excerpt lets us safely reconcile just those
+    // legacy rows without touching a collection written by an admin.
+    return (
+      /^مجموعه محصولات سری .+ — \d+ محصول$/u.test(
+        String(collection.excerpt || ''),
+      ) &&
+      /^کالکشن .+ شامل تمام محصولات این سری است\.$/u.test(
+        String(collection.description || ''),
+      )
+    );
   }
 
   private normalizeForMatch(value: string): string {

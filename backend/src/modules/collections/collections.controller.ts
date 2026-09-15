@@ -27,7 +27,13 @@ export class CollectionsAdminController {
   }
 
   @Get('seed')
-  seed(): Promise<{ created: number; series: string[] }> {
+  seed(): Promise<{
+    created: number;
+    updated: number;
+    archived: number;
+    protected: number;
+    series: string[];
+  }> {
     return this.collections.seedFromProducts();
   }
 

@@ -15,6 +15,7 @@ import TechnicalContent from "@/components/products/TechnicalContent";
 import RelatedProducts from "@/components/products/RelatedProducts";
 import ProductReviews from "@/components/products/ProductReviews";
 import ProductFaq from "@/components/products/ProductFaq";
+import ProductRichDescription from "@/components/products/ProductRichDescription";
 import CommerceProductDetail from "@/components/commerce/CommerceProductDetail";
 import CommerceProductEditorial from "@/components/commerce/CommerceProductEditorial";
 import AddToCartButton from "@/components/shop/AddToCartButton";
@@ -191,7 +192,7 @@ function AdminProductPage({ product, slug }: { product: AdminProduct; slug: stri
       <img src={image} alt={`${product.name}${index ? ` ${index + 1}` : ""}`} className="h-full w-full object-cover" />
     </div>) : <div className="aspect-[4/5] bg-forest/5" />}</div>
       <div className="lg:sticky lg:top-28 lg:h-fit"><p className="eyebrow text-brick">{product.category}</p><h1 className="mt-4 text-4xl font-light tracking-tightest text-forest md:text-6xl">{product.name}</h1><p className="mt-6 text-lg leading-9 text-forest/65">{product.shortDescription}</p>{product.price ? <p className="mt-8 text-2xl text-forest">{product.price.toLocaleString("fa-IR")} تومان</p> : null}<p className="mt-3 text-sm text-forest/45">{product.trackInventory && product.stockQty === 0 ? "ناموجود" : "امکان ثبت سفارش آنلاین و هماهنگی با کارشناس فراهم است."}</p><div className="mt-8 flex flex-wrap gap-3">{!(product.trackInventory && product.stockQty === 0) ? <AddToCartButton slug={slug} name={product.name} image={product.image || ""} productId={product._id} unitPrice={product.price} label="افزودن به سبد خرید" /> : null}<Link href="/contact" className="inline-flex items-center rounded-xl border border-forest/20 px-6 py-3 text-sm text-forest">مشاوره خرید</Link></div></div></div>
-    {product.longDescription && <article className="mx-auto mt-20 max-w-3xl whitespace-pre-wrap text-lg leading-[2] text-forest/75">{product.longDescription}</article>}
+    {product.longDescription && <article className="mx-auto mt-20"><ProductRichDescription html={product.longDescription} className="text-lg leading-[2] text-forest/75" /></article>}
     {product.highlights?.length ? <div className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-2">{product.highlights.map((item) => <div key={item.title} className="border-t border-forest/15 pt-4"><h2 className="text-lg text-forest">{item.title}</h2><p className="mt-2 text-sm leading-7 text-forest/60">{item.description}</p></div>)}</div> : null}
     {product.specs?.length ? <dl className="mx-auto mt-16 max-w-3xl divide-y divide-forest/10 border-y border-forest/10">{product.specs.map((item) => <div key={item.label} className="grid grid-cols-2 py-4 text-sm"><dt className="text-forest/50">{item.label}</dt><dd className="text-forest">{item.value}</dd></div>)}</dl> : null}
   </Container></section>;

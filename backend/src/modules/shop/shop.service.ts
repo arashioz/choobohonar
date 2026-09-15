@@ -860,39 +860,16 @@ export class ShopService implements OnModuleInit {
     const sharedGroups = [...groups.values()].filter(
       (group) => group.products.length >= 2,
     );
-    const singleProductSlugs = [...groups.values()]
-      .filter((group) => group.products.length < 2)
-      .map((group) => group.slug);
-    // Hide only automatically generated single-product collections. Manually
-    // managed collections retain their own source and are never touched here.
-    if (singleProductSlugs.length)
-      await this.collectionModel
-        .updateMany(
-          {
-            kind: 'collection',
-            slug: { $in: singleProductSlugs },
-            'data.source': 'catalog-series',
-          },
-          { $set: { status: 'archived' } },
-        )
-        .exec();
-    // Older releases named generated records `series-*`. Archive those
-    // generated duplicates and keep the original WordPress collection slug as
-    // the single canonical public/admin record (e.g. `/collection/solo`).
-    const legacyGeneratedSlugs = sharedGroups.map(
-      (group) => `series-${group.slug}`,
-    );
-    if (legacyGeneratedSlugs.length)
-      await this.collectionModel
-        .updateMany(
-          {
-            kind: 'collection',
-            slug: { $in: legacyGeneratedSlugs },
-            'data.source': 'catalog-series',
-          },
-          { $set: { status: 'archived' } },
-        )
-        .exec();
+    // A catalog sync is a full reconciliation: hide every previously
+    // generated collection first, then explicitly publish only valid shared
+    // series below. Manual collections have no `catalog-series` source and
+    // are deliberately left untouched.
+    const archived = await this.collectionModel
+      .updateMany(
+        { kind: 'collection', 'data.source': 'catalog-series' },
+        { $set: { status: 'archived' } },
+      )
+      .exec();
     const operations = sharedGroups.map((group) => {
       const productSlugs = group.products.map((product) => product.slug);
       const slug = group.slug;
@@ -917,6 +894,10 @@ export class ShopService implements OnModuleInit {
               publishedAt: new Date(),
             },
             $set: {
+              status: 'published',
+              title: `کالکشن ${group.name}`,
+              excerpt: `${productSlugs.length} محصول از سری ${group.name}`,
+              ...(firstImage ? { images: [firstImage] } : {}),
               'data.productSlugs': productSlugs,
               'data.productIds': productSlugs,
               'data.productCount': productSlugs.length,
@@ -936,6 +917,7 @@ export class ShopService implements OnModuleInit {
     return {
       ok: true,
       collections: sharedGroups.length,
+      archived: archived.modifiedCount,
       upserted: result.upsertedCount,
       modified: result.modifiedCount,
     };
