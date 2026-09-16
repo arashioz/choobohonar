@@ -7,6 +7,7 @@ import ProductRichDescription from "@/components/products/ProductRichDescription
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName, getProductAttributeOptions } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
+import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
 import { useCart, type CartOption } from "@/components/commerce/cart/CartProvider";
 
@@ -226,8 +227,8 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
               ) : null}
 
               <div className="mt-8 grid grid-cols-3 divide-x-reverse divide-x divide-forest/10 border-t border-forest/10 pt-6 text-center">
+                <TrustItem title="زمان تحویل" detail={getProductDeliveryLeadTime(product).label} />
                 <TrustItem title="ارسال تخصصی" detail="سراسر کشور" />
-                <TrustItem title="تضمین اصالت" detail="مواد و ساخت" />
                 <TrustItem title="پشتیبانی" detail="پیش و پس از خرید" />
               </div>
             </div>
