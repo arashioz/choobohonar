@@ -42,6 +42,7 @@ export class ShopController {
     @Query('status') status?: string,
     @Query('featured') featured?: string,
     @Query('suggested') suggested?: string,
+    @Query('slugs') slugs?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -52,6 +53,7 @@ export class ShopController {
       status,
       featured,
       suggested,
+      slugs,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -70,6 +72,11 @@ export class ShopController {
   @Get('series')
   series() {
     return this.shopService.series();
+  }
+
+  @Get('materials')
+  materials() {
+    return this.shopService.listMaterialSwatches();
   }
 
   @Post('categories/seed')

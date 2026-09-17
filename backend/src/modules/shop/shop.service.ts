@@ -185,6 +185,7 @@ export class ShopService implements OnModuleInit {
     // preserved on subsequent restarts and can then be managed normally.
     await this.seedFromCatalog(false);
     await this.seedCollectionsFromCatalog();
+    await this.migrateShopProductModels();
   }
 
   async list(query: {
@@ -194,13 +195,25 @@ export class ShopService implements OnModuleInit {
     status?: string;
     featured?: string;
     suggested?: string;
+    slugs?: string;
     page?: number;
     limit?: number;
   }) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(1000, Math.max(1, Number(query.limit) || 24));
     const filter: Record<string, unknown> = {};
+    const slugList = (query.slugs || '')
+      .split(',')
+      .map((value) => {
+        try {
+          return decodeURIComponent(value.trim());
+        } catch {
+          return value.trim();
+        }
+      })
+      .filter(Boolean);
 
+    if (slugList.length) filter.slug = { $in: slugList };
     if (query.room) filter.room = query.room;
     if (query.category) filter.category = query.category;
     // "unpublished" is an admin-facing aggregate: both drafts and archived
@@ -223,16 +236,22 @@ export class ShopService implements OnModuleInit {
       ];
     }
 
-    const [items, total] = await Promise.all([
+    const [found, total] = await Promise.all([
       this.productModel
         .find(filter)
         .sort({ featured: -1, suggested: -1, sortOrder: 1, updatedAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
+        .skip(slugList.length ? 0 : (page - 1) * limit)
+        .limit(slugList.length ? Math.min(1000, Math.max(limit, slugList.length)) : limit)
         .lean()
         .exec(),
       this.productModel.countDocuments(filter),
     ]);
+
+    const items = slugList.length
+      ? slugList
+          .map((slug) => found.find((item) => item.slug === slug))
+          .filter((item): item is (typeof found)[number] => Boolean(item))
+      : found;
 
     return {
       items,
@@ -253,6 +272,61 @@ export class ShopService implements OnModuleInit {
     const product = await this.productModel.findOne({ slug }).exec();
     if (!product) throw new NotFoundException('محصول پیدا نشد');
     return product;
+  }
+
+  async listMaterialSwatches() {
+    const entries = await this.collectionModel
+      .find({ kind: 'material', status: 'published' })
+      .select({ title: 1, slug: 1, images: 1, excerpt: 1, data: 1 })
+      .sort({ title: 1 })
+      .lean()
+      .exec();
+    const families = new Set(['wood', 'fabric', 'veneer', 'metal']);
+    return entries
+      .map((entry) => {
+        const data =
+          entry.data && typeof entry.data === 'object'
+            ? (entry.data as Record<string, unknown>)
+            : {};
+        const family = String(data.family || data.categoryId || '');
+        const image =
+          (Array.isArray(entry.images) ? entry.images[0] : '') ||
+          String(data.image || data.applicationImage || '');
+        return {
+          slug: entry.slug,
+          name: entry.title,
+          family,
+          color: String(data.color || ''),
+          hex: String(data.hex || ''),
+          image,
+          excerpt: entry.excerpt || String(data.shortDescription || ''),
+          href: family
+            ? `/materials/${family}/${entry.slug}`
+            : `/materials/${entry.slug}`,
+          sample: Boolean(data.sample) || !families.has(entry.slug),
+        };
+      })
+      .filter((item) => item.slug);
+  }
+
+  private async normalizeFinishSlugs(values: string[]) {
+    const requested = [
+      ...new Set(values.map((value) => value.trim()).filter(Boolean)),
+    ];
+    if (!requested.length) return [];
+    const swatches = await this.listMaterialSwatches();
+    return requested.map((value) => {
+      const normalized = value.toLowerCase();
+      const match = swatches.find(
+        (item) =>
+          item.slug === value ||
+          item.slug.toLowerCase() === normalized ||
+          item.name === value ||
+          item.color === value ||
+          item.name.toLowerCase() === normalized,
+      );
+      return match?.slug || value;
+    });
   }
 
   async importPriceFile(file?: { buffer: Buffer; originalname: string }) {
@@ -503,7 +577,7 @@ export class ShopService implements OnModuleInit {
       longDescription: dto.longDescription ?? '',
       image: dto.image ?? '',
       gallery: dto.gallery ?? [],
-      finishes: dto.finishes ?? [],
+      finishes: await this.normalizeFinishSlugs(dto.finishes ?? []),
       status: dto.status ?? 'published',
       featured: dto.featured ?? false,
       suggested: dto.suggested ?? false,
@@ -539,6 +613,9 @@ export class ShopService implements OnModuleInit {
       ...dto,
       ...(autoSeries ? { series: autoSeries } : {}),
     };
+    if (dto.finishes) {
+      patch.finishes = await this.normalizeFinishSlugs(dto.finishes);
+    }
     if (dto.inStock !== undefined) {
       patch = applyInStockFlag(
         {
@@ -874,6 +951,9 @@ export class ShopService implements OnModuleInit {
         slug: _slug,
         image: seedImage,
         gallery: seedGallery,
+        finishes,
+        featured,
+        suggested,
         ...catalogFields
       } = doc;
       return {
@@ -883,12 +963,16 @@ export class ShopService implements OnModuleInit {
           // New catalog rows still receive the complete seed document.
           // Every other field is already present in `$set`; repeating it in
           // `$setOnInsert` makes MongoDB reject the operation as a path conflict.
+          // Finishes and featured flags are admin-owned after first insert.
           update: {
             $set: catalogFields,
             $setOnInsert: {
               slug: doc.slug,
               image: seedImage,
               gallery: seedGallery,
+              finishes,
+              featured,
+              suggested,
             },
           },
           upsert: true,
@@ -910,6 +994,15 @@ export class ShopService implements OnModuleInit {
       categories: categoryResult.categories,
       replaced: replaceAll,
     };
+  }
+
+  private async migrateShopProductModels() {
+    await this.productModel
+      .updateMany(
+        { $or: [{ finishes: { $exists: false } }, { finishes: null }] },
+        { $set: { finishes: [] } },
+      )
+      .exec();
   }
 
   /**
