@@ -51,7 +51,9 @@ export type Project = {
   sections: ProjectSection[];
   narrative?: ProjectNarrative;
   featured?: boolean;
+  featuredAt?: string;
   featuredImages?: string[];
+  productSlugs?: string[];
 };
 
 /** Convert a published CMS project into the shape used by the storefront. */
@@ -63,6 +65,7 @@ export function projectFromCms(entry: { slug: string; title: string; excerpt?: s
   const projectType = String(data.projectType || legacy.category || "پروژه");
   const services = Array.isArray(data.services) ? data.services.map(String) : Array.isArray(legacy.scope) ? legacy.scope : [];
   const area = data.area ? `${data.area} مترمربع` : legacy.area || "—";
+  const productSlugs = extractProjectProductSlugs(data, legacy);
 
   return {
     ...legacy,
@@ -87,7 +90,42 @@ export function projectFromCms(entry: { slug: string; title: string; excerpt?: s
     ],
     sections: Array.isArray(legacy.sections) ? legacy.sections : [],
     featured: Boolean(data.featured ?? legacy.featured),
+    featuredAt: String(data.featuredAt || legacy.featuredAt || ""),
+    featuredImages: Array.isArray(data.featuredImages)
+      ? data.featuredImages.filter((image): image is string => typeof image === "string" && image.length > 0)
+      : legacy.featuredImages,
+    productSlugs,
   };
+}
+
+function extractProjectProductSlugs(data: Record<string, unknown>, legacy: Partial<Project>): string[] {
+  const collected: string[] = [];
+  const take = (value: unknown) => {
+    if (!value) return;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item === "string" && item.trim()) collected.push(item.trim());
+        else if (item && typeof item === "object") {
+          const record = item as { productSlug?: unknown; slug?: unknown };
+          const slug = record.productSlug || record.slug;
+          if (typeof slug === "string" && slug.trim()) collected.push(slug.trim());
+        }
+      }
+      return;
+    }
+    if (typeof value === "string" && value.trim()) {
+      collected.push(...value.split(/[,،]/).map((item) => item.trim()).filter(Boolean));
+    }
+  };
+  if (Array.isArray(data.productSlugs)) {
+    take(data.productSlugs);
+    return [...new Set(collected)];
+  }
+  take(data.productIds);
+  take(data.products);
+  take(legacy.productSlugs);
+  take(legacy.narrative?.products);
+  return [...new Set(collected)];
 }
 
 const aknoon = getProjectImages("aknoon-residence");

@@ -140,6 +140,7 @@ export class CmsService implements OnModuleInit {
     await this.seedEditorialArticles();
     await this.seedLegacyContent('project', 'legacy-projects.json');
     await this.seedLegacyContent('material', 'legacy-materials.json');
+    await this.seedMaterialSamples();
     await this.seedLegacyContent('collection', 'legacy-collections.json');
     await this.seedPageData(
       'stores',
@@ -159,6 +160,7 @@ export class CmsService implements OnModuleInit {
       'legacy-contact-forms.json',
       'فرم‌های تماس',
     );
+    await this.migrateProjectContentModels();
   }
 
   assertKind(kind: string): CmsEntryKind {
@@ -212,9 +214,11 @@ export class CmsService implements OnModuleInit {
       throw new BadRequestException('Title is required');
     const slug = this.normalizeSlug(input.slug || input.title);
     try {
-      return await this.entryModel.create(
-        this.sanitizeInput({ ...input, kind, slug }),
+      const created = await this.entryModel.create(
+        this.normalizeKindData(kind, this.sanitizeInput({ ...input, kind, slug })),
       );
+      if (kind === 'project') await this.capFeaturedProjects(String(created._id));
+      return created;
     } catch (error: any) {
       if (error?.code === 11000)
         throw new BadRequestException('Slug already exists');
@@ -224,7 +228,7 @@ export class CmsService implements OnModuleInit {
 
   async update(kindValue: string, id: string, input: EntryInput) {
     const kind = this.assertKind(kindValue);
-    const update = this.sanitizeInput(input);
+    const update = this.normalizeKindData(kind, this.sanitizeInput(input));
     if (input.slug) {
       const nextSlug = this.normalizeSlug(input.slug);
       const current = await this.entryModel
@@ -250,6 +254,7 @@ export class CmsService implements OnModuleInit {
         };
       }
     }
+    this.normalizeKindData(kind, update);
     const entry = await this.entryModel
       .findOneAndUpdate({ _id: id, kind }, update, {
         new: true,
@@ -258,6 +263,11 @@ export class CmsService implements OnModuleInit {
       .lean()
       .exec();
     if (!entry) throw new NotFoundException('CMS entry not found');
+    if (kind === 'project') {
+      await this.capFeaturedProjects(id);
+      const refreshed = await this.entryModel.findOne({ _id: id, kind }).lean().exec();
+      return refreshed || entry;
+    }
     return entry;
   }
 
@@ -451,6 +461,59 @@ export class CmsService implements OnModuleInit {
     }
   }
 
+  private async seedMaterialSamples() {
+    const filePath = join(
+      process.cwd(),
+      'src/modules/cms/data/material-samples.json',
+    );
+    try {
+      const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<{
+        slug: string;
+        title: string;
+        family?: string;
+        color?: string;
+        hex?: string;
+        image?: string;
+        excerpt?: string;
+      }>;
+      const operations = rows
+        .filter((row) => row.slug && row.title)
+        .map((row) => ({
+          updateOne: {
+            filter: { kind: 'material', slug: row.slug },
+            update: {
+              $setOnInsert: {
+                kind: 'material',
+                title: row.title,
+                slug: row.slug,
+                status: 'published',
+                excerpt: row.excerpt || '',
+                description: row.excerpt || '',
+                images: row.image ? [row.image] : [],
+                data: {
+                  family: row.family || '',
+                  color: row.color || '',
+                  hex: row.hex || '',
+                  image: row.image || '',
+                  sample: true,
+                },
+                tags: row.family ? [row.family] : [],
+                publishedAt: new Date(),
+              },
+            },
+            upsert: true,
+          },
+        }));
+      if (operations.length)
+        await this.entryModel.bulkWrite(operations as never);
+    } catch (error) {
+      console.warn(
+        '[cms] material samples seed skipped:',
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
+
   private async seedPageData(slug: string, filename: string, title: string) {
     const filePath = join(process.cwd(), `src/modules/cms/data/${filename}`);
     try {
@@ -504,6 +567,147 @@ export class CmsService implements OnModuleInit {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '') || `entry-${Date.now()}`
     );
+  }
+
+  private extractProductSlugs(data: Record<string, unknown>): string[] {
+    const collected: string[] = [];
+    const take = (value: unknown) => {
+      if (!value) return;
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (typeof item === 'string' && item.trim())
+            collected.push(item.trim());
+          else if (item && typeof item === 'object') {
+            const record = item as Record<string, unknown>;
+            const slug = record.productSlug || record.slug;
+            if (typeof slug === 'string' && slug.trim())
+              collected.push(slug.trim());
+          }
+        }
+        return;
+      }
+      if (typeof value === 'string' && value.trim()) {
+        collected.push(
+          ...value
+            .split(/[,،]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+        );
+      }
+    };
+    take(data.productSlugs);
+    take(data.productIds);
+    take(data.products);
+    take(data.heroMarkers);
+    return [...new Set(collected)];
+  }
+
+  private async migrateProjectContentModels() {
+    const filePath = join(
+      process.cwd(),
+      'src/modules/cms/data/legacy-projects.json',
+    );
+    let rows: Array<Record<string, unknown>> = [];
+    try {
+      rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<
+        Record<string, unknown>
+      >;
+    } catch {
+      return;
+    }
+    const bySlug = new Map(
+      rows
+        .filter((row) => typeof row.slug === 'string' && row.slug)
+        .map((row) => [String(row.slug), row]),
+    );
+    const projects = await this.entryModel.find({ kind: 'project' }).exec();
+    for (const project of projects) {
+      const data =
+        project.data && typeof project.data === 'object' && !Array.isArray(project.data)
+          ? { ...(project.data as Record<string, unknown>) }
+          : {};
+      const legacy = bySlug.get(project.slug) || {};
+      const slugs = this.extractProductSlugs({ ...legacy, ...data });
+      if (slugs.length && (!Array.isArray(data.productSlugs) || !data.productSlugs.length)) {
+        data.productSlugs = slugs;
+        data.productIds = slugs;
+      }
+      if (data.featured === undefined && typeof legacy.featured === 'boolean') {
+        data.featured = legacy.featured;
+      }
+      const existingImages = Array.isArray(data.featuredImages)
+        ? data.featuredImages.filter(
+            (image): image is string => typeof image === 'string' && image.length > 0,
+          )
+        : [];
+      if (!existingImages.length && Array.isArray(legacy.featuredImages)) {
+        data.featuredImages = legacy.featuredImages
+          .filter((image): image is string => typeof image === 'string' && image.length > 0)
+          .slice(0, 2);
+      }
+      project.set('data', data);
+      await project.save();
+    }
+    const featured = await this.entryModel
+      .find({ kind: 'project', 'data.featured': true })
+      .sort({ updatedAt: -1 })
+      .select({ _id: 1 })
+      .lean()
+      .exec();
+    if (featured.length > 2) {
+      await this.entryModel.updateMany(
+        { _id: { $in: featured.slice(2).map((entry) => entry._id) } },
+        { $set: { 'data.featured': false } },
+      );
+    }
+  }
+
+  private async capFeaturedProjects(keepId: string) {
+    const keep = await this.entryModel.findById(keepId).lean().exec();
+    const data =
+      keep?.data && typeof keep.data === 'object' && !Array.isArray(keep.data)
+        ? (keep.data as Record<string, unknown>)
+        : {};
+    if (!data.featured) return;
+    const others = await this.entryModel
+      .find({
+        kind: 'project',
+        _id: { $ne: keepId },
+        'data.featured': true,
+      })
+      .sort({ updatedAt: -1 })
+      .select({ _id: 1 })
+      .lean()
+      .exec();
+    const extras = others.slice(1);
+    if (!extras.length) return;
+    await this.entryModel.updateMany(
+      { _id: { $in: extras.map((entry) => entry._id) } },
+      { $set: { 'data.featured': false } },
+    );
+  }
+
+  private normalizeKindData(
+    kind: CmsEntryKind,
+    allowed: Record<string, unknown>,
+  ) {
+    if (kind !== 'project') return allowed;
+    if (
+      !allowed.data ||
+      typeof allowed.data !== 'object' ||
+      Array.isArray(allowed.data)
+    )
+      return allowed;
+    const data = allowed.data as Record<string, unknown>;
+    const next = { ...data, productSlugs: this.extractProductSlugs(data) };
+    if (data.featured !== undefined) next.featured = Boolean(data.featured);
+    if (Array.isArray(data.featuredImages)) {
+      next.featuredImages = data.featuredImages
+        .filter((image): image is string => typeof image === 'string' && image.length > 0)
+        .slice(0, 2);
+    }
+    allowed.data = next;
+    return allowed;
   }
 
   private sanitizeInput(input: EntryInput & { kind?: CmsEntryKind }) {

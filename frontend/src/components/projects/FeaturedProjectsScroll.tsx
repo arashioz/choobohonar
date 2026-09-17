@@ -151,7 +151,7 @@ function FeaturedProjectBlock({ project, index }: { project: Project; index: num
 }
 
 export default function FeaturedProjectsScroll({ projects }: { projects: Project[] }) {
-  const featured = projects.slice(0, 3);
+  const featured = projects.slice(0, 2);
 
   useEffect(() => {
     if (!featured.length) return;
