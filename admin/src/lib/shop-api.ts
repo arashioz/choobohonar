@@ -193,6 +193,20 @@ export const shopApi = {
       "/categories",
     ),
   series: () => shopFetch<{ series: string }[]>("/series"),
+  materials: () =>
+    shopFetch<
+      {
+        slug: string;
+        name: string;
+        family: string;
+        color: string;
+        hex: string;
+        image: string;
+        excerpt: string;
+        href: string;
+        sample: boolean;
+      }[]
+    >("/materials"),
 
   orders: {
     list: (params: Record<string, string | number | undefined> = {}) => {

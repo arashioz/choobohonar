@@ -56,6 +56,7 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
         : (item.trackInventory ? (item.stockQty || 0) > 0 : true),
     hasOptions: Boolean(item.attributes?.length),
     shopUrl: item.shopUrl || "",
+    finishes: item.finishes || [],
     variants: item.variants?.map((variant, index) => ({ id: variant._id || variant.sku || String(index), sku: variant.sku, options: variant.options || [], price: variant.price, compareAtPrice: variant.compareAtPrice, stockQty: variant.stockQty || 0, image: variant.image, enabled: variant.enabled !== false })),
   };
 }
@@ -67,6 +68,49 @@ export async function fetchStorefrontProducts(): Promise<ShopProduct[]> {
     const payload = await response.json() as { items?: BackendProduct[] } | BackendProduct[];
     const items = Array.isArray(payload) ? payload : payload.items || [];
     return items.map(normalizeStorefrontProduct);
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchStorefrontProductsBySlugs(slugs: string[]): Promise<ShopProduct[]> {
+  const unique = [...new Set(slugs.map((slug) => slug.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  try {
+    const params = new URLSearchParams({
+      status: "published",
+      limit: String(Math.min(1000, unique.length)),
+      slugs: unique.join(","),
+    });
+    const response = await fetch(`${getApiBase()}/shop/products?${params.toString()}`, { cache: "no-store" });
+    if (!response.ok) return [];
+    const payload = await response.json() as { items?: BackendProduct[] } | BackendProduct[];
+    const items = Array.isArray(payload) ? payload : payload.items || [];
+    const bySlug = new Map(items.map((item) => [item.slug, normalizeStorefrontProduct(item)]));
+    return unique.map((slug) => bySlug.get(slug)).filter((item): item is ShopProduct => Boolean(item));
+  } catch {
+    return [];
+  }
+}
+
+export type MaterialSwatch = {
+  slug: string;
+  name: string;
+  family: string;
+  color: string;
+  hex: string;
+  image: string;
+  excerpt: string;
+  href: string;
+  sample?: boolean;
+};
+
+export async function fetchMaterialSwatches(): Promise<MaterialSwatch[]> {
+  try {
+    const response = await fetch(`${getApiBase()}/shop/materials`, { cache: "no-store" });
+    if (!response.ok) return [];
+    const items = await response.json() as MaterialSwatch[];
+    return Array.isArray(items) ? items.filter((item) => item.slug) : [];
   } catch {
     return [];
   }
