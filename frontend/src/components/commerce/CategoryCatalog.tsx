@@ -173,6 +173,15 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   return (
     <section ref={catalogRef} className="bg-paper py-20 md:py-28">
       <div className="mx-auto w-full max-w-container px-6 md:px-10 lg:px-16">
+        {typeOptions.length ? (
+          <div className="mb-8 border-b border-forest/10 pb-6">
+            <p className="mb-3 text-xs tracking-[0.16em] text-forest/45">نوع محصول</p>
+            <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+              <button type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه محصولات</button>
+              {typeOptions.map(([label, count]) => <button key={label} type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType(label); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === label ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>)}
+            </div>
+          </div>
+        ) : null}
         <div className="sticky top-[68px] z-30 -mx-6 border-y border-forest/10 bg-paper/95 px-6 py-4 backdrop-blur-xl md:-mx-10 md:px-10 lg:-mx-16 lg:px-16">
           <div className="mx-auto flex max-w-container flex-col gap-3 sm:flex-row sm:items-center">
             <label className="relative min-w-0 flex-1">

@@ -1,11 +1,9 @@
-"use client";
-
 import FeaturedProjectsIntro from "@/components/projects/FeaturedProjectsIntro";
 import FeaturedProjectsScroll from "@/components/projects/FeaturedProjectsScroll";
-import { getFeaturedProjects } from "@/data/projects";
+import { featuredProjectsFrom, fetchPublicProjects } from "@/lib/public-projects";
 
-export default function FeaturedProjectsSection() {
-  const featured = getFeaturedProjects();
+export default async function FeaturedProjectsSection() {
+  const featured = featuredProjectsFrom(await fetchPublicProjects(), 3);
 
   return (
     <section id="projects">

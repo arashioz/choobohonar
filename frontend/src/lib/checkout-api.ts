@@ -129,6 +129,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${getApiBase()}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -157,4 +158,15 @@ export const checkoutApi = {
   pay: (orderId: string, simulate: "success" | "fail" = "success") =>
     post<ShopOrder>(`/shop/orders/${orderId}/pay`, { simulate }),
   get: (orderId: string) => getJson<ShopOrder>(`/shop/orders/${orderId}`),
+};
+
+/** A checkout account uses the same session as the profile page. */
+export const customerAccountApi = {
+  register: (input: {
+    name: string;
+    phone: string;
+    email?: string;
+    city?: string;
+    password: string;
+  }) => post<{ customer: { id: string } }>("/public/account/register", input),
 };

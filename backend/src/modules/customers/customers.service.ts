@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { randomBytes } from 'crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Model } from 'mongoose';
 import {
   Customer,
@@ -12,6 +12,7 @@ import {
   CustomerStatus,
   CustomerTier,
 } from './schemas/customer.schema';
+import { ShopOrder, ShopOrderDocument } from '../shop/schemas/shop-order.schema';
 
 const statuses: CustomerStatus[] = ['lead', 'active', 'inactive'];
 const tiers: CustomerTier[] = ['vip', 'silver', 'gold'];
@@ -20,7 +21,97 @@ const tiers: CustomerTier[] = ['vip', 'silver', 'gold'];
 export class CustomersService {
   constructor(
     @InjectModel(Customer.name) private readonly model: Model<CustomerDocument>,
+    @InjectModel(ShopOrder.name)
+    private readonly orderModel: Model<ShopOrderDocument>,
   ) {}
+
+  async registerAccount(input: Record<string, unknown>) {
+    const name = String(input.name || '').trim();
+    const phone = this.normalizePhone(String(input.phone || ''));
+    const email = String(input.email || '').trim().toLowerCase();
+    const city = String(input.city || '').trim();
+    const password = String(input.password || '');
+    if (name.length < 2 || phone.length < 10)
+      throw new BadRequestException('نام و شماره موبایل معتبر الزامی است');
+    if (password.length < 8)
+      throw new BadRequestException('رمز عبور باید حداقل ۸ کاراکتر باشد');
+
+    const existing = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .select('+passwordHash')
+      .exec();
+    if (existing?.passwordHash)
+      throw new BadRequestException('برای این شماره حساب کاربری وجود دارد؛ وارد شوید');
+
+    const passwordHash = this.hashPassword(password);
+    const customer = existing
+      ? await this.model.findByIdAndUpdate(
+          existing._id,
+          {
+            $set: {
+              name,
+              phone,
+              ...(email ? { email } : {}),
+              ...(city ? { city } : {}),
+              passwordHash,
+              status: 'active',
+            },
+          },
+          { new: true },
+        )
+      : await this.model.create({
+          name,
+          phone,
+          ...(email ? { email } : {}),
+          ...(city ? { city } : {}),
+          passwordHash,
+          status: 'active',
+          source: 'website-account',
+        });
+    if (!customer) throw new NotFoundException('ساخت حساب کاربری انجام نشد');
+    return this.publicCustomer(customer);
+  }
+
+  async authenticateAccount(phoneValue: string, password: string) {
+    const phone = this.normalizePhone(phoneValue);
+    const customer = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .select('+passwordHash')
+      .exec();
+    if (!customer?.passwordHash || !this.verifyPassword(password, customer.passwordHash))
+      throw new BadRequestException('شماره موبایل یا رمز عبور نادرست است');
+    return this.publicCustomer(customer);
+  }
+
+  async accountProfile(id: string) {
+    const customer = await this.model.findById(id).lean().exec();
+    if (!customer) throw new NotFoundException('حساب کاربری پیدا نشد');
+    const phonePattern = this.phonePattern(customer.phone);
+    const orders = await this.orderModel
+      .find({ 'customer.phone': { $regex: phonePattern } })
+      .sort({ createdAt: -1 })
+      .select('orderNumber status items amounts payment createdAt')
+      .lean()
+      .exec();
+    return { customer: this.publicCustomer(customer), orders };
+  }
+
+  async updateAccount(id: string, input: Record<string, unknown>) {
+    const patch: Record<string, unknown> = {};
+    if (input.name !== undefined) {
+      const name = String(input.name || '').trim();
+      if (name.length < 2) throw new BadRequestException('نام معتبر وارد کنید');
+      patch.name = name;
+    }
+    if (input.email !== undefined) patch.email = String(input.email || '').trim().toLowerCase();
+    if (input.city !== undefined) patch.city = String(input.city || '').trim();
+    const customer = await this.model
+      .findByIdAndUpdate(id, { $set: patch }, { new: true })
+      .lean()
+      .exec();
+    if (!customer) throw new NotFoundException('حساب کاربری پیدا نشد');
+    return this.publicCustomer(customer);
+  }
 
   async list(q?: string, status?: string) {
     const filter: Record<string, unknown> = {};
@@ -170,5 +261,64 @@ export class CustomersService {
       .toLowerCase();
     const hash = randomBytes(4).toString('hex');
     return cleanName ? `${cleanName}-${hash}` : `c-${hash}`;
+  }
+
+  private normalizePhone(value: string) {
+    const digits = value
+      .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+      .replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('98')) {
+      return `0${digits.slice(2)}`;
+    }
+    if (digits.length === 10 && digits.startsWith('9')) return `0${digits}`;
+    return digits;
+  }
+
+  private phonePattern(phone: string) {
+    return new RegExp(
+      `^${phone
+        .split('')
+        .map((digit) => {
+          const persianDigit = '۰۱۲۳۴۵۶۷۸۹'[Number(digit)] || digit;
+          return `[${digit}${persianDigit}][\\s-]*`;
+        })
+        .join('')}$`,
+    );
+  }
+
+  private hashPassword(password: string) {
+    const salt = randomBytes(16).toString('hex');
+    const hash = scryptSync(password, salt, 64).toString('hex');
+    return `scrypt:${salt}:${hash}`;
+  }
+
+  private verifyPassword(password: string, stored: string) {
+    const [scheme, salt, hash] = stored.split(':');
+    if (scheme !== 'scrypt' || !salt || !hash) return false;
+    const candidate = scryptSync(password, salt, 64).toString('hex');
+    const candidateBuffer = Buffer.from(candidate, 'hex');
+    const storedBuffer = Buffer.from(hash, 'hex');
+    return (
+      candidateBuffer.length === storedBuffer.length &&
+      timingSafeEqual(candidateBuffer, storedBuffer)
+    );
+  }
+
+  private publicCustomer(customer: {
+    _id?: unknown;
+    name?: unknown;
+    phone?: unknown;
+    email?: unknown;
+    city?: unknown;
+    createdAt?: unknown;
+  }) {
+    return {
+      id: String(customer._id || ''),
+      name: String(customer.name || ''),
+      phone: String(customer.phone || ''),
+      email: String(customer.email || ''),
+      city: String(customer.city || ''),
+      createdAt: customer.createdAt,
+    };
   }
 }

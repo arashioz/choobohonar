@@ -10,6 +10,7 @@ export class Customer {
   @Prop({ required: true, trim: true, index: true }) name: string;
   @Prop({ required: true, trim: true, index: true }) phone: string;
   @Prop({ trim: true, lowercase: true }) email?: string;
+  @Prop({ select: false, default: '' }) passwordHash: string;
   @Prop({ default: '' }) city: string;
   @Prop({ enum: ['lead', 'active', 'inactive'], default: 'lead', index: true })
   status: CustomerStatus;

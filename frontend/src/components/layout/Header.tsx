@@ -269,14 +269,13 @@ export default function Header() {
               />
             </button>
 
-            <button
-              type="button"
-              disabled
-              aria-label="حساب کاربری به‌زودی"
-              title="حساب کاربری به‌زودی"
+            <Link
+              href="/profile"
+              aria-label="حساب کاربری"
+              title="حساب کاربری"
               className={cn(
-                "flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full opacity-45",
-                onSolid ? "text-forest" : "text-paper",
+                "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
+                onSolid ? "text-forest hover:bg-forest/5" : "text-paper hover:bg-paper/10",
               )}
             >
               <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-[1.35rem] w-[1.35rem]">
@@ -288,7 +287,7 @@ export default function Header() {
                   strokeLinecap="round"
                 />
               </svg>
-            </button>
+            </Link>
 
           </div>
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { projects, getProject, getRelatedProjects, projectFromCms } from "@/data/projects";
 import { fetchPublicCmsEntry, fetchPublicCmsEntries } from "@/lib/public-cms";
+import { fetchPublicProjects } from "@/lib/public-projects";
 import Container from "@/components/layout/Container";
 import ProjectHero from "@/components/projects/ProjectHero";
 import ProjectStats from "@/components/projects/ProjectStats";
@@ -37,7 +38,7 @@ export default async function ProjectPage({ params }: PageProps) {
   if (entry && entry.slug !== slug) permanentRedirect(`/projects/${entry.slug}`);
   const project = entry ? projectFromCms(entry) : getProject(slug);
   if (!project) notFound();
-  const related = getRelatedProjects(project.slug, 3);
+  const related = getRelatedProjects(project.slug, 3, await fetchPublicProjects());
   return (
     <>
       <section className="bg-paper pt-32 pb-4 md:pt-40">

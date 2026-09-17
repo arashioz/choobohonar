@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Project } from "@/data/projects";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
+import ProjectCard from "@/components/projects/ProjectCard";
 
 export default function RelatedProjects({ projects }: { projects: Project[] }) {
   if (!projects.length) return null;
@@ -28,22 +28,7 @@ export default function RelatedProjects({ projects }: { projects: Project[] }) {
         <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 md:mt-16 lg:grid-cols-3">
           {projects.map((p, i) => (
             <FadeUp key={p.slug} delay={i * 0.08}>
-              <Link href={`/projects/${p.slug}`} className="group block">
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-paper/5">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]"
-                  />
-                </div>
-                <div className="mt-4 flex items-baseline justify-between gap-3">
-                  <h3 className="text-lg font-light tracking-tight text-paper">{p.title}</h3>
-                  <span className="text-sm text-paper/50">{p.category}</span>
-                </div>
-                <p className="mt-1 text-sm leading-relaxed text-paper/60">{p.location}</p>
-              </Link>
+              <ProjectCard project={p} tone="dark" />
             </FadeUp>
           ))}
         </div>

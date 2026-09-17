@@ -152,6 +152,15 @@ export class ShopController {
     return this.shopService.create(dto);
   }
 
+  @Patch('products/bulk-stock')
+  @UseGuards(JwtAuthGuard)
+  updateBulkStock(@Body() body: { ids?: string[]; inStock?: boolean }) {
+    return this.shopService.updateBulkStock(
+      Array.isArray(body?.ids) ? body.ids.map(String) : [],
+      body?.inStock === true,
+    );
+  }
+
   @Patch('products/:id')
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() dto: UpdateShopProductDto) {

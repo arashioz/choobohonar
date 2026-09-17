@@ -113,36 +113,6 @@ export default async function ProductCategoryPage({ params }: PageProps) {
         </Container>
       </section>
 
-      {category.root.children.length ? (
-        <section className="border-b border-forest/10 bg-paper py-7">
-          <Container>
-            <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-              <Link
-                href={`/products/category/${category.root.slug}`}
-                className={`shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors ${
-                  !category.active ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest"
-                }`}
-              >
-                همه {category.root.label}
-              </Link>
-              {category.root.children.map((child) => (
-                <Link
-                  key={child.slug}
-                  href={`/products/category/${category.root.slug}/${child.slug}`}
-                  className={`shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors ${
-                    category.active?.slug === child.slug
-                      ? "bg-forest text-paper"
-                      : "border border-forest/15 text-forest hover:border-forest"
-                  }`}
-                >
-                  {child.label}
-                </Link>
-              ))}
-            </div>
-          </Container>
-        </section>
-      ) : null}
-
       <Suspense fallback={<div className="min-h-[40rem] bg-paper" />}>
         <CategoryCatalog products={products} categoryLabel={activeLabel} campaignImage={category.root.image} />
       </Suspense>

@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { basename, join } from 'path';
 import * as XLSX from 'xlsx';
@@ -561,6 +561,36 @@ export class ShopService implements OnModuleInit {
       .exec();
     if (!updated) throw new NotFoundException('محصول پیدا نشد');
     return updated;
+  }
+
+  async updateBulkStock(ids: string[], inStock: boolean) {
+    const uniqueIds = [...new Set(ids.filter((id) => isValidObjectId(id)))];
+    if (!uniqueIds.length)
+      throw new ConflictException('حداقل یک محصول معتبر انتخاب کنید');
+
+    const products = await this.productModel
+      .find({ _id: { $in: uniqueIds } })
+      .select('inStock trackInventory stockQty variants')
+      .lean()
+      .exec();
+    const operations = products.map((product) => ({
+      updateOne: {
+        filter: { _id: product._id },
+        update: {
+          $set: applyInStockFlag(
+            {
+              inStock: product.inStock,
+              trackInventory: product.trackInventory,
+              stockQty: product.stockQty,
+              variants: product.variants,
+            },
+            inStock,
+          ),
+        },
+      },
+    }));
+    if (operations.length) await this.productModel.bulkWrite(operations);
+    return { updated: operations.length, requested: uniqueIds.length, inStock };
   }
 
   async remove(id: string) {

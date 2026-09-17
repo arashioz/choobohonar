@@ -50,6 +50,11 @@ export default async function Footer() {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <Link href="/materials" className="transition-colors hover:text-peach focus-visible:text-peach">
+                    متریال‌ها
+                  </Link>
+                </li>
               </ul>
             </div>
 

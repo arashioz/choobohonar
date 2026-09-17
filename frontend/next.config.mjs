@@ -78,6 +78,16 @@ const nextConfig = {
         destination: "/stores",
         permanent: true,
       },
+      {
+        source: "/collections",
+        destination: "/collection",
+        permanent: true,
+      },
+      {
+        source: "/collections/:path*",
+        destination: "/collection/:path*",
+        permanent: true,
+      },
       ...Object.entries(finishDestinations).flatMap(([id, destination]) => [
         {
           source: `/collection/${id}`,

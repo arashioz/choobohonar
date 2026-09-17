@@ -165,6 +165,11 @@ export const shopApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  updateBulkStock: (ids: string[], inStock: boolean) =>
+    shopFetch<{ updated: number; requested: number; inStock: boolean }>(
+      "/products/bulk-stock",
+      { method: "PATCH", body: JSON.stringify({ ids, inStock }) },
+    ),
   remove: (id: string) =>
     shopFetch<{ ok: true }>(`/products/${id}`, { method: "DELETE" }),
   stats: () => shopFetch<ShopStats>("/stats"),

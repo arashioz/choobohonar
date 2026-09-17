@@ -112,6 +112,10 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [stockBusyId, setStockBusyId] = useState("");
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [bulkStockBusy, setBulkStockBusy] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState("");
 
   function importPrices(file: File) {
@@ -176,6 +180,10 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     });
     setProducts(list.items);
     setProductTotal(list.total);
+    setSelectedProductIds((current) => {
+      const visibleIds = new Set(list.items.map((product) => product._id));
+      return new Set([...current].filter((id) => visibleIds.has(id)));
+    });
 
     const [statsResult, suggestionsResult] = await Promise.allSettled([
       shopApi.stats(),
@@ -247,6 +255,39 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     } finally {
       setBusy(false);
     }
+  }
+
+  async function updateSelectedStock(inStock: boolean) {
+    const ids = [...selectedProductIds];
+    if (!ids.length) return;
+    const action = inStock ? "موجود" : "ناموجود";
+    if (!window.confirm(`${ids.length} محصول انتخاب‌شده ${action} شوند؟`)) return;
+    setBulkStockBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const result = await shopApi.updateBulkStock(ids, inStock);
+      setMessage(`${result.updated} محصول ${action} شد.`);
+      setSelectedProductIds(new Set());
+      await loadProducts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تغییر گروهی موجودی ناموفق بود");
+    } finally {
+      setBulkStockBusy(false);
+    }
+  }
+
+  function toggleProductSelection(id: string, selected: boolean) {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      if (selected) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleAllProducts(selected: boolean) {
+    setSelectedProductIds(selected ? new Set(products.map((product) => product._id)) : new Set());
   }
 
   const tabs: { id: Tab; label: string }[] = [
@@ -622,6 +663,24 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                   </span>
                 </div>
 
+                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-forest/10 bg-white/75 px-4 py-3 text-xs text-forest">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-forest"
+                      checked={products.length > 0 && selectedProductIds.size === products.length}
+                      onChange={(event) => toggleAllProducts(event.target.checked)}
+                    />
+                    انتخاب همه نتایج
+                  </label>
+                  {selectedProductIds.size ? <>
+                    <span className="text-forest/55">{selectedProductIds.size} محصول انتخاب شده</span>
+                    <button type="button" disabled={bulkStockBusy} onClick={() => updateSelectedStock(true)} className="rounded-lg bg-forest px-3 py-2 text-paper disabled:opacity-50">موجود کردن</button>
+                    <button type="button" disabled={bulkStockBusy} onClick={() => updateSelectedStock(false)} className="rounded-lg border border-brick/25 px-3 py-2 text-brick disabled:opacity-50">ناموجود کردن</button>
+                    <button type="button" disabled={bulkStockBusy} onClick={() => setSelectedProductIds(new Set())} className="text-forest/45 underline disabled:opacity-50">لغو انتخاب</button>
+                  </> : null}
+                </div>
+
                 {productGroups.map((group) => {
                   const collapsed = collapsedRooms[group.room] === true;
                   return (
@@ -666,6 +725,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                               <table className="w-full text-right text-sm">
                                 <thead className="sr-only">
                                   <tr>
+                                    <th>انتخاب</th>
                                     <th>نام</th>
                                     <th>قیمت</th>
                                     <th>وضعیت</th>
@@ -679,6 +739,15 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                                       key={p._id}
                                       className="border-t border-forest/5 hover:bg-forest/[0.02]"
                                     >
+                                      <td className="px-4 py-3">
+                                        <input
+                                          type="checkbox"
+                                          className="h-4 w-4 cursor-pointer accent-forest"
+                                          aria-label={`انتخاب ${p.name}`}
+                                          checked={selectedProductIds.has(p._id)}
+                                          onChange={(event) => toggleProductSelection(p._id, event.target.checked)}
+                                        />
+                                      </td>
                                       <td className="px-4 py-3 font-medium text-forest">
                                         {p.name}
                                       </td>

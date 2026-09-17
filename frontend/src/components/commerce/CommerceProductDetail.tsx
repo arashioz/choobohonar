@@ -100,14 +100,11 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
                   />
                 ) : null}
                 <div className="absolute right-5 top-5 flex flex-col gap-2">
-                  <span
-                    className={cn(
-                      "rounded-full px-4 py-2 text-xs font-medium backdrop-blur-md",
-                      product.isInStock ? "bg-paper/90 text-forest" : "bg-paper/90 text-brick",
-                    )}
-                  >
-                    {product.isInStock ? "آماده سفارش" : "ناموجود"}
-                  </span>
+                  {!product.isInStock ? (
+                    <span className="rounded-full bg-paper/90 px-4 py-2 text-xs font-medium text-brick backdrop-blur-md">
+                      ناموجود
+                    </span>
+                  ) : null}
                   {collection ? (
                     <span className="rounded-full bg-forest/85 px-4 py-2 text-xs font-medium text-paper backdrop-blur-md">
                       کالکشن {collection}

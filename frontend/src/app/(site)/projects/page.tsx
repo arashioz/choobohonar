@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { getFeaturedProjects, getStandardProjects, projectFromCms } from "@/data/projects";
 import FeaturedProjectsIntro from "@/components/projects/FeaturedProjectsIntro";
 import FeaturedProjectsScroll from "@/components/projects/FeaturedProjectsScroll";
 import ProjectsListGrid from "@/components/projects/ProjectsListGrid";
-import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import { featuredProjectsFrom, fetchPublicProjects } from "@/lib/public-projects";
 
 // The project index is database-backed, so newly published entries must be
 // visible as soon as they are published from the admin panel.
@@ -17,10 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsIndexPage() {
-  const migrated = await fetchPublicCmsEntries("project");
-  const all = migrated.length ? migrated.map(projectFromCms) : [...getFeaturedProjects(), ...getStandardProjects()];
-  const featured = all.filter((project) => project.featured);
-  const standard = all.filter((project) => !project.featured);
+  const all = await fetchPublicProjects();
+  const featured = featuredProjectsFrom(all, 3);
+  const featuredSlugs = new Set(featured.map((project) => project.slug));
+  const standard = all.filter((project) => !featuredSlugs.has(project.slug));
 
   return (
     <>

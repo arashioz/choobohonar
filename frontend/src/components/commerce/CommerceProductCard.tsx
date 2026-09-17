@@ -68,7 +68,7 @@ export default function CommerceProductCard({
         <div className="mt-4 flex flex-1 items-start justify-between gap-4 border-b border-forest/10 pb-4">
           <div className="min-w-0">
             <p className="text-xs font-medium tracking-[0.14em] text-brick">{product.category}</p>
-            <h3 className="mt-2 truncate text-xl font-light tracking-tight text-forest transition-colors duration-300 group-hover:text-brick group-focus-visible:text-brick md:text-2xl">
+            <h3 className="mt-2 line-clamp-2 min-h-[3.5rem] text-xl font-light tracking-tight text-forest transition-colors duration-300 group-hover:text-brick group-focus-visible:text-brick md:min-h-0 md:truncate md:text-2xl">
               {product.name}
             </h3>
           </div>

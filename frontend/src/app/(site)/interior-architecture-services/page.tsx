@@ -7,6 +7,7 @@ import InteriorIntroSection from "@/components/interior/InteriorIntroSection";
 import InteriorProcessSection from "@/components/interior/InteriorProcessSection";
 import InteriorProjectsBand from "@/components/interior/InteriorProjectsBand";
 import { fetchPublicCmsPage } from "@/lib/public-cms";
+import { featuredProjectsFrom, fetchPublicProjects } from "@/lib/public-projects";
 import {
   consultationChannels,
   interiorBenefits,
@@ -35,6 +36,7 @@ export const metadata: Metadata = {
 
 export default async function InteriorArchitectureServicesPage() {
   const page = await fetchPublicCmsPage<InteriorPageData>("interior");
+  const projects = await fetchPublicProjects();
   const data = page?.items;
   const content = {
     hero: data?.hero || interiorHero,
@@ -53,7 +55,7 @@ export default async function InteriorArchitectureServicesPage() {
       <InteriorBenefitsSection items={content.benefits} />
       <InteriorProcessSection steps={content.processSteps} />
       <InteriorCustomizationBand items={content.customizationPieces} />
-      <InteriorProjectsBand />
+      <InteriorProjectsBand projects={featuredProjectsFrom(projects, 2)} />
       <InteriorConsultationCta channels={content.consultationChannels} />
     </>
   );

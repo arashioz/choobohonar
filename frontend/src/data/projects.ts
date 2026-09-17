@@ -421,11 +421,11 @@ export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
 }
 
-export function getRelatedProjects(slug: string, count = 3): Project[] {
-  const current = projects.find((p) => p.slug === slug);
-  if (!current) return projects.slice(0, count);
-  const sameCategory = projects.filter((p) => p.slug !== slug && p.category === current.category);
-  const others = projects.filter((p) => p.slug !== slug && p.category !== current.category);
+export function getRelatedProjects(slug: string, count = 3, source: Project[] = projects): Project[] {
+  const current = source.find((p) => p.slug === slug);
+  if (!current) return source.slice(0, count);
+  const sameCategory = source.filter((p) => p.slug !== slug && p.category === current.category);
+  const others = source.filter((p) => p.slug !== slug && p.category !== current.category);
   return [...sameCategory, ...others].slice(0, count);
 }
 

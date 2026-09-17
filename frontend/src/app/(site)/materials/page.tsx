@@ -6,7 +6,7 @@ import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 import { materials } from "@/data/materials";
-import { getMaterialCommerceItems, materialCommerceItems } from "@/data/material-products";
+import { getMaterialCommerceItems } from "@/data/material-products";
 import { toFa } from "@/lib/utils";
 import { fetchPublicCmsEntries } from "@/lib/public-cms";
 import type { Material } from "@/data/materials";
@@ -117,37 +117,6 @@ export default async function MaterialsPage() {
               );
             })}
           </Stagger>
-        </Container>
-      </section>
-
-      <section className="overflow-hidden bg-[#e8ded2] py-24 md:py-32">
-        <Container>
-          <FadeUp className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-            <div>
-              <p className="eyebrow text-brick">Swatch wall</p>
-              <h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] font-extralight leading-none tracking-tightest text-forest">
-                یک پالت برای شروع
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-7 text-forest/55">
-              نمونه‌ها برای ارزیابی در نور و فضای واقعی پروژه قابل درخواست‌اند.
-            </p>
-          </FadeUp>
-
-          <div className="no-scrollbar -mx-6 mt-14 flex gap-3 overflow-x-auto px-6 pb-4 md:mx-0 md:grid md:grid-cols-4 md:px-0 lg:mt-20 lg:grid-cols-6">
-            {materialCommerceItems.map((item) => (
-              <Link key={`${item.categoryId}-${item.slug}`} href={`/materials/${item.categoryId}/${item.slug}`} className="group w-[55vw] shrink-0 md:w-auto">
-                <div className="aspect-[4/5] p-4" style={{ background: `linear-gradient(145deg, ${item.accent}, ${item.color})` }}>
-                  <div className="flex h-full flex-col justify-between border border-white/25 p-4 text-white mix-blend-plus-lighter">
-                    <span className="text-[10px] tracking-[0.2em]">{item.code}</span>
-                    <span className="text-xs">SAMPLE / CHH</span>
-                  </div>
-                </div>
-                <h3 className="mt-3 text-lg font-light text-forest">{item.name}</h3>
-                <p className="mt-1 text-xs text-forest/45">{item.subtitle}</p>
-              </Link>
-            ))}
-          </div>
         </Container>
       </section>
 

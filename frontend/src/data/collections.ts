@@ -60,6 +60,12 @@ export const collections: ProductCollection[] = [
   },
 ];
 
+// Old WordPress links used Latin collection names while the imported catalog
+// retains its original Persian slugs.
+const legacyCollectionSlugs: Record<string, string> = {
+  maple: "میپل",
+};
+
 export function getCollection(slug: string): ProductCollection | undefined {
   return collections.find((collection) => collection.slug === slug);
 }
@@ -95,9 +101,12 @@ export async function fetchApiCollections(): Promise<ApiCollection[]> {
 
 export async function fetchApiCollection(slug: string): Promise<ApiCollection | null> {
   try {
-    const r = await fetch(`${getApiBase()}/public/collections/${encodeURIComponent(slug)}`, { cache: "no-store" });
-    if (!r.ok) return null;
-    return await r.json();
+    const candidates = [slug, legacyCollectionSlugs[slug.toLowerCase()]].filter(Boolean);
+    for (const candidate of candidates) {
+      const r = await fetch(`${getApiBase()}/public/collections/${encodeURIComponent(candidate)}`, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    }
+    return null;
   } catch {
     return null;
   }

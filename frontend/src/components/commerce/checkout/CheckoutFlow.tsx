@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/commerce";
 import { cn, toFa } from "@/lib/utils";
 import { isUploadedMedia } from "@/lib/media";
 import { required, validateEmail, validatePhone } from "@/lib/form-utils";
-import { checkoutApi } from "@/lib/checkout-api";
+import { checkoutApi, customerAccountApi } from "@/lib/checkout-api";
 
 type Step = 1 | 2 | 3;
 type PaymentMethod = "coordination" | "online";
@@ -122,6 +122,15 @@ export default function CheckoutFlow() {
     setSubmitting(true);
     setSubmitError("");
     try {
+      if (data.createAccount) {
+        await customerAccountApi.register({
+          name: data.fullName,
+          phone: data.phone,
+          email: data.email,
+          city: data.city,
+          password: data.password,
+        });
+      }
       const order = await checkoutApi.createOrder({
         items,
         customer: { name: data.fullName, phone: data.phone, email: data.email },
