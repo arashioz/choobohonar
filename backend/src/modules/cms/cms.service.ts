@@ -699,7 +699,10 @@ export class CmsService implements OnModuleInit {
     )
       return allowed;
     const data = allowed.data as Record<string, unknown>;
-    const next = { ...data, productSlugs: this.extractProductSlugs(data) };
+    const next: Record<string, unknown> = {
+      ...data,
+      productSlugs: this.extractProductSlugs(data),
+    };
     if (data.featured !== undefined) next.featured = Boolean(data.featured);
     if (Array.isArray(data.featuredImages)) {
       next.featuredImages = data.featuredImages
