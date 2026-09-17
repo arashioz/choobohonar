@@ -224,26 +224,23 @@ export class CollectionsService {
     // standalone custom cover is the one exception: it must win so the image
     // selected in the Collections admin is visible on the storefront too.
     const result = new Map<string, Record<string, unknown>>();
+    const seenSeries = new Set<string>();
+    const addUnique = (collection: Record<string, unknown>) => {
+      if (Number(collection.productCount || 0) < 2) return;
+      const slug = String(collection.slug || '');
+      const seriesKey = this.normalizeForMatch(
+        String(collection.series || collection.name || slug),
+      );
+      if (result.has(slug) || (seriesKey && seenSeries.has(seriesKey))) return;
+      result.set(slug, collection);
+      if (seriesKey) seenSeries.add(seriesKey);
+    };
     for (const collection of withProducts) {
-      if (
-        Number(collection.productCount || 0) >= 2 &&
-        collection.coverMode === 'custom' &&
-        collection.image
-      )
-        result.set(String(collection.slug), collection);
+      if (collection.coverMode === 'custom' && collection.image)
+        addUnique(collection);
     }
-    for (const collection of cmsWithProducts) {
-      if (Number(collection.productCount || 0) >= 2)
-        if (!result.has(String(collection.slug)))
-          result.set(String(collection.slug), collection);
-    }
-    for (const collection of withProducts) {
-      if (
-        Number(collection.productCount || 0) >= 2 &&
-        !result.has(String(collection.slug))
-      )
-        result.set(String(collection.slug), collection);
-    }
+    for (const collection of cmsWithProducts) addUnique(collection);
+    for (const collection of withProducts) addUnique(collection);
     return [...result.values()];
   }
 
