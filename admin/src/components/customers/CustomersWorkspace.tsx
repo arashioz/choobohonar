@@ -17,6 +17,13 @@ type Customer = {
   referralSlug?: string | null;
   smsOptions?: { enabled: boolean };
   createdAt?: string;
+  galleryTaste?: {
+    space?: string;
+    material?: string;
+    atmosphere?: string;
+    object?: string;
+    answeredAt?: string;
+  } | null;
 };
 
 type CommerceOrder = {
@@ -39,6 +46,18 @@ const tierLabelFor = (tier: Tier) => tier ? tierLabelsMap[tier] : "بدون دس
 const tierColorFor = (tier: Tier) => tier ? tierColorsMap[tier] : "bg-forest/[.04] text-forest/40 ring-transparent";
 const input = "w-full rounded-xl border border-forest/10 bg-[#faf8f5] px-3 py-2.5 text-xs text-forest outline-none focus:border-forest/30";
 const badge = "rounded-lg px-2.5 py-0.5 text-[9px] font-medium ring-1";
+const TASTE_PROMPTS: Record<string, string> = {
+  space: "فضا",
+  material: "سطح و متریال",
+  atmosphere: "حس خانه",
+  object: "شیء مورد علاقه",
+};
+const TASTE_LABELS: Record<string, Record<string, string>> = {
+  space: { home: "نشیمن گرم خانگی", villa: "ویلا و طبیعت", hospitality: "فضای اقامتی", detail: "جزئیات و دوخت" },
+  material: { "dark-wood": "چوب تیره با رگه", "light-wood": "چوب روشن مات", fabric: "پارچه و رویه", metal: "فلز و اتصال" },
+  atmosphere: { calm: "آرام و خلوت", layered: "پر از بافت و شیء", formal: "رسمی برای مهمان", nature: "نزدیک طبیعت" },
+  object: { decor: "ساعت و دکور", lighting: "آباژور و نور", carpet: "فرش و گلیم", furniture: "فقط مبلمان بزرگ" },
+};
 
 export default function CustomersWorkspace() {
   const [items, setItems] = useState<Customer[]>([]);
@@ -52,9 +71,14 @@ export default function CustomersWorkspace() {
   const [creating, setCreating] = useState(false);
   const [copyingSlug, setCopyingSlug] = useState<string | null>(null);
   const [commerceTab, setCommerceTab] = useState<"online" | "proforma">("online");
-  const [commerce, setCommerce] = useState<{ onlineOrders: CommerceOrder[]; proformas: CommerceOrder[] }>({
+  const [commerce, setCommerce] = useState<{
+    onlineOrders: CommerceOrder[];
+    proformas: CommerceOrder[];
+    galleryTaste: Customer["galleryTaste"];
+  }>({
     onlineOrders: [],
     proformas: [],
+    galleryTaste: null,
   });
 
   const [form, setForm] = useState({
@@ -85,7 +109,7 @@ export default function CustomersWorkspace() {
   useEffect(() => { setSelectedId(null); }, [statusFilter]);
   useEffect(() => {
     if (!selectedId) {
-      setCommerce({ onlineOrders: [], proformas: [] });
+      setCommerce({ onlineOrders: [], proformas: [], galleryTaste: null });
       return;
     }
     setCommerceTab("online");
@@ -96,9 +120,10 @@ export default function CustomersWorkspace() {
         setCommerce({
           onlineOrders: data.onlineOrders || [],
           proformas: data.proformas || [],
+          galleryTaste: data.customer?.galleryTaste || null,
         });
       })
-      .catch(() => setCommerce({ onlineOrders: [], proformas: [] }));
+      .catch(() => setCommerce({ onlineOrders: [], proformas: [], galleryTaste: null }));
   }, [selectedId]);
 
   const stats = useMemo(() => ({
@@ -391,6 +416,32 @@ export default function CustomersWorkspace() {
                       <p className="text-[10px] text-forest/60">{selectedCustomer.note}</p>
                     </div>
                   )}
+
+                  <div className="mb-4 rounded-xl bg-white/60 p-4">
+                    <h4 className="text-xs font-medium text-forest">سلیقه گالری</h4>
+                    <p className="mt-1 text-[10px] text-forest/40">پاسخ چهار سؤال فید گالری که روی حساب مشتری ذخیره شده است.</p>
+                    {(commerce.galleryTaste || selectedCustomer.galleryTaste) ? (
+                      <ul className="mt-3 space-y-2">
+                        {(["space", "material", "atmosphere", "object"] as const).map((key) => {
+                          const taste = commerce.galleryTaste || selectedCustomer.galleryTaste;
+                          const value = taste?.[key];
+                          return (
+                            <li key={key} className="flex items-start justify-between gap-3 text-[11px]">
+                              <span className="text-forest/45">{TASTE_PROMPTS[key]}</span>
+                              <span className="text-forest">{(value && TASTE_LABELS[key]?.[value]) || value || "—"}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="mt-3 text-[10px] text-forest/40">هنوز سلیقه گالری روی این حساب ثبت نشده است.</p>
+                    )}
+                    {(commerce.galleryTaste || selectedCustomer.galleryTaste)?.answeredAt ? (
+                      <p className="mt-2 text-[10px] text-forest/30" dir="ltr">
+                        {new Date(String((commerce.galleryTaste || selectedCustomer.galleryTaste)?.answeredAt)).toLocaleString("fa-IR")}
+                      </p>
+                    ) : null}
+                  </div>
 
                   <div className="mb-4 rounded-xl bg-white/60 p-4">
                     <div className="mb-3 flex gap-2">

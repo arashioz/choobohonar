@@ -28,6 +28,15 @@ export class OrderItem {
   @Prop({ default: '' })
   image: string;
 
+  @Prop()
+  series?: string;
+
+  @Prop()
+  category?: string;
+
+  @Prop()
+  href?: string;
+
   @Prop({ required: true, min: 1 })
   qty: number;
 

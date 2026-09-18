@@ -231,13 +231,15 @@ export class ShopController {
   }
 
   @Get('orders/by-number/:orderNumber')
-  getOrderByNumber(@Param('orderNumber') orderNumber: string) {
-    return this.orderService.getByNumber(decodeURIComponent(orderNumber));
+  async getOrderByNumber(@Param('orderNumber') orderNumber: string) {
+    return this.orderService.presentOrder(
+      await this.orderService.getByNumber(decodeURIComponent(orderNumber)),
+    );
   }
 
   @Get('orders/:id')
   getOrder(@Param('id') id: string) {
-    return this.orderService.get(id);
+    return this.orderService.getPresented(id);
   }
 
   @Post('orders/:id/pay')

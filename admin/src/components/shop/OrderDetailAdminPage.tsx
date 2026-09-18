@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import {
   ORDER_STATUS_LABELS,
   shopApi,
+  storefrontProductUrl,
   type ShopOrder,
 } from "@/lib/shop-api";
 
@@ -79,6 +80,7 @@ export default function OrderDetailAdminPage() {
           <div>
             <Link href="/admin/shop" className="text-xs text-forest/45 hover:text-forest">← فروشگاه</Link>
             <h1 className="mt-1 text-2xl font-light text-forest" dir="ltr">{order.orderNumber}</h1>
+            <p className="mt-1 text-xs text-forest/40">{order.kind === "proforma" ? "پیش‌فاکتور" : "سفارش آنلاین"}</p>
           </div>
           <div className="flex gap-2">
             {order.invoiceId ? (
@@ -151,14 +153,36 @@ export default function OrderDetailAdminPage() {
         </div>
 
         <section className="rounded-2xl border border-forest/10 bg-white/80 p-5">
-          <h2 className="text-sm font-medium text-forest">اقلام</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {order.items.map((item) => (
-              <li key={item.slug} className="flex justify-between gap-3 text-forest/70">
-                <span>{item.name} × {item.qty}</span>
-                <span>{formatPrice(item.qty * item.unitPrice)}</span>
-              </li>
-            ))}
+          <h2 className="text-sm font-medium text-forest">اقلام سفارش</h2>
+          <ul className="mt-3 space-y-3">
+            {order.items.map((item) => {
+              const href = storefrontProductUrl(item.slug, item.href);
+              return (
+                <li key={`${item.slug}-${item.name}`} className="flex gap-3 rounded-xl border border-forest/8 bg-[#faf8f5] p-3">
+                  {item.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.image} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-forest/5 text-[9px] text-forest/35">بدون تصویر</div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-forest">{item.name}</p>
+                    <p className="mt-0.5 text-[11px] text-forest/45">
+                      {[item.category, item.series ? `کالکشن ${item.series}` : ""].filter(Boolean).join(" · ") || "محصول فروشگاه"}
+                    </p>
+                    <p className="mt-1 text-[10px] text-forest/35" dir="ltr">{item.slug}</p>
+                    <a href={href} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11px] text-brick hover:underline">
+                      مشاهده صفحه محصول ←
+                    </a>
+                  </div>
+                  <div className="shrink-0 text-left text-xs text-forest/70">
+                    <p>{item.qty.toLocaleString("fa-IR")} عدد</p>
+                    <p className="mt-1">{formatPrice(item.unitPrice)}</p>
+                    <p className="mt-1 font-medium text-forest">{formatPrice(item.qty * item.unitPrice)}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
           <div className="mt-4 border-t border-forest/10 pt-3 text-sm text-forest">
             <div className="flex justify-between"><span>جمع</span><span>{formatPrice(order.amounts.subtotal)}</span></div>

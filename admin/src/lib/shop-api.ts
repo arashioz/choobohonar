@@ -277,6 +277,10 @@ export type ShopOrder = {
     slug: string;
     name: string;
     image?: string;
+    series?: string;
+    category?: string;
+    href?: string;
+    catalogMatched?: boolean;
     qty: number;
     unitPrice: number;
   }[];
@@ -322,6 +326,11 @@ export type ShopInvoice = {
   items: {
     slug: string;
     name: string;
+    image?: string;
+    series?: string;
+    category?: string;
+    href?: string;
+    catalogMatched?: boolean;
     qty: number;
     unitPrice: number;
     lineTotal: number;
@@ -349,3 +358,18 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   delivered: "تحویل شده",
   cancelled: "لغو",
 };
+
+export function storefrontProductUrl(slug: string, href?: string) {
+  const path = href?.trim() || `/products/${encodeURIComponent(slug)}`;
+  if (/^https?:\/\//i.test(path)) return path;
+  const origin = (() => {
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") {
+        return `${window.location.protocol}//${host}:3000`;
+      }
+    }
+    return (process.env.NEXT_PUBLIC_SITE_URL || "https://choobohonar.com").replace(/\/$/, "");
+  })();
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
+}

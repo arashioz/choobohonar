@@ -18,6 +18,10 @@ import {
   ShopInvoiceDocument,
 } from './schemas/shop-invoice.schema';
 import {
+  ShopProduct,
+  ShopProductDocument,
+} from './schemas/shop-product.schema';
+import {
   CreateOrderDto,
   MockPayDto,
   UpdateOrderStatusDto,
@@ -39,6 +43,8 @@ export class OrderService implements OnModuleInit {
     @InjectModel(ShopOrder.name) private orderModel: Model<ShopOrderDocument>,
     @InjectModel(ShopInvoice.name)
     private invoiceModel: Model<ShopInvoiceDocument>,
+    @InjectModel(ShopProduct.name)
+    private productModel: Model<ShopProductDocument>,
     @Inject(forwardRef(() => CustomersService))
     private readonly customers: CustomersService,
   ) {}
@@ -80,6 +86,111 @@ export class OrderService implements OnModuleInit {
     return `PF-${stamp}-${String(count + 1).padStart(4, '0')}`;
   }
 
+  private storefrontHref(slug: string) {
+    return `/products/${encodeURIComponent(slug)}`;
+  }
+
+  private catalogDisplayName(product: {
+    name?: string;
+    series?: string;
+  }) {
+    const name = String(product.name || '').trim();
+    const series = String(product.series || '').trim();
+    if (series && name && !name.includes(series)) return `${name} — کالکشن ${series}`;
+    return name;
+  }
+
+  private async lookupCatalog(
+    items: { productId?: string; slug?: string }[],
+  ) {
+    const ids = items
+      .map((item) => item.productId)
+      .filter((id): id is string => typeof id === "string" && Types.ObjectId.isValid(id));
+    const slugs = items
+      .map((item) => String(item.slug || '').trim())
+      .filter(Boolean);
+    const clauses = [
+      ...(ids.length
+        ? [{ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } }]
+        : []),
+      ...(slugs.length ? [{ slug: { $in: slugs } }] : []),
+    ];
+    const products = clauses.length
+      ? await this.productModel
+          .find({ $or: clauses })
+          .lean()
+          .exec()
+      : [];
+    const byId = new Map(products.map((product) => [String(product._id), product]));
+    const bySlug = new Map(products.map((product) => [product.slug, product]));
+    return { byId, bySlug };
+  }
+
+  private mapCatalogItem<
+    T extends {
+      productId?: unknown;
+      slug: string;
+      name: string;
+      image?: string;
+    },
+  >(
+    item: T,
+    catalog: {
+      byId: Map<string, { slug: string; name: string; series?: string; category?: string; image?: string }>;
+      bySlug: Map<string, { slug: string; name: string; series?: string; category?: string; image?: string }>;
+    },
+  ) {
+    const product =
+      (item.productId ? catalog.byId.get(String(item.productId)) : undefined) ||
+      catalog.bySlug.get(item.slug);
+    const slug = product?.slug || item.slug;
+    return {
+      ...item,
+      slug,
+      name: product ? this.catalogDisplayName(product) : item.name,
+      image: item.image || product?.image || '',
+      series: product?.series || '',
+      category: product?.category || '',
+      href: this.storefrontHref(slug),
+      catalogMatched: Boolean(product),
+    };
+  }
+
+  private async enrichItems<
+    T extends { productId?: unknown; slug: string; name: string; image?: string },
+  >(items: T[]) {
+    if (!items.length) return items;
+    const catalog = await this.lookupCatalog(
+      items.map((item) => ({
+        productId: item.productId ? String(item.productId) : undefined,
+        slug: item.slug,
+      })),
+    );
+    return items.map((item) => this.mapCatalogItem(item, catalog));
+  }
+
+  async presentOrder(order: ShopOrderDocument | Record<string, unknown>) {
+    const plain =
+      typeof (order as ShopOrderDocument).toObject === 'function'
+        ? (order as ShopOrderDocument).toObject()
+        : order;
+    const items = Array.isArray(plain.items) ? plain.items : [];
+    return { ...plain, items: await this.enrichItems(items) };
+  }
+
+  async presentInvoice(invoice: ShopInvoiceDocument | Record<string, unknown>) {
+    const plain =
+      typeof (invoice as ShopInvoiceDocument).toObject === 'function'
+        ? (invoice as ShopInvoiceDocument).toObject()
+        : invoice;
+    const items = Array.isArray(plain.items) ? plain.items : [];
+    return { ...plain, items: await this.enrichItems(items) };
+  }
+
+  async getPresented(id: string) {
+    return this.presentOrder(await this.get(id));
+  }
+
   async create(dto: CreateOrderDto) {
     const subtotal = dto.items.reduce(
       (sum, item) => sum + item.qty * item.unitPrice,
@@ -91,6 +202,7 @@ export class OrderService implements OnModuleInit {
     const kind =
       dto.kind || (dto.paymentMethod === 'online' ? 'online' : 'proforma');
     const paymentMethod = dto.paymentMethod || 'coordination';
+    const catalog = await this.lookupCatalog(dto.items);
 
     const order = await this.orderModel.create({
       orderNumber,
@@ -105,17 +217,31 @@ export class OrderService implements OnModuleInit {
           note: kind === 'proforma' ? 'ثبت پیش‌فاکتور' : 'ثبت سفارش',
         },
       ],
-      items: dto.items.map((item) => ({
-        productId:
-          item.productId && Types.ObjectId.isValid(item.productId)
-            ? new Types.ObjectId(item.productId)
-            : undefined,
-        slug: item.slug,
-        name: item.name,
-        image: item.image || '',
-        qty: item.qty,
-        unitPrice: item.unitPrice,
-      })),
+      items: dto.items.map((item) => {
+        const mapped = this.mapCatalogItem(
+          {
+            productId: item.productId,
+            slug: item.slug,
+            name: item.name,
+            image: item.image || '',
+          },
+          catalog,
+        );
+        return {
+          productId:
+            item.productId && Types.ObjectId.isValid(item.productId)
+              ? new Types.ObjectId(item.productId)
+              : undefined,
+          slug: mapped.slug,
+          name: mapped.name,
+          image: mapped.image,
+          series: mapped.series,
+          category: mapped.category,
+          href: mapped.href,
+          qty: item.qty,
+          unitPrice: item.unitPrice,
+        };
+      }),
       customer: dto.customer,
       shipping: dto.shipping,
       payment: { method: paymentMethod, status: 'pending' },
@@ -134,7 +260,7 @@ export class OrderService implements OnModuleInit {
       await this.issueDocument(String(order._id), 'proforma');
     }
 
-    return this.get(String(order._id));
+    return this.presentOrder(await this.get(String(order._id)));
   }
 
   async list(query: {
@@ -220,7 +346,7 @@ export class OrderService implements OnModuleInit {
 
     await order.save();
 
-    return order;
+    return this.presentOrder(order);
   }
 
   async mockPay(id: string, dto: MockPayDto) {
@@ -293,6 +419,10 @@ export class OrderService implements OnModuleInit {
       items: order.items.map((item) => ({
         slug: item.slug,
         name: item.name,
+        image: item.image,
+        series: item.series,
+        category: item.category,
+        href: item.href,
         qty: item.qty,
         unitPrice: item.unitPrice,
         lineTotal: item.qty * item.unitPrice,
@@ -366,7 +496,7 @@ export class OrderService implements OnModuleInit {
   async getInvoice(id: string) {
     const invoice = await this.invoiceModel.findById(id).exec();
     if (!invoice) throw new NotFoundException('فاکتور پیدا نشد');
-    return invoice;
+    return this.presentInvoice(invoice);
   }
 
   async stats() {

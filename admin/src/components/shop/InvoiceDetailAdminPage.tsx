@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { shopApi, type ShopInvoice } from "@/lib/shop-api";
+import { shopApi, storefrontProductUrl, type ShopInvoice } from "@/lib/shop-api";
 
 function formatPrice(n: number) {
   return `${n.toLocaleString("en-US")} تومان`;
@@ -76,8 +76,18 @@ export default function InvoiceDetailAdminPage() {
             </thead>
             <tbody>
               {invoice.items.map((item) => (
-                <tr key={item.slug} className="border-b border-forest/5">
-                  <td className="py-3 text-forest">{item.name}</td>
+                <tr key={`${item.slug}-${item.name}`} className="border-b border-forest/5">
+                  <td className="py-3 text-forest">
+                    <p>{item.name}</p>
+                    {item.category || item.series ? (
+                      <p className="mt-0.5 text-[11px] text-forest/40">
+                        {[item.category, item.series ? `کالکشن ${item.series}` : ""].filter(Boolean).join(" · ")}
+                      </p>
+                    ) : null}
+                    <a href={storefrontProductUrl(item.slug, item.href)} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11px] text-brick hover:underline">
+                      صفحه محصول
+                    </a>
+                  </td>
                   <td className="py-3 text-forest/60">{item.qty}</td>
                   <td className="py-3 text-forest">{formatPrice(item.lineTotal)}</td>
                 </tr>
