@@ -5,11 +5,10 @@ import Container from "@/components/layout/Container";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
-import { materials } from "@/data/materials";
 import { getMaterialCommerceItems } from "@/data/material-products";
+import { isUploadedMedia } from "@/lib/media";
+import { fetchPublicMaterials } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
-import { fetchPublicCmsEntries } from "@/lib/public-cms";
-import type { Material } from "@/data/materials";
 
 export const metadata: Metadata = {
   title: "کتابخانه و فروشگاه متریال | خانه چوب و هنر",
@@ -17,8 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MaterialsPage() {
-  const migrated = await fetchPublicCmsEntries("material");
-  const visibleMaterials = migrated.length ? migrated as unknown as Material[] : materials;
+  const visibleMaterials = await fetchPublicMaterials();
   return (
     <>
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#73563d] text-paper">
@@ -85,20 +83,34 @@ export default async function MaterialsPage() {
                   href={`/materials/${material.id}`}
                   className="group relative min-h-[31rem] overflow-hidden bg-paper p-7 md:p-9 lg:min-h-[37rem] lg:p-12"
                 >
-                  <div className="flex items-center justify-between gap-4">
+                  {material.image ? (
+                    <>
+                      <Image
+                        src={material.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        unoptimized={isUploadedMedia(material.image)}
+                        className="object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-25"
+                      />
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(250,248,245,0.05),rgba(250,248,245,0.9)_76%)]" />
+                    </>
+                  ) : null}
+                  <div className="relative z-10 flex items-center justify-between gap-4">
                     <p className="font-display text-2xl text-brick">0{toFa(index + 1)}</p>
-                    <p className="text-xs tracking-[0.18em] text-forest/45">{toFa(items.length)} SAMPLE</p>
+                    <p className="text-xs tracking-[0.18em] text-forest/45">{items.length ? `${toFa(items.length)} SAMPLE` : material.eyebrow}</p>
                   </div>
 
-                  <div className="absolute inset-x-7 top-28 grid grid-cols-3 gap-2 md:inset-x-9 lg:inset-x-12">
+                  <div className="absolute inset-x-7 top-28 z-10 grid grid-cols-3 gap-2 md:inset-x-9 lg:inset-x-12">
                     {items.slice(0, 3).map((item) => (
                       <div key={item.slug} className="aspect-square" style={{ background: `linear-gradient(135deg, ${item.accent}, ${item.color})` }}>
                         <span className="sr-only">{item.name}</span>
                       </div>
                     ))}
+                    {!items.length ? <div className="col-span-3 aspect-[3/1] rounded-sm border border-forest/10" style={{ background: `linear-gradient(135deg, ${material.colorHex}, #f4eee6)` }} /> : null}
                   </div>
 
-                  <div className="absolute inset-x-7 bottom-7 md:inset-x-9 md:bottom-9 lg:inset-x-12 lg:bottom-12">
+                  <div className="absolute inset-x-7 bottom-7 z-10 md:inset-x-9 md:bottom-9 lg:inset-x-12 lg:bottom-12">
                     <p className="eyebrow text-brick">{material.eyebrow}</p>
                     <div className="mt-4 flex items-end justify-between gap-6">
                       <div>

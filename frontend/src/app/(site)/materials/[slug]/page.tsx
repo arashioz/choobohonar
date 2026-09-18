@@ -6,19 +6,18 @@ import Container from "@/components/layout/Container";
 import MaterialCategoryCatalog from "@/components/materials/MaterialCategoryCatalog";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
-import { getMaterial, materials } from "@/data/materials";
 import { getMaterialCommerceItems } from "@/data/material-products";
+import { isUploadedMedia } from "@/lib/media";
+import { fetchPublicMaterial } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return materials.map((material) => ({ slug: material.id }));
-}
+export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const material = getMaterial(slug);
+  const material = await fetchPublicMaterial(slug);
   if (!material) return { title: "متریال یافت نشد | خانه چوب و هنر" };
   return {
     title: `${material.label} | فروشگاه متریال خانه چوب و هنر`,
@@ -28,16 +27,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function MaterialCategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const material = getMaterial(slug);
+  const material = await fetchPublicMaterial(slug);
   if (!material) notFound();
   const items = getMaterialCommerceItems(material.id);
-  const heroItem = items[0];
+  const heroImage = items[0]?.applicationImage || material.image;
+  const details = [
+    { label: "نوع", values: material.materialTypes },
+    { label: "رنگ", values: material.colors },
+    { label: "پرداخت", values: material.finishes },
+    { label: "کاربرد", values: material.applications },
+  ].filter((item) => item.values.length);
 
   return (
     <>
       <section className="relative flex min-h-[78svh] items-end overflow-hidden bg-forest text-paper">
-        {heroItem ? (
-          <Image src={heroItem.applicationImage} alt={material.label} fill priority sizes="100vw" className="object-cover" />
+        {heroImage ? (
+          <Image src={heroImage} alt={material.label} fill priority sizes="100vw" unoptimized={isUploadedMedia(heroImage)} className="object-cover" />
         ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,29,19,0.28)_0%,rgba(6,29,19,0.26)_35%,rgba(6,29,19,0.92)_100%)]" />
         <div className="commerce-grain absolute inset-0 opacity-30" aria-hidden />
@@ -83,7 +88,40 @@ export default async function MaterialCategoryPage({ params }: PageProps) {
         </Container>
       </section>
 
-      <MaterialCategoryCatalog items={items} categoryLabel={material.label} />
+      {details.length || material.specs.length || material.care ? (
+        <section className="bg-paper py-16 md:py-24">
+          <Container>
+            <div className="grid gap-px bg-forest/10 md:grid-cols-2">
+              {details.map((detail) => (
+                <div key={detail.label} className="bg-paper p-6 md:p-8">
+                  <p className="text-xs text-forest/45">{detail.label}</p>
+                  <p className="mt-3 text-lg font-light leading-8 text-forest">{detail.values.join("، ")}</p>
+                </div>
+              ))}
+              {material.specs.map((spec) => (
+                <div key={`${spec.label}-${spec.value}`} className="bg-paper p-6 md:p-8">
+                  <p className="text-xs text-forest/45">{spec.label}</p>
+                  <p className="mt-3 text-lg font-light leading-8 text-forest">{spec.value}</p>
+                </div>
+              ))}
+              {material.care ? <div className="bg-paper p-6 md:col-span-2 md:p-8"><p className="text-xs text-forest/45">نگهداری</p><p className="mt-3 max-w-3xl text-sm leading-8 text-forest/65">{material.care}</p></div> : null}
+            </div>
+          </Container>
+        </section>
+      ) : null}
+
+      {items.length ? (
+        <MaterialCategoryCatalog items={items} categoryLabel={material.label} />
+      ) : (
+        <section className="bg-paper pb-24 pt-4 md:pb-32">
+          <Container>
+            <div className="flex flex-col items-start justify-between gap-6 border-t border-forest/10 pt-10 sm:flex-row sm:items-center">
+              <div><p className="text-xl font-light text-forest">برای انتخاب این متریال راهنمایی می‌خواهید؟</p><p className="mt-2 text-sm text-forest/55">نمونه و جزئیات نهایی در زمان مشاوره بررسی می‌شود.</p></div>
+              <Link href="/contact/consultation" className="inline-flex min-h-12 items-center justify-center rounded-full bg-forest px-6 text-sm text-paper">درخواست مشاوره ←</Link>
+            </div>
+          </Container>
+        </section>
+      )}
     </>
   );
 }

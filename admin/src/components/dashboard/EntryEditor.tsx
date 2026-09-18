@@ -155,7 +155,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {kind === "article" && <Field label="متن مقاله" hint="نسخه فعلی ویرایشگر متنی است؛ ساختار بلوکی در فاز بعد قابل افزودن است."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
           </Panel>
 
-          <SpecificFields kind={kind} data={data} setData={setData} dataText={dataText} relations={relations} />
+          <SpecificFields kind={kind} title={entry.title} images={entry.images || []} data={data} setData={setData} dataText={dataText} relations={relations} />
 
           {kind !== "article" && <Panel title="محتوای تکمیلی" description="جزئیات روایی یا فنی برای صفحه کامل."><Field label="محتوای تفصیلی"><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-56 resize-y leading-7`} placeholder="جزئیات بیشتر، شیوه نگهداری یا روایت تکمیلی…" /></Field><TagInput label="برچسب‌ها" hint="برای افزودن هر تگ Enter بزنید." value={entry.tags || []} onChange={(tags) => setField("tags", tags)} placeholder="مثلاً طراحی معاصر" /></Panel>}
 
@@ -179,8 +179,20 @@ function Field({ label, hint, required, children }: { label: string; hint?: stri
 const inputClass = "w-full rounded-xl border border-forest/10 bg-[#faf8f5] px-3.5 py-3 text-xs text-forest placeholder:text-forest/25 transition-colors focus:border-forest/30 focus:bg-white focus:outline-none";
 function splitList(value: string) { return value.split(/[،,]/).map((item) => item.trim()).filter(Boolean); }
 type ProductVariant = { name: string; sku: string; price: number; inventory: number; attributes: string[] };
+type MaterialHighlight = { title: string; description: string };
 
-function SpecificFields({ kind, data, setData, dataText, relations }: { kind: CmsKind; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] } }) {
+function safeColor(value: string) { return /^#[0-9a-f]{6}$/i.test(value) ? value : "#8b6b52"; }
+
+function MaterialPreview({ title, image, color, type }: { title: string; image?: string; color: string; type?: string }) {
+  return <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-[#ebe5dc] p-5 text-forest" style={image ? { backgroundImage: `linear-gradient(90deg, rgba(250,248,245,.96), rgba(250,248,245,.5)), url(${image})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(135deg, ${safeColor(color)}, #f7f3ed)` }}><p className="text-[9px] font-medium tracking-[0.16em] text-forest/45">پیش‌نمایش کارت سایت</p><div className="mt-8 flex items-end justify-between gap-4"><div><p className="text-xs text-forest/55">{type || "کتابخانه متریال"}</p><p className="mt-2 text-xl font-light">{title || "نام متریال"}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-full border border-forest/20 bg-paper/75 text-lg">↙</span></div></div>;
+}
+
+function HighlightEditor({ value, onChange }: { value: MaterialHighlight[]; onChange: (value: MaterialHighlight[]) => void }) {
+  const rows = value.length ? value : [{ title: "", description: "" }];
+  return <div><span className="mb-2 block text-[11px] font-medium text-forest/60">نکات کلیدی متریال</span><p className="mb-3 text-[9px] leading-5 text-forest/35">حداکثر سه نکته کوتاه در بخش بالای صفحه متریال نمایش داده می‌شود.</p><div className="space-y-2">{rows.map((row, index) => <div key={index} className="rounded-xl border border-forest/10 bg-[#faf8f5] p-3"><div className="grid gap-2 sm:grid-cols-[.8fr_1.2fr_34px]"><input value={row.title} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, title: e.target.value } : item))} className={inputClass} placeholder="مثلاً مقاومت سایشی" /><input value={row.description} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, description: e.target.value } : item))} className={inputClass} placeholder="توضیح کوتاه و کاربردی" /><button type="button" onClick={() => onChange(rows.filter((_, current) => current !== index))} className="rounded-xl border border-forest/10 text-forest/35 hover:text-brick" aria-label="حذف نکته">×</button></div></div>)}</div><button type="button" onClick={() => onChange([...rows, { title: "", description: "" }].slice(0, 3))} disabled={rows.length >= 3} className="mt-2 text-[10px] font-medium text-brick disabled:opacity-35">+ افزودن نکته</button></div>;
+}
+
+function SpecificFields({ kind, title, images, data, setData, dataText, relations }: { kind: CmsKind; title: string; images: string[]; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] } }) {
   if (kind === "page") return <Panel title="دادهٔ صفحه" description="ساختار این صفحه از دیتابیس خوانده می‌شود. برای تغییر محتوای ناوبری، برند یا فرم‌ها JSON را ویرایش کنید."><textarea dir="ltr" defaultValue={JSON.stringify(data, null, 2)} onBlur={(event) => { try { const parsed = JSON.parse(event.currentTarget.value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setData("__replace", parsed); } catch { /* keep the last valid payload */ } }} className={`${inputClass} min-h-[520px] resize-y font-mono text-[11px] leading-6`} spellCheck={false} /><p className="text-[9px] leading-5 text-forest/35">پس از ویرایش، ابتدا JSON را معتبر نگه دارید و سپس ذخیره کنید.</p></Panel>;
   if (kind === "product") {
     const categories = arrayValue(data.categories, data.category);
@@ -218,9 +230,10 @@ function SpecificFields({ kind, data, setData, dataText, relations }: { kind: Cm
     </>;
   }
   if (kind === "material") return <>
-    <Panel title="هویت و طبقه‌بندی متریال" description="یک متریال می‌تواند چند نوع، رنگ، پرداخت و کاربرد داشته باشد.">
-      <div className="grid gap-4 sm:grid-cols-2"><Field label="کد متریال"><input value={dataText("code")} onChange={(e) => setData("code", e.target.value)} className={inputClass} dir="ltr" /></Field><Field label="واحد اندازه‌گیری"><input value={dataText("unit")} onChange={(e) => setData("unit", e.target.value)} className={inputClass} placeholder="متر مربع، کیلوگرم، عدد" /></Field></div>
-      <TagInput label="انواع متریال" value={arrayValue(data.materialTypes, data.materialType)} onChange={(values) => { setData("materialTypes", values); setData("materialType", values[0] || ""); }} placeholder="مثلاً چوب طبیعی" />
+    <Panel title="هویت و نمایش در سایت" description="این اطلاعات مستقیماً کارت و صفحه عمومی متریال را می‌سازند. تصویر اول گالری، تصویر کارت و هدر صفحه خواهد بود.">
+      <MaterialPreview title={title} image={images[0]} color={dataText("colorHex")} type={arrayValue(data.materialTypes, data.materialType)[0]} />
+      <div className="grid gap-4 sm:grid-cols-2"><Field label="کد متریال"><input value={dataText("code")} onChange={(e) => setData("code", e.target.value)} className={inputClass} dir="ltr" placeholder="MAT-WD-01" /></Field><Field label="واحد اندازه‌گیری"><input value={dataText("unit")} onChange={(e) => setData("unit", e.target.value)} className={inputClass} placeholder="متر مربع، کیلوگرم، عدد" /></Field><Field label="عنوان بالای کارت و صفحه" hint="اگر خالی باشد، نوع متریال نمایش داده می‌شود."><input value={dataText("eyebrow")} onChange={(e) => setData("eyebrow", e.target.value)} className={inputClass} placeholder="چوب طبیعی / سطح و رگه" /></Field><Field label="رنگ شاخص کارت"><div className="flex gap-2"><input type="color" value={safeColor(dataText("colorHex"))} onChange={(e) => setData("colorHex", e.target.value)} className="h-11 w-12 cursor-pointer rounded-xl border border-forest/10 bg-[#faf8f5] p-1" /><input value={dataText("colorHex")} onChange={(e) => setData("colorHex", e.target.value)} className={inputClass} dir="ltr" placeholder="#8B6B52" /></div></Field></div>
+      <TagInput label="انواع متریال" value={arrayValue(data.materialTypes, data.materialType)} onChange={(values) => { setData("materialTypes", values); setData("materialType", values[0] || ""); }} placeholder="مثلاً چوب طبیعی" hint="اولین مورد برای دسته‌بندی کارت در فهرست استفاده می‌شود." />
       <TagInput label="رنگ‌ها" value={arrayValue(data.colors, data.color)} onChange={(values) => { setData("colors", values); setData("color", values[0] || ""); }} placeholder="مثلاً قهوه‌ای گرم" />
       <TagInput label="پرداخت‌ها" value={arrayValue(data.finishes, data.finish)} onChange={(values) => { setData("finishes", values); setData("finish", values[0] || ""); }} placeholder="مثلاً روغن مات" />
       <TagInput label="کاربردهای پیشنهادی" value={arrayValue(data.applications)} onChange={(values) => setData("applications", values)} placeholder="مثلاً صفحه میز" />
@@ -231,7 +244,8 @@ function SpecificFields({ kind, data, setData, dataText, relations }: { kind: Cm
       <div className="grid gap-4 sm:grid-cols-2"><Field label="قیمت واحد (تومان)"><input type="number" min="0" value={dataText("price")} onChange={(e) => setData("price", Number(e.target.value))} className={inputClass} /></Field><Field label="موجودی"><input type="number" min="0" value={dataText("inventory")} onChange={(e) => setData("inventory", Number(e.target.value))} className={inputClass} /></Field><Field label="حداقل موجودی"><input type="number" min="0" value={dataText("minimumStock")} onChange={(e) => setData("minimumStock", Number(e.target.value))} className={inputClass} /></Field><Field label="زمان تامین"><input value={dataText("procurementLeadTime")} onChange={(e) => setData("procurementLeadTime", e.target.value)} className={inputClass} placeholder="مثلاً ۱۰ روز کاری" /></Field></div>
     </Panel>
 
-    <Panel title="ویژگی‌ها و استانداردها" description="داده‌های فنی برای انتخاب و مقایسه متریال.">
+    <Panel title="جزئیات قابل مشاهده در صفحه متریال" description="این موارد در صفحه لینک‌شدهٔ متریال نمایش داده می‌شوند و به خریدار برای انتخاب کمک می‌کنند.">
+      <HighlightEditor value={Array.isArray(data.highlights) ? data.highlights as MaterialHighlight[] : []} onChange={(highlights) => setData("highlights", highlights)} />
       <TagInput label="گواهی‌ها و استانداردها" value={arrayValue(data.certifications)} onChange={(values) => setData("certifications", values)} placeholder="مثلاً FSC" />
       <KeyValueEditor label="ویژگی‌های فنی" value={Array.isArray(data.specs) ? data.specs as { label: string; value: string }[] : []} onChange={(rows) => setData("specs", rows)} />
       <Field label="نحوه نگهداری"><textarea value={dataText("care")} onChange={(e) => setData("care", e.target.value)} className={`${inputClass} min-h-24`} /></Field>
