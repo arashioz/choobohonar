@@ -32,7 +32,9 @@ export default function InvoiceDetailAdminPage() {
     <div className="relative min-h-screen bg-paper print:bg-white">
       <header className="relative z-10 border-b border-forest/8 bg-paper/80 backdrop-blur-md print:hidden">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link href="/admin/shop?tab=invoices" className="text-xs text-forest/45">← فاکتورها</Link>
+          <Link href={invoice.kind === "proforma" ? "/admin/shop?tab=proformas" : "/admin/shop?tab=invoices"} className="text-xs text-forest/45">
+            {invoice.kind === "proforma" ? "← پیش‌فاکتورها" : "← فاکتورها"}
+          </Link>
           <button type="button" onClick={() => window.print()} className="rounded-xl border border-forest/10 px-3 py-2 text-xs">
             چاپ
           </button>
@@ -43,7 +45,7 @@ export default function InvoiceDetailAdminPage() {
         <div className="rounded-2xl border border-forest/10 bg-white p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="eyebrow text-brick">فاکتور فروش</p>
+              <p className="eyebrow text-brick">{invoice.kind === "proforma" ? "پیش‌فاکتور" : "فاکتور فروش"}</p>
               <h1 className="mt-2 text-2xl font-light text-forest" dir="ltr">{invoice.invoiceNumber}</h1>
               <p className="mt-1 text-xs text-forest/45">سفارش {invoice.orderNumber}</p>
             </div>

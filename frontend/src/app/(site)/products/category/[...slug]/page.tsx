@@ -14,6 +14,7 @@ import {
 } from "@/data/commerce";
 import { toFa } from "@/lib/utils";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
+import { fetchCampaignBanner } from "@/lib/campaign-banners";
 
 export const dynamicParams = false;
 
@@ -50,6 +51,7 @@ export default async function ProductCategoryPage({ params }: PageProps) {
   const category = resolveCommerceCategory(slug);
   if (!category) notFound();
   const backendProducts = await fetchStorefrontProducts();
+  const campaign = await fetchCampaignBanner(category.root.slug);
   const products = (backendProducts.length
     ? backendProducts.filter((product) => {
         if (category.root.room && product.room !== category.root.room) return false;
@@ -114,7 +116,7 @@ export default async function ProductCategoryPage({ params }: PageProps) {
       </section>
 
       <Suspense fallback={<div className="min-h-[40rem] bg-paper" />}>
-        <CategoryCatalog products={products} categoryLabel={activeLabel} campaignImage={category.root.image} />
+        <CategoryCatalog products={products} categoryLabel={activeLabel} campaignImage={campaign?.image || category.root.image} campaign={campaign} />
       </Suspense>
     </>
   );

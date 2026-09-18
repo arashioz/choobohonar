@@ -1,7 +1,10 @@
 import {
-  BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  BadRequestException,
+  forwardRef,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -19,6 +22,7 @@ import {
   MockPayDto,
   UpdateOrderStatusDto,
 } from './dto/shop-order.dto';
+import { CustomersService } from '../customers/customers.service';
 
 const STATUS_FLOW: OrderStatus[] = [
   'pending',
@@ -30,12 +34,33 @@ const STATUS_FLOW: OrderStatus[] = [
 ];
 
 @Injectable()
-export class OrderService {
+export class OrderService implements OnModuleInit {
   constructor(
     @InjectModel(ShopOrder.name) private orderModel: Model<ShopOrderDocument>,
     @InjectModel(ShopInvoice.name)
     private invoiceModel: Model<ShopInvoiceDocument>,
+    @Inject(forwardRef(() => CustomersService))
+    private readonly customers: CustomersService,
   ) {}
+
+  async onModuleInit() {
+    await this.migrateDocumentKinds();
+  }
+
+  private async migrateDocumentKinds() {
+    await this.orderModel.updateMany(
+      { kind: { $exists: false }, proformaId: { $exists: true } },
+      { $set: { kind: 'proforma' } },
+    );
+    await this.orderModel.updateMany(
+      { kind: { $exists: false } },
+      { $set: { kind: 'online' } },
+    );
+    await this.invoiceModel.updateMany(
+      { kind: { $exists: false } },
+      { $set: { kind: 'invoice' } },
+    );
+  }
 
   private async nextOrderNumber() {
     const count = await this.orderModel.countDocuments();
@@ -49,6 +74,12 @@ export class OrderService {
     return `INV-${stamp}-${String(count + 1).padStart(4, '0')}`;
   }
 
+  private async nextProformaNumber() {
+    const count = await this.invoiceModel.countDocuments({ kind: 'proforma' });
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    return `PF-${stamp}-${String(count + 1).padStart(4, '0')}`;
+  }
+
   async create(dto: CreateOrderDto) {
     const subtotal = dto.items.reduce(
       (sum, item) => sum + item.qty * item.unitPrice,
@@ -57,9 +88,13 @@ export class OrderService {
     const shippingFee = dto.shippingFee ?? 0;
     const total = subtotal + shippingFee;
     const orderNumber = await this.nextOrderNumber();
+    const kind =
+      dto.kind || (dto.paymentMethod === 'online' ? 'online' : 'proforma');
+    const paymentMethod = dto.paymentMethod || 'coordination';
 
-    return this.orderModel.create({
+    const order = await this.orderModel.create({
       orderNumber,
+      kind,
       status: 'pending',
       statusHistory: [
         {
@@ -67,7 +102,7 @@ export class OrderService {
           to: 'pending',
           at: new Date(),
           by: 'customer',
-          note: 'ثبت سفارش',
+          note: kind === 'proforma' ? 'ثبت پیش‌فاکتور' : 'ثبت سفارش',
         },
       ],
       items: dto.items.map((item) => ({
@@ -83,28 +118,49 @@ export class OrderService {
       })),
       customer: dto.customer,
       shipping: dto.shipping,
-      payment: { method: 'mock', status: 'pending' },
+      payment: { method: paymentMethod, status: 'pending' },
       amounts: { subtotal, shippingFee, total },
     });
+
+    await this.customers.ensureLeadFromOrder({
+      name: dto.customer.name,
+      phone: dto.customer.phone,
+      email: dto.customer.email,
+      city: dto.shipping.city,
+      source: kind === 'proforma' ? 'checkout-proforma' : 'checkout-online',
+    });
+
+    if (kind === 'proforma') {
+      await this.issueDocument(String(order._id), 'proforma');
+    }
+
+    return this.get(String(order._id));
   }
 
   async list(query: {
     status?: string;
     q?: string;
+    kind?: string;
     page?: number;
     limit?: number;
   }) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
-    const filter: Record<string, unknown> = {};
-    if (query.status) filter.status = query.status;
-    if (query.q?.trim()) {
-      filter.$or = [
-        { orderNumber: { $regex: query.q.trim(), $options: 'i' } },
-        { 'customer.phone': { $regex: query.q.trim(), $options: 'i' } },
-        { 'customer.name': { $regex: query.q.trim(), $options: 'i' } },
-      ];
+    const clauses: Record<string, unknown>[] = [];
+    if (query.status) clauses.push({ status: query.status });
+    if (query.kind === 'online' || query.kind === 'proforma') {
+      clauses.push({ kind: query.kind });
     }
+    if (query.q?.trim()) {
+      clauses.push({
+        $or: [
+          { orderNumber: { $regex: query.q.trim(), $options: 'i' } },
+          { 'customer.phone': { $regex: query.q.trim(), $options: 'i' } },
+          { 'customer.name': { $regex: query.q.trim(), $options: 'i' } },
+        ],
+      });
+    }
+    const filter = clauses.length ? { $and: clauses } : {};
 
     const [items, total] = await Promise.all([
       this.orderModel
@@ -207,13 +263,22 @@ export class OrderService {
   }
 
   async issueInvoice(orderId: string) {
+    return this.issueDocument(orderId, 'invoice');
+  }
+
+  async issueDocument(orderId: string, kind: 'invoice' | 'proforma') {
     const order = await this.get(orderId);
-    if (order.invoiceId) {
-      return this.invoiceModel.findById(order.invoiceId).exec();
+    const existingId = kind === 'proforma' ? order.proformaId : order.invoiceId;
+    if (existingId) {
+      return this.invoiceModel.findById(existingId).exec();
     }
 
     const invoice = await this.invoiceModel.create({
-      invoiceNumber: await this.nextInvoiceNumber(),
+      invoiceNumber:
+        kind === 'proforma'
+          ? await this.nextProformaNumber()
+          : await this.nextInvoiceNumber(),
+      kind,
       orderId: order._id,
       orderNumber: order.orderNumber,
       issuedAt: new Date(),
@@ -235,33 +300,48 @@ export class OrderService {
       amounts: order.amounts,
     });
 
-    order.invoiceId = invoice._id;
-    if (order.status === 'pending') {
-      order.statusHistory.push({
-        from: 'pending',
-        to: 'confirmed',
-        at: new Date(),
-        by: 'admin',
-        note: 'تبدیل سفارش به فاکتور',
-      });
-      order.status = 'confirmed';
+    if (kind === 'proforma') {
+      order.proformaId = invoice._id;
+    } else {
+      order.invoiceId = invoice._id;
+      if (order.status === 'pending') {
+        order.statusHistory.push({
+          from: 'pending',
+          to: 'confirmed',
+          at: new Date(),
+          by: 'admin',
+          note: 'تبدیل سفارش به فاکتور',
+        });
+        order.status = 'confirmed';
+      }
     }
     await order.save();
     return invoice;
   }
 
-  async listInvoices(query: { page?: number; limit?: number; q?: string }) {
+  async listInvoices(query: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    kind?: string;
+  }) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
-    const filter: Record<string, unknown> = {};
-    if (query.q?.trim()) {
-      filter.$or = [
-        { invoiceNumber: { $regex: query.q.trim(), $options: 'i' } },
-        { orderNumber: { $regex: query.q.trim(), $options: 'i' } },
-        { 'customer.phone': { $regex: query.q.trim(), $options: 'i' } },
-        { 'customer.name': { $regex: query.q.trim(), $options: 'i' } },
-      ];
+    const clauses: Record<string, unknown>[] = [];
+    if (query.kind === 'proforma' || query.kind === 'invoice') {
+      clauses.push({ kind: query.kind });
     }
+    if (query.q?.trim()) {
+      clauses.push({
+        $or: [
+          { invoiceNumber: { $regex: query.q.trim(), $options: 'i' } },
+          { orderNumber: { $regex: query.q.trim(), $options: 'i' } },
+          { 'customer.phone': { $regex: query.q.trim(), $options: 'i' } },
+          { 'customer.name': { $regex: query.q.trim(), $options: 'i' } },
+        ],
+      });
+    }
+    const filter = clauses.length ? { $and: clauses } : {};
 
     const [items, total] = await Promise.all([
       this.invoiceModel

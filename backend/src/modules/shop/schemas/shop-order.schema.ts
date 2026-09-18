@@ -109,6 +109,9 @@ export class ShopOrder {
   @Prop({ required: true, unique: true, index: true })
   orderNumber: string;
 
+  @Prop({ enum: ['online', 'proforma'], default: 'proforma', index: true })
+  kind: 'online' | 'proforma';
+
   @Prop({
     enum: [
       'pending',
@@ -151,6 +154,9 @@ export class ShopOrder {
 
   @Prop({ type: Types.ObjectId, ref: 'ShopInvoice' })
   invoiceId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'ShopInvoice' })
+  proformaId?: Types.ObjectId;
 
   @Prop()
   adminNote?: string;

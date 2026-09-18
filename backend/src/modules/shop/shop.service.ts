@@ -15,6 +15,11 @@ import {
   ProductRoom,
 } from './schemas/shop-product.schema';
 import { ShopCategory, ShopCategoryDocument } from './schemas/shop-category.schema';
+import {
+  ShopCampaignBanner,
+  ShopCampaignBannerDocument,
+  STOREFRONT_CAMPAIGN_SLOTS,
+} from './schemas/shop-campaign-banner.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 import {
   Collection,
@@ -178,6 +183,8 @@ export class ShopService implements OnModuleInit {
     private readonly namedCollectionModel: Model<CollectionDocument>,
     @InjectModel(ShopCategory.name)
     private readonly categoryModel: Model<ShopCategoryDocument>,
+    @InjectModel(ShopCampaignBanner.name)
+    private readonly campaignBannerModel: Model<ShopCampaignBannerDocument>,
   ) {}
 
   async onModuleInit() {
@@ -186,6 +193,7 @@ export class ShopService implements OnModuleInit {
     await this.seedFromCatalog(false);
     await this.seedCollectionsFromCatalog();
     await this.migrateShopProductModels();
+    await this.seedCampaignBannerSamples();
   }
 
   async list(query: {
@@ -1322,5 +1330,81 @@ export class ShopService implements OnModuleInit {
     )
       return undefined;
     return matches[0].series || matches[0].name;
+  }
+
+  async seedCampaignBannerSamples() {
+    for (const slot of STOREFRONT_CAMPAIGN_SLOTS) {
+      const existing = await this.campaignBannerModel
+        .findOne({ slug: slot.slug })
+        .lean()
+        .exec();
+      if (existing?.title?.trim() || existing?.image?.trim()) continue;
+      await this.campaignBannerModel.findOneAndUpdate(
+        { slug: slot.slug },
+        {
+          $set: {
+            label: slot.label,
+            title: slot.title,
+            subtitle: slot.subtitle,
+            image: slot.image,
+          },
+        },
+        { upsert: true },
+      );
+    }
+  }
+
+  serializeCampaignBanner(
+    slug: string,
+    item?: { title?: string; subtitle?: string; image?: string } | null,
+  ) {
+    const slot = STOREFRONT_CAMPAIGN_SLOTS.find((entry) => entry.slug === slug);
+    if (!slot) throw new NotFoundException('دسته‌بندی پیدا نشد');
+    return {
+      slug: slot.slug,
+      label: slot.label,
+      title: item?.title?.trim() || slot.title,
+      subtitle: item?.subtitle?.trim() || slot.subtitle,
+      image: item?.image?.trim() || slot.image,
+    };
+  }
+
+  async listCampaignBanners() {
+    const saved = await this.campaignBannerModel.find({}).lean().exec();
+    const bySlug = new Map(saved.map((item) => [item.slug, item]));
+    return STOREFRONT_CAMPAIGN_SLOTS.map((slot) =>
+      this.serializeCampaignBanner(slot.slug, bySlug.get(slot.slug)),
+    );
+  }
+
+  async getCampaignBanner(slug: string) {
+    const item = await this.campaignBannerModel
+      .findOne({ slug: decodeURIComponent(slug) })
+      .lean()
+      .exec();
+    return this.serializeCampaignBanner(decodeURIComponent(slug), item);
+  }
+
+  async upsertCampaignBanner(
+    slug: string,
+    input: { title?: string; subtitle?: string; image?: string },
+  ) {
+    const slot = STOREFRONT_CAMPAIGN_SLOTS.find((item) => item.slug === slug);
+    if (!slot) throw new NotFoundException('دسته‌بندی پیدا نشد');
+    return this.campaignBannerModel
+      .findOneAndUpdate(
+        { slug },
+        {
+          $set: {
+            label: slot.label,
+            title: String(input.title || '').trim(),
+            subtitle: String(input.subtitle || '').trim(),
+            image: String(input.image || '').trim(),
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+      .lean()
+      .exec();
   }
 }

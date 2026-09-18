@@ -249,12 +249,30 @@ export const shopApi = {
     },
     get: (id: string) => shopFetch<ShopInvoice>(`/invoices/${id}`),
   },
+
+  campaignBanners: {
+    list: () => shopFetch<ShopCampaignBanner[]>("/campaign-banners"),
+    update: (slug: string, body: { title?: string; subtitle?: string; image?: string }) =>
+      shopFetch<ShopCampaignBanner>(`/campaign-banners/${encodeURIComponent(slug)}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+  },
+};
+
+export type ShopCampaignBanner = {
+  slug: string;
+  label: string;
+  title: string;
+  subtitle: string;
+  image: string;
 };
 
 export type ShopOrder = {
   _id: string;
   orderNumber: string;
   status: string;
+  kind?: "online" | "proforma";
   items: {
     slug: string;
     name: string;
@@ -275,6 +293,7 @@ export type ShopOrder = {
   payment: { method: string; status: string; paidAt?: string; mockRef?: string };
   amounts: { subtotal: number; shippingFee: number; total: number };
   invoiceId?: string;
+  proformaId?: string;
   statusHistory?: {
     from: string;
     to: string;
@@ -288,6 +307,7 @@ export type ShopOrder = {
 export type ShopInvoice = {
   _id: string;
   invoiceNumber: string;
+  kind?: "invoice" | "proforma";
   orderId: string;
   orderNumber: string;
   issuedAt: string;

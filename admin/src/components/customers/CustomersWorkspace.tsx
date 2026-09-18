@@ -19,6 +19,15 @@ type Customer = {
   createdAt?: string;
 };
 
+type CommerceOrder = {
+  _id: string;
+  orderNumber: string;
+  status: string;
+  kind?: "online" | "proforma";
+  amounts?: { total?: number };
+  createdAt?: string;
+  items?: { name: string; qty: number }[];
+};
 const statusLabels: Record<Status, string> = { lead: "سرنخ", active: "فعال", inactive: "غیرفعال" };
 const tierLabelsMap: Record<"vip" | "silver" | "gold", string> = { vip: "ویژه (VIP)", silver: "نقره‌ای", gold: "طلایی" };
 const tierColorsMap: Record<"vip" | "silver" | "gold", string> = {
@@ -42,6 +51,11 @@ export default function CustomersWorkspace() {
   const [notice, setNotice] = useState("");
   const [creating, setCreating] = useState(false);
   const [copyingSlug, setCopyingSlug] = useState<string | null>(null);
+  const [commerceTab, setCommerceTab] = useState<"online" | "proforma">("online");
+  const [commerce, setCommerce] = useState<{ onlineOrders: CommerceOrder[]; proformas: CommerceOrder[] }>({
+    onlineOrders: [],
+    proformas: [],
+  });
 
   const [form, setForm] = useState({
     name: "", phone: "", email: "", city: "", source: "", note: "", status: "lead" as Status, tier: "" as string, tags: ""
@@ -69,6 +83,23 @@ export default function CustomersWorkspace() {
 
   useEffect(() => { const timer = setTimeout(load, 250); return () => clearTimeout(timer); }, [load]);
   useEffect(() => { setSelectedId(null); }, [statusFilter]);
+  useEffect(() => {
+    if (!selectedId) {
+      setCommerce({ onlineOrders: [], proformas: [] });
+      return;
+    }
+    setCommerceTab("online");
+    fetch(`/admin/api/customers/${selectedId}/commerce`)
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.message);
+        setCommerce({
+          onlineOrders: data.onlineOrders || [],
+          proformas: data.proformas || [],
+        });
+      })
+      .catch(() => setCommerce({ onlineOrders: [], proformas: [] }));
+  }, [selectedId]);
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -360,6 +391,43 @@ export default function CustomersWorkspace() {
                       <p className="text-[10px] text-forest/60">{selectedCustomer.note}</p>
                     </div>
                   )}
+
+                  <div className="mb-4 rounded-xl bg-white/60 p-4">
+                    <div className="mb-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCommerceTab("online")}
+                        className={`rounded-lg px-3 py-1.5 text-[10px] ${commerceTab === "online" ? "bg-forest text-paper" : "bg-forest/5 text-forest/55"}`}
+                      >
+                        سفارشات آنلاین ({commerce.onlineOrders.length.toLocaleString("fa-IR")})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCommerceTab("proforma")}
+                        className={`rounded-lg px-3 py-1.5 text-[10px] ${commerceTab === "proforma" ? "bg-forest text-paper" : "bg-forest/5 text-forest/55"}`}
+                      >
+                        پیش‌فاکتورها ({commerce.proformas.length.toLocaleString("fa-IR")})
+                      </button>
+                    </div>
+                    {(commerceTab === "online" ? commerce.onlineOrders : commerce.proformas).length === 0 ? (
+                      <p className="text-[10px] text-forest/40">{commerceTab === "online" ? "سفارش آنلاینی ثبت نشده است." : "پیش‌فاکتوری ثبت نشده است."}</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {(commerceTab === "online" ? commerce.onlineOrders : commerce.proformas).map((order) => (
+                          <li key={order._id} className="rounded-lg border border-forest/8 px-3 py-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <a href={`/admin/shop/orders/${order._id}`} className="text-[11px] font-medium text-forest hover:underline" dir="ltr">{order.orderNumber}</a>
+                              <span className="text-[10px] text-forest/45">{order.status}</span>
+                            </div>
+                            <p className="mt-1 text-[10px] text-forest/45">
+                              {(order.amounts?.total || 0).toLocaleString("en-US")} تومان
+                              {order.createdAt ? ` · ${new Date(order.createdAt).toLocaleDateString("fa-IR")}` : ""}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
 
                   {/* Remove Button */}
                   <button

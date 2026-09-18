@@ -8,6 +8,9 @@ export class ShopInvoice {
   @Prop({ required: true, unique: true, index: true })
   invoiceNumber: string;
 
+  @Prop({ enum: ['invoice', 'proforma'], default: 'invoice', index: true })
+  kind: 'invoice' | 'proforma';
+
   @Prop({ type: Types.ObjectId, ref: 'ShopOrder', required: true, index: true })
   orderId: Types.ObjectId;
 

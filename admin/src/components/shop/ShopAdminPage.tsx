@@ -18,8 +18,9 @@ import {
   type ShopStats,
   type ShopSuggestionGroup,
 } from "@/lib/shop-api";
+import CampaignBannersPanel from "@/components/shop/CampaignBannersPanel";
 
-type Tab = "products" | "orders" | "invoices";
+type Tab = "products" | "orders" | "proformas" | "invoices";
 
 const ROOM_ORDER = Object.keys(ROOM_LABELS) as ShopRoom[];
 
@@ -28,7 +29,7 @@ function formatPrice(n: number) {
 }
 
 function isTab(v: string | null): v is Tab {
-  return v === "products" || v === "orders" || v === "invoices";
+  return v === "products" || v === "orders" || v === "proformas" || v === "invoices";
 }
 
 function isRoom(v: string | null): v is ShopRoom {
@@ -117,6 +118,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   );
   const [bulkStockBusy, setBulkStockBusy] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState("");
+  const [bannerOpen, setBannerOpen] = useState(false);
 
   function importPrices(file: File) {
     setImporting(true); setImportProgress(0); setError(""); setMessage("");
@@ -200,16 +202,17 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
       shopApi.orders.list({
         status: orderStatus || undefined,
         q: q || undefined,
+        kind: tab === "proformas" ? "proforma" : "online",
         limit: 40,
       }),
       shopApi.orders.stats(),
     ]);
     setOrders(list.items);
     setOrderStats(st);
-  }, [q, orderStatus]);
+  }, [q, orderStatus, tab]);
 
   const loadInvoices = useCallback(async () => {
-    const res = await shopApi.invoices.list({ q: q || undefined, limit: 40 });
+    const res = await shopApi.invoices.list({ q: q || undefined, kind: "invoice", limit: 40 });
     setInvoices(res.items);
   }, [q]);
 
@@ -220,7 +223,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
       setError("");
       try {
         if (tab === "products") await loadProducts();
-        if (tab === "orders") await loadOrders();
+        if (tab === "orders" || tab === "proformas") await loadOrders();
         if (tab === "invoices") await loadInvoices();
       } catch (e) {
         if (!cancelled) {
@@ -292,6 +295,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "orders", label: "سفارشات آنلاین" },
+    { id: "proformas", label: "پیش‌فاکتورها" },
     { id: "invoices", label: "فاکتورها" },
   ];
 
@@ -325,6 +329,13 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 className="rounded-xl border border-brick/20 bg-white px-3 py-2 text-xs text-brick disabled:opacity-50"
               >
                 جایگزینی کامل با وردپرس
+              </button>
+              <button
+                type="button"
+                onClick={() => setBannerOpen(true)}
+                className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs text-forest/70"
+              >
+                بنر کمپین‌های محصول
               </button>
               <Link
                 href="/admin/manage/products/new"
@@ -370,13 +381,13 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
             placeholder={
               tab === "products"
                 ? "جستجوی محصول…"
-                : tab === "orders"
-                  ? "جستجوی شماره / نام / تلفن"
-                  : "جستجوی فاکتور / سفارش / مشتری"
+                : tab === "invoices"
+                  ? "جستجوی فاکتور / سفارش / مشتری"
+                  : "جستجوی شماره / نام / تلفن"
             }
             className="w-full max-w-md rounded-xl border border-forest/10 bg-white px-3 py-2 text-sm"
           />
-          {tab === "orders" ? (
+          {tab === "orders" || tab === "proformas" ? (
             <select
               value={orderStatus}
               onChange={(e) => setOrderStatus(e.target.value)}
@@ -393,9 +404,9 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
         </div>
         {importing ? <div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full bg-forest transition-[width]" style={{ width: `${importProgress}%` }} /></div> : null}
 
-        {tab === "orders" ? (
+        {tab === "orders" || tab === "proformas" ? (
           <>
-            {orderStats ? (
+            {tab === "orders" && orderStats ? (
               <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 {[
                   ["کل سفارش‌ها", orderStats.total],
@@ -415,7 +426,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 ))}
               </div>
             ) : null}
-            {orderStats ? (
+            {tab === "orders" && orderStats ? (
               <p className="text-sm text-forest/55">
                 درآمد پرداخت‌شده:{" "}
                 <span className="text-forest">
@@ -428,7 +439,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
               <table className="w-full text-right text-sm">
                 <thead className="border-b border-forest/10 text-xs text-forest/45">
                   <tr>
-                    <th className="px-4 py-3 font-medium">سفارش</th>
+                    <th className="px-4 py-3 font-medium">{tab === "proformas" ? "پیش‌فاکتور" : "سفارش"}</th>
                     <th className="px-4 py-3 font-medium">مشتری</th>
                     <th className="px-4 py-3 font-medium">مبلغ</th>
                     <th className="px-4 py-3 font-medium">وضعیت</th>
@@ -451,7 +462,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                         colSpan={5}
                         className="px-4 py-8 text-center text-forest/40"
                       >
-                        سفارشی نیست
+                        {tab === "proformas" ? "پیش‌فاکتوری نیست" : "سفارشی نیست"}
                       </td>
                     </tr>
                   ) : (
@@ -462,7 +473,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                       >
                         <td className="px-4 py-3">
                           <Link
-                            href={`/admin/shop/orders/${order._id}`}
+                            href={order.proformaId ? `/admin/shop/invoices/${order.proformaId}` : `/admin/shop/orders/${order._id}`}
                             className="font-medium text-forest hover:underline"
                             dir="ltr"
                           >
@@ -863,6 +874,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
           </>
         ) : null}
       </main>
+      {bannerOpen ? <CampaignBannersPanel onClose={() => setBannerOpen(false)} /> : null}
     </div>
   );
 }

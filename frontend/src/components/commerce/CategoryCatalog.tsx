@@ -8,12 +8,14 @@ import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
 import type { ShopProduct } from "@/data/products";
 import { getCollectionName } from "@/lib/commerce";
+import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
 
 type CategoryCatalogProps = {
   products: ShopProduct[];
   categoryLabel: string;
   campaignImage: string;
+  campaign?: { title: string; subtitle: string; image: string } | null;
 };
 
 type SortMode = "featured" | "newest" | "popular" | "price-asc" | "price-desc";
@@ -22,7 +24,7 @@ function numericPrice(product: ShopProduct): number {
   return Number(product.prices?.value ?? Number.MAX_SAFE_INTEGER);
 }
 
-export default function CategoryCatalog({ products, categoryLabel, campaignImage }: CategoryCatalogProps) {
+export default function CategoryCatalog({ products, categoryLabel, campaignImage, campaign }: CategoryCatalogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -242,16 +244,26 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
 
             {visible.length ? (
               <div className="grid gap-x-5 gap-y-14 sm:grid-cols-2 xl:grid-cols-3">
-                {visible.map((product, index) => (
-                  <div key={product.slug} className={index === 6 ? "contents" : undefined}>
-                    {index === 6 ? (
+                {visible.map((product, index) => {
+                  const showCampaign =
+                    Boolean(campaign?.title || campaign?.image) &&
+                    (visible.length > 6 ? index === 6 : index === visible.length - 1);
+                  return (
+                  <div key={product.slug} className={showCampaign ? "contents" : undefined}>
+                    {showCampaign ? (
                       <FadeUp className="relative col-span-full min-h-[22rem] overflow-hidden bg-forest text-paper">
-                        <Image src={campaignImage} alt="کمپین اختصاصی خانه چوب و هنر" fill sizes="80vw" className="object-cover" />
+                        <Image
+                          src={campaign?.image || campaignImage}
+                          alt={campaign?.title || categoryLabel}
+                          fill
+                          sizes="80vw"
+                          unoptimized={isUploadedMedia(campaign?.image || campaignImage)}
+                          className="object-cover"
+                        />
                         <div className="absolute inset-0 bg-gradient-to-l from-forest/90 via-forest/45 to-transparent" />
                         <div className="relative flex min-h-[22rem] max-w-xl flex-col justify-end p-7 md:p-10">
-                          <p className="eyebrow text-peach">Campaign slot / 01</p>
-                          <h3 className="mt-5 text-4xl font-extralight tracking-tight md:text-6xl">انتخابی برای سال‌ها</h3>
-                          <p className="mt-4 max-w-md leading-7 text-paper/70">فضای آماده برای بنرهای کمپین، معرفی کالکشن یا پیشنهادهای زمان‌دار هر دسته.</p>
+                          <h3 className="text-4xl font-extralight tracking-tight md:text-6xl">{campaign?.title || categoryLabel}</h3>
+                          {campaign?.subtitle ? <p className="mt-4 max-w-md leading-7 text-paper/70">{campaign.subtitle}</p> : null}
                         </div>
                       </FadeUp>
                     ) : null}
@@ -259,7 +271,8 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
                       <CommerceProductCard product={product} />
                     </FadeUp>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="border border-dashed border-forest/20 px-6 py-20 text-center">

@@ -66,7 +66,7 @@ export default function CheckoutFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [completedOrder, setCompletedOrder] = useState<{ number: string; total: number } | null>(null);
+  const [completedOrder, setCompletedOrder] = useState<{ number: string; total: number; kind?: string } | null>(null);
   const currency = items.find((item) => item.currencySymbol)?.currencySymbol || "تومان";
 
   const update = <Key extends keyof CheckoutData>(key: Key, value: CheckoutData[Key]) => {
@@ -83,7 +83,7 @@ export default function CheckoutFlow() {
     const next: Record<string, string> = {};
     if (!required(data.fullName)) next.fullName = "نام و نام خانوادگی را وارد کنید.";
     if (!validatePhone(data.phone)) next.phone = "شماره موبایل معتبر وارد کنید.";
-    if (!validateEmail(data.email)) next.email = "ایمیل معتبر وارد کنید.";
+    if (data.email.trim() && !validateEmail(data.email)) next.email = "ایمیل معتبر وارد کنید.";
     if (data.createAccount && data.password.length < 8) next.password = "رمز عبور باید حداقل ۸ کاراکتر باشد.";
     if (data.createAccount && data.confirmPassword !== data.password) next.confirmPassword = "تکرار رمز عبور یکسان نیست.";
     setErrors(next);
@@ -95,7 +95,8 @@ export default function CheckoutFlow() {
     if (!required(data.province)) next.province = "استان را انتخاب کنید.";
     if (!required(data.city)) next.city = "شهر را وارد کنید.";
     if (!required(data.address) || data.address.trim().length < 10) next.address = "نشانی کامل تحویل را وارد کنید.";
-    if (!/^[0-9۰-۹]{10}$/.test(data.postalCode.replace(/\s/g, ""))) next.postalCode = "کد پستی باید ۱۰ رقم باشد.";
+    const postal = data.postalCode.replace(/\s/g, "");
+    if (postal && !/^[0-9۰-۹]{10}$/.test(postal)) next.postalCode = "کد پستی باید ۱۰ رقم باشد.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -141,8 +142,10 @@ export default function CheckoutFlow() {
           postalCode: data.postalCode,
           mapNote: data.deliveryNote,
         },
+        kind: data.paymentMethod === "online" ? "online" : "proforma",
+        paymentMethod: data.paymentMethod,
       });
-      setCompletedOrder({ number: order.orderNumber, total: order.amounts.total });
+      setCompletedOrder({ number: order.orderNumber, total: order.amounts.total, kind: order.kind });
       clearCart();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
@@ -162,12 +165,12 @@ export default function CheckoutFlow() {
         <Container>
           <div className="mx-auto max-w-3xl text-center">
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-peach/50 bg-peach text-3xl text-forest">✓</span>
-            <p className="eyebrow mt-9 text-peach">Order Registered</p>
+            <p className="eyebrow mt-9 text-peach">{completedOrder.kind === "online" ? "Order Registered" : "Proforma Issued"}</p>
             <h1 className="mt-6 text-[clamp(3.4rem,8vw,7.5rem)] font-extralight leading-[0.86] tracking-tightest">
-              سفارش شما ثبت شد
+              {completedOrder.kind === "online" ? "سفارش شما ثبت شد" : "پیش‌فاکتور شما ثبت شد"}
             </h1>
             <p className="mx-auto mt-7 max-w-xl text-base leading-8 text-paper/65">
-              سفارش <span dir="ltr" className="font-medium text-peach">{completedOrder.number}</span> در سیستم ثبت شد. کارشناسان پس از بررسی، فاکتور و زمان ارسال را هماهنگ می‌کنند.
+              {completedOrder.kind === "online" ? "سفارش" : "پیش‌فاکتور"} <span dir="ltr" className="font-medium text-peach">{completedOrder.number}</span> در سیستم ثبت شد. کارشناسان پس از بررسی، مبلغ نهایی و زمان ارسال را هماهنگ می‌کنند.
             </p>
             <div className="mx-auto mt-8 flex max-w-md items-center justify-between border-y border-paper/15 py-5 text-sm">
               <span className="text-paper/50">مبلغ محصولات</span>
@@ -239,7 +242,7 @@ export default function CheckoutFlow() {
                   <Field label="شماره موبایل" error={errors.phone}>
                     <input value={data.phone} onChange={(e) => update("phone", e.target.value)} inputMode="tel" autoComplete="tel" dir="ltr" className={inputClass(errors.phone)} placeholder="0912 000 0000" />
                   </Field>
-                  <Field label="ایمیل" error={errors.email}>
+                  <Field label="ایمیل — اختیاری" error={errors.email}>
                     <input value={data.email} onChange={(e) => update("email", e.target.value)} type="email" autoComplete="email" dir="ltr" className={inputClass(errors.email)} placeholder="name@example.com" />
                   </Field>
                 </div>
@@ -281,8 +284,8 @@ export default function CheckoutFlow() {
                   <Field label="نشانی کامل" error={errors.address} className="md:col-span-2">
                     <textarea value={data.address} onChange={(e) => update("address", e.target.value)} autoComplete="street-address" rows={4} className={cn(inputClass(errors.address), "resize-none leading-7")} placeholder="خیابان، کوچه، پلاک، واحد و طبقه" />
                   </Field>
-                  <Field label="کد پستی" error={errors.postalCode}>
-                    <input value={data.postalCode} onChange={(e) => update("postalCode", e.target.value)} inputMode="numeric" autoComplete="postal-code" dir="ltr" maxLength={10} className={inputClass(errors.postalCode)} placeholder="۱۰ رقم بدون خط تیره" />
+                  <Field label="کد پستی — اختیاری" error={errors.postalCode}>
+                    <input value={data.postalCode} onChange={(e) => update("postalCode", e.target.value)} inputMode="numeric" autoComplete="postal-code" dir="ltr" maxLength={10} className={inputClass(errors.postalCode)} placeholder="در صورت تمایل، ۱۰ رقم بدون خط تیره" />
                   </Field>
                   <Field label="توضیحات تحویل — اختیاری">
                     <input value={data.deliveryNote} onChange={(e) => update("deliveryNote", e.target.value)} className={inputClass()} placeholder="محدودیت آسانسور یا ساعت مناسب" />
@@ -299,13 +302,13 @@ export default function CheckoutFlow() {
                   <ReviewBlock title="اطلاعات مشتری" onEdit={() => setStep(1)}>
                     <p>{data.fullName}</p>
                     <p dir="ltr" className="text-right">{data.phone}</p>
-                    <p dir="ltr" className="break-all text-right">{data.email}</p>
+                    {data.email.trim() ? <p dir="ltr" className="break-all text-right">{data.email}</p> : null}
                     {data.createAccount ? <p className="mt-2 text-brick">حساب کاربری ساخته می‌شود</p> : null}
                   </ReviewBlock>
                   <ReviewBlock title="نشانی تحویل" onEdit={() => setStep(2)}>
                     <p>{data.province}، {data.city}</p>
                     <p>{data.address}</p>
-                    <p>کد پستی: <span dir="ltr">{data.postalCode}</span></p>
+                    {data.postalCode.trim() ? <p>کد پستی: <span dir="ltr">{data.postalCode}</span></p> : null}
                   </ReviewBlock>
                 </div>
 
@@ -315,8 +318,8 @@ export default function CheckoutFlow() {
                     <PaymentOption
                       checked={data.paymentMethod === "coordination"}
                       onChange={() => update("paymentMethod", "coordination")}
-                      title="ثبت سفارش و هماهنگی پرداخت"
-                      description="مناسب محصولات سفارشی؛ کارشناس زمان ساخت و مبلغ نهایی را تأیید می‌کند."
+                      title="صدور پیش‌فاکتور"
+                      description="مناسب محصولات سفارشی؛ پیش‌فاکتور ثبت می‌شود و کارشناس زمان ساخت و مبلغ نهایی را تأیید می‌کند."
                     />
                     <PaymentOption
                       checked={data.paymentMethod === "online"}
@@ -348,7 +351,7 @@ export default function CheckoutFlow() {
                 disabled={submitting}
                 className="inline-flex min-h-14 min-w-48 items-center justify-center gap-3 rounded-full bg-forest px-8 text-sm font-medium text-paper transition-all hover:bg-brick disabled:cursor-not-allowed disabled:opacity-45"
               >
-                {submitting ? "در حال ثبت..." : step === 1 ? "ادامه به نشانی" : step === 2 ? "بازبینی سفارش" : "ثبت سفارش"}
+                {submitting ? "در حال ثبت..." : step === 1 ? "ادامه به نشانی" : step === 2 ? "بازبینی سفارش" : data.paymentMethod === "online" ? "ثبت سفارش" : "ثبت پیش‌فاکتور"}
                 {!submitting ? <span>←</span> : null}
               </button>
             </div>

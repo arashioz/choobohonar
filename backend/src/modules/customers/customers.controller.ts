@@ -27,6 +27,9 @@ export class CustomersController {
   @Get() list(@Query('q') q?: string, @Query('status') status?: string) {
     return this.customers.list(q, status);
   }
+  @Get(':id/commerce') commerce(@Param('id') id: string) {
+    return this.customers.commerce(id);
+  }
   @Get(':id') get(@Param('id') id: string) {
     return this.customers.get(id);
   }
@@ -91,6 +94,20 @@ export class PublicCustomersController {
       .clearCookie('customer_session', { path: '/' })
       .status(200)
       .json({ ok: true });
+  }
+
+  @Post('account/dev-login')
+  async devLogin(@Res() response: Response) {
+    if (!this.customers.isLocalRuntime()) {
+      throw new UnauthorizedException('ورود آزمایشی فقط در محیط محلی فعال است');
+    }
+    const customer = await this.customers.ensureLocalTestAccount();
+    return this.setSession(response, customer.id).json({ customer });
+  }
+
+  @Post('account/gallery-taste')
+  upsertGalleryTaste(@Body() body: Record<string, unknown>) {
+    return this.customers.upsertGalleryTaste(body);
   }
 
   @Get('account/me')

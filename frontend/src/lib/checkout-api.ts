@@ -29,6 +29,7 @@ export type ShopOrder = {
   _id: string;
   orderNumber: string;
   status: string;
+  kind?: "online" | "proforma";
   items: {
     slug: string;
     name: string;
@@ -91,6 +92,8 @@ function toOrderPayload(input: {
   customer: CheckoutCustomer;
   shipping: CheckoutShipping;
   shippingFee?: number;
+  kind?: "online" | "proforma";
+  paymentMethod?: "coordination" | "online";
 }) {
   return {
     items: input.items.map((item) => ({
@@ -122,6 +125,8 @@ function toOrderPayload(input: {
         : {}),
     },
     shippingFee: Number(input.shippingFee) || 0,
+    ...(input.kind ? { kind: input.kind } : {}),
+    ...(input.paymentMethod ? { paymentMethod: input.paymentMethod } : {}),
   };
 }
 
@@ -154,6 +159,8 @@ export const checkoutApi = {
     customer: CheckoutCustomer;
     shipping: CheckoutShipping;
     shippingFee?: number;
+    kind?: "online" | "proforma";
+    paymentMethod?: "coordination" | "online";
   }) => post<ShopOrder>("/shop/orders", toOrderPayload(input)),
   pay: (orderId: string, simulate: "success" | "fail" = "success") =>
     post<ShopOrder>(`/shop/orders/${orderId}/pay`, { simulate }),

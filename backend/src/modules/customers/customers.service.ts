@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
@@ -17,13 +18,61 @@ import { ShopOrder, ShopOrderDocument } from '../shop/schemas/shop-order.schema'
 const statuses: CustomerStatus[] = ['lead', 'active', 'inactive'];
 const tiers: CustomerTier[] = ['vip', 'silver', 'gold'];
 
+export const LOCAL_TEST_ACCOUNT = {
+  name: 'bezivafaei',
+  phone: '09121111111',
+  email: 'bezivafaei@local.test',
+  city: 'تهران',
+  password: 'bezivafaei',
+  source: 'local-test',
+};
+
 @Injectable()
-export class CustomersService {
+export class CustomersService implements OnModuleInit {
   constructor(
     @InjectModel(Customer.name) private readonly model: Model<CustomerDocument>,
     @InjectModel(ShopOrder.name)
     private readonly orderModel: Model<ShopOrderDocument>,
   ) {}
+
+  async onModuleInit() {
+    if (process.env.NODE_ENV === 'production') return;
+    await this.ensureLocalTestAccount();
+  }
+
+  isLocalRuntime() {
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  async ensureLocalTestAccount() {
+    const phone = this.normalizePhone(LOCAL_TEST_ACCOUNT.phone);
+    const existing = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .select('+passwordHash')
+      .exec();
+    const passwordHash = this.hashPassword(LOCAL_TEST_ACCOUNT.password);
+    if (existing) {
+      existing.name = LOCAL_TEST_ACCOUNT.name;
+      existing.phone = phone;
+      existing.email = LOCAL_TEST_ACCOUNT.email;
+      existing.city = LOCAL_TEST_ACCOUNT.city;
+      existing.passwordHash = passwordHash;
+      existing.status = 'active';
+      if (!existing.source) existing.source = LOCAL_TEST_ACCOUNT.source;
+      await existing.save();
+      return this.publicCustomer(existing);
+    }
+    const customer = await this.model.create({
+      name: LOCAL_TEST_ACCOUNT.name,
+      phone,
+      email: LOCAL_TEST_ACCOUNT.email,
+      city: LOCAL_TEST_ACCOUNT.city,
+      passwordHash,
+      status: 'active',
+      source: LOCAL_TEST_ACCOUNT.source,
+    });
+    return this.publicCustomer(customer);
+  }
 
   async registerAccount(input: Record<string, unknown>) {
     const name = String(input.name || '').trim();
@@ -90,7 +139,7 @@ export class CustomersService {
     const orders = await this.orderModel
       .find({ 'customer.phone': { $regex: phonePattern } })
       .sort({ createdAt: -1 })
-      .select('orderNumber status items amounts payment createdAt')
+      .select('orderNumber status kind items amounts payment createdAt proformaId invoiceId')
       .lean()
       .exec();
     return { customer: this.publicCustomer(customer), orders };
@@ -105,11 +154,44 @@ export class CustomersService {
     }
     if (input.email !== undefined) patch.email = String(input.email || '').trim().toLowerCase();
     if (input.city !== undefined) patch.city = String(input.city || '').trim();
+    if (input.galleryTaste === null) patch.galleryTaste = null;
+    else if (input.galleryTaste !== undefined)
+      patch.galleryTaste = this.normalizeTaste(input.galleryTaste);
     const customer = await this.model
       .findByIdAndUpdate(id, { $set: patch }, { new: true })
       .lean()
       .exec();
     if (!customer) throw new NotFoundException('حساب کاربری پیدا نشد');
+    return this.publicCustomer(customer);
+  }
+
+  async upsertGalleryTaste(input: Record<string, unknown>) {
+    const name = String(input.name || '').trim();
+    const phone = this.normalizePhone(String(input.phone || ''));
+    const galleryTaste = this.normalizeTaste(input.taste || input.galleryTaste);
+    if (name.length < 2 || phone.length < 10)
+      throw new BadRequestException('نام و شماره موبایل معتبر الزامی است');
+
+    const existing = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .select('+passwordHash')
+      .exec();
+
+    if (existing) {
+      existing.galleryTaste = galleryTaste;
+      if (!existing.passwordHash) existing.name = name;
+      if (!existing.source) existing.source = 'gallery-taste';
+      await existing.save();
+      return this.publicCustomer(existing);
+    }
+
+    const customer = await this.model.create({
+      name,
+      phone,
+      galleryTaste,
+      status: 'lead',
+      source: 'gallery-taste',
+    });
     return this.publicCustomer(customer);
   }
 
@@ -132,6 +214,51 @@ export class CustomersService {
     const item = await this.model.findById(id).lean().exec();
     if (!item) throw new NotFoundException('مشتری پیدا نشد');
     return item;
+  }
+
+  async commerce(id: string) {
+    const customer = await this.get(id);
+    const phonePattern = this.phonePattern(customer.phone);
+    const orders = await this.orderModel
+      .find({ 'customer.phone': { $regex: phonePattern } })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    const onlineOrders = orders.filter((order) => order.kind === 'online');
+    const proformas = orders.filter((order) => order.kind !== 'online');
+    return { customer, onlineOrders, proformas };
+  }
+
+  async ensureLeadFromOrder(input: {
+    name: string;
+    phone: string;
+    email?: string;
+    city?: string;
+    source?: string;
+  }) {
+    const name = String(input.name || '').trim();
+    const phone = this.normalizePhone(String(input.phone || ''));
+    if (name.length < 2 || phone.length < 10) return null;
+    const existing = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .exec();
+    if (existing) {
+      const patch: Record<string, unknown> = {};
+      if (!existing.city && input.city) patch.city = input.city;
+      if (!existing.email && input.email) patch.email = String(input.email).trim().toLowerCase();
+      if (Object.keys(patch).length) {
+        await this.model.updateOne({ _id: existing._id }, { $set: patch });
+      }
+      return existing;
+    }
+    return this.model.create({
+      name,
+      phone,
+      ...(input.email ? { email: String(input.email).trim().toLowerCase() } : {}),
+      ...(input.city ? { city: input.city } : {}),
+      status: 'lead',
+      source: input.source || 'checkout',
+    });
   }
 
   async create(input: Record<string, unknown>) {
@@ -304,6 +431,40 @@ export class CustomersService {
     );
   }
 
+  private normalizeTaste(value: unknown) {
+    if (value === null) return null;
+    const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+    const allowed = {
+      space: ['home', 'villa', 'hospitality', 'detail'],
+      material: ['dark-wood', 'light-wood', 'fabric', 'metal'],
+      atmosphere: ['calm', 'layered', 'formal', 'nature'],
+      object: ['decor', 'lighting', 'carpet', 'furniture'],
+    } as const;
+    const space = String(record.space || '');
+    const material = String(record.material || '');
+    const atmosphere = String(record.atmosphere || '');
+    const object = String(record.object || '');
+    if (
+      !allowed.space.includes(space as (typeof allowed.space)[number]) ||
+      !allowed.material.includes(material as (typeof allowed.material)[number]) ||
+      !allowed.atmosphere.includes(
+        atmosphere as (typeof allowed.atmosphere)[number],
+      ) ||
+      !allowed.object.includes(object as (typeof allowed.object)[number])
+    ) {
+      throw new BadRequestException(
+        'پاسخ سلیقه باید برای فضا، متریال، حس فضا و شیء از گزینه‌های گالری باشد',
+      );
+    }
+    return {
+      space,
+      material,
+      atmosphere,
+      object,
+      answeredAt: new Date().toISOString(),
+    };
+  }
+
   private publicCustomer(customer: {
     _id?: unknown;
     name?: unknown;
@@ -311,6 +472,7 @@ export class CustomersService {
     email?: unknown;
     city?: unknown;
     createdAt?: unknown;
+    galleryTaste?: unknown;
   }) {
     return {
       id: String(customer._id || ''),
@@ -319,6 +481,7 @@ export class CustomersService {
       email: String(customer.email || ''),
       city: String(customer.city || ''),
       createdAt: customer.createdAt,
+      galleryTaste: customer.galleryTaste || null,
     };
   }
 }

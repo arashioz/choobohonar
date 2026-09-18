@@ -69,6 +69,25 @@ export class ShopController {
     return this.shopService.categories();
   }
 
+  @Get('campaign-banners')
+  campaignBanners() {
+    return this.shopService.listCampaignBanners();
+  }
+
+  @Get('campaign-banners/:slug')
+  campaignBanner(@Param('slug') slug: string) {
+    return this.shopService.getCampaignBanner(decodeURIComponent(slug));
+  }
+
+  @Patch('campaign-banners/:slug')
+  @UseGuards(JwtAuthGuard)
+  updateCampaignBanner(
+    @Param('slug') slug: string,
+    @Body() body: { title?: string; subtitle?: string; image?: string },
+  ) {
+    return this.shopService.upsertCampaignBanner(decodeURIComponent(slug), body);
+  }
+
   @Get('series')
   series() {
     return this.shopService.series();
@@ -192,12 +211,14 @@ export class ShopController {
   listOrders(
     @Query('status') status?: string,
     @Query('q') q?: string,
+    @Query('kind') kind?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.orderService.list({
       status,
       q,
+      kind,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -245,11 +266,13 @@ export class ShopController {
   @UseGuards(JwtAuthGuard)
   listInvoices(
     @Query('q') q?: string,
+    @Query('kind') kind?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.orderService.listInvoices({
       q,
+      kind,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });

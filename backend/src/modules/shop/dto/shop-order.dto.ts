@@ -72,6 +72,7 @@ class CreateOrderShippingDto {
   province: string;
 
   @IsOptional()
+  @Transform(({ value }) => emptyToUndefined(value))
   @IsString()
   postalCode?: string;
 
@@ -107,6 +108,14 @@ export class CreateOrderDto {
   @IsNumber()
   @Min(0)
   shippingFee?: number;
+
+  @IsOptional()
+  @IsEnum(['online', 'proforma'])
+  kind?: 'online' | 'proforma';
+
+  @IsOptional()
+  @IsEnum(['coordination', 'online'])
+  paymentMethod?: 'coordination' | 'online';
 }
 
 export class UpdateOrderStatusDto {
