@@ -5,21 +5,22 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import type { GalleryItem } from "@/data/gallery";
-import { getRelatedGalleryItems, tagLabels } from "@/data/gallery";
+import { getRelatedGalleryItems, hrefLabels, tagLabels } from "@/data/gallery";
 import { registerGsap, gsap, prefersReducedMotion } from "@/lib/gsap";
 import { cn, toFa } from "@/lib/utils";
 
 type Props = {
   item: GalleryItem;
+  catalog: GalleryItem[];
   onClose: () => void;
   onSelect: (item: GalleryItem) => void;
 };
 
-export default function GalleryLightbox({ item, onClose, onSelect }: Props) {
+export default function GalleryLightbox({ item, catalog, onClose, onSelect }: Props) {
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const related = useMemo(() => getRelatedGalleryItems(item), [item]);
+  const related = useMemo(() => getRelatedGalleryItems(item, catalog), [catalog, item]);
   const rail = useMemo(
     () => [item, ...related.filter((r) => r.id !== item.id)],
     [item, related]
@@ -121,7 +122,7 @@ export default function GalleryLightbox({ item, onClose, onSelect }: Props) {
                 href={item.href}
                 className="mt-5 inline-flex items-center gap-2 text-sm text-brick transition-colors hover:text-forest"
               >
-                مشاهده مرتبط
+                {hrefLabels[item.tag] || "مشاهده مرتبط"}
                 <span>←</span>
               </Link>
             ) : null}

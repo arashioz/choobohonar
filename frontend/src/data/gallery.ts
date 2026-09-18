@@ -4,6 +4,7 @@ import { collections } from "@/data/collections";
 
 export type GalleryTag =
   | "project"
+  | "product"
   | "event"
   | "exhibition"
   | "behind-scenes"
@@ -24,13 +25,17 @@ export type GalleryItem = {
   tag: GalleryTag;
   /** Optional deep-link to a related site page. */
   href?: string;
+  entityKind?: GalleryTag;
+  entitySlug?: string;
+  productCategory?: string;
   /** Related gallery entry ids for the lightbox rail. */
-  relatedIds: string[];
+  relatedIds?: string[];
   bento: GalleryBentoSize;
 };
 
 export const tagLabels: Record<GalleryTag, string> = {
   project: "پروژه",
+  product: "محصول",
   event: "رویداد",
   exhibition: "نمایشگاه",
   "behind-scenes": "پشت‌صحنه",
@@ -41,12 +46,23 @@ export const tagLabels: Record<GalleryTag, string> = {
 export const galleryFilters: { id: GalleryFilter; label: string }[] = [
   { id: "all", label: "همه" },
   { id: "project", label: "پروژه" },
+  { id: "product", label: "محصول" },
+  { id: "collection", label: "کالکشن" },
+  { id: "material", label: "متریال" },
   { id: "event", label: "رویداد" },
   { id: "exhibition", label: "نمایشگاه" },
   { id: "behind-scenes", label: "پشت‌صحنه" },
-  { id: "collection", label: "کالکشن" },
-  { id: "material", label: "متریال" },
 ];
+
+export const hrefLabels: Record<GalleryTag, string> = {
+  project: "مشاهده پروژه",
+  product: "مشاهده محصول",
+  collection: "مشاهده کالکشن",
+  material: "مشاهده متریال",
+  event: "مشاهده مرتبط",
+  exhibition: "مشاهده مرتبط",
+  "behind-scenes": "مشاهده مرتبط",
+};
 
 const aknoon = getProjectImages("aknoon-residence");
 const armon = getProjectImages("armon-hotel");
@@ -308,13 +324,88 @@ export const galleryItems: GalleryItem[] = [
 ];
 
 const byId = new Map(galleryItems.map((item) => [item.id, item]));
+const RELATED_LIMIT = 4;
+const COMPANION_TAGS: Partial<Record<GalleryTag, GalleryTag[]>> = {
+  project: ["behind-scenes"],
+  "behind-scenes": ["project"],
+  collection: ["product"],
+  product: ["collection"],
+  material: ["collection"],
+  event: ["exhibition"],
+  exhibition: ["event"],
+};
 
 export function getGalleryItem(id: string): GalleryItem | undefined {
   return byId.get(id);
 }
 
-export function getRelatedGalleryItems(item: GalleryItem): GalleryItem[] {
-  return item.relatedIds.map((id) => byId.get(id)).filter((x): x is GalleryItem => Boolean(x));
+export function galleryItemHref(item: Pick<GalleryItem, "href" | "tag" | "entityKind" | "entitySlug">): string | undefined {
+  if (item.href) return item.href;
+  const kind = item.entityKind || item.tag;
+  const slug = item.entitySlug?.trim();
+  if (!slug) return undefined;
+  if (kind === "project") return `/projects/${slug}`;
+  if (kind === "product") return `/products/${slug}`;
+  if (kind === "collection") return `/collection/${slug}`;
+  if (kind === "material") return `/materials/${slug}`;
+  return undefined;
+}
+
+export function normalizeGalleryItem(raw: Partial<GalleryItem> & Record<string, unknown>, index = 0): GalleryItem | null {
+  const src = String(raw.src || raw.image || (Array.isArray(raw.images) ? raw.images[0] : "") || "");
+  if (!src) return null;
+  const tag = (["project", "product", "event", "exhibition", "behind-scenes", "collection", "material"].includes(String(raw.tag || raw.entityKind))
+    ? String(raw.tag || raw.entityKind)
+    : "project") as GalleryTag;
+  const item: GalleryItem = {
+    id: String(raw.id || `gallery-${index}`),
+    src,
+    alt: String(raw.alt || raw.title || "تصویر گالری"),
+    caption: String(raw.caption || raw.excerpt || ""),
+    tag,
+    entityKind: (raw.entityKind as GalleryTag) || tag,
+    entitySlug: raw.entitySlug ? String(raw.entitySlug) : undefined,
+    productCategory: raw.productCategory ? String(raw.productCategory) : undefined,
+    relatedIds: Array.isArray(raw.relatedIds) ? raw.relatedIds.map(String) : [],
+    bento: (["hero", "tall", "wide", "square"].includes(String(raw.bento)) ? raw.bento : "square") as GalleryBentoSize,
+    href: raw.href ? String(raw.href) : undefined,
+  };
+  item.href = galleryItemHref(item);
+  if (!item.entitySlug && item.href) {
+    const match = item.href.match(/^\/(projects|products|collection|materials)\/([^/?#]+)/);
+    if (match) {
+      const kindMap: Record<string, GalleryTag> = {
+        projects: "project",
+        products: "product",
+        collection: "collection",
+        materials: "material",
+      };
+      item.entityKind = kindMap[match[1]] || item.entityKind;
+      item.entitySlug = decodeURIComponent(match[2]);
+    }
+  }
+  return item;
+}
+
+export function getRelatedGalleryItems(item: GalleryItem, catalog: GalleryItem[] = galleryItems): GalleryItem[] {
+  const others = catalog.filter((entry) => entry.id !== item.id);
+  const href = galleryItemHref(item);
+  const sameEntity = href ? others.filter((entry) => galleryItemHref(entry) === href) : [];
+  const sameTag = others.filter((entry) => entry.tag === item.tag && galleryItemHref(entry) !== href);
+  const companions = (COMPANION_TAGS[item.tag] || []).flatMap((tag) =>
+    others.filter((entry) => entry.tag === tag && !sameEntity.some((match) => match.id === entry.id)),
+  );
+  const picked: GalleryItem[] = [];
+  const push = (list: GalleryItem[]) => {
+    for (const entry of list) {
+      if (picked.length >= RELATED_LIMIT) return;
+      if (!picked.some((current) => current.id === entry.id)) picked.push(entry);
+    }
+  };
+  push(sameEntity);
+  push(sameTag);
+  push(companions);
+  return picked;
 }
 
 export function filterGalleryItems(items: GalleryItem[], filter: GalleryFilter): GalleryItem[] {

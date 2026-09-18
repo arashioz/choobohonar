@@ -1,0 +1,110 @@
+[
+  {
+    "slug": "american-walnut",
+    "title": "گردوی آمریکایی",
+    "family": "wood",
+    "color": "گردویی",
+    "hex": "#5A3830",
+    "image": "https://choobohonar.com/wp-content/uploads/2026/01/مبل-چدار-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "رگه‌های عمیق، قهوه‌ای گرم"
+  },
+  {
+    "slug": "natural-oak",
+    "title": "بلوط نچرال",
+    "family": "wood",
+    "color": "نچرال",
+    "hex": "#C8A77A",
+    "image": "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "روشن، آرام و معماری‌محور"
+  },
+  {
+    "slug": "smoked-beech",
+    "title": "راش دودی",
+    "family": "wood",
+    "color": "فندقی",
+    "hex": "#6E5445",
+    "image": "https://choobohonar.com/wp-content/uploads/2023/07/تخت-خواب-آکومه-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "یکدست، مقاوم و عمیق"
+  },
+  {
+    "slug": "boucle-sand",
+    "title": "بوکله شنی",
+    "family": "fabric",
+    "color": "بژ روشن",
+    "hex": "#D8C4A8",
+    "image": "https://choobohonar.com/wp-content/uploads/2023/06/کاناپه-سه-نفره-آلدر-خانه-چوب-و-هنر-2-1.jpg",
+    "excerpt": "بافت لمس‌پذیر برای نشیمن"
+  },
+  {
+    "slug": "velvet-brick",
+    "title": "مخمل آجری",
+    "family": "fabric",
+    "color": "آجری",
+    "hex": "#9A4A3A",
+    "image": "https://choobohonar.com/wp-content/uploads/2023/06/کاناپه-سه-نفره-آلدر-خانه-چوب-و-هنر-2-1.jpg",
+    "excerpt": "عمق رنگ برای رویه مبلمان"
+  },
+  {
+    "slug": "linen-sage",
+    "title": "کتان مریم‌گلی",
+    "family": "fabric",
+    "color": "سبز ملایم",
+    "hex": "#9AA78A",
+    "image": "https://choobohonar.com/wp-content/uploads/2023/06/کاناپه-سه-نفره-آلدر-خانه-چوب-و-هنر-2-1.jpg",
+    "excerpt": "بافت طبیعی و خنک"
+  },
+  {
+    "slug": "walnut-veneer",
+    "title": "روکش گردو",
+    "family": "veneer",
+    "color": "گردویی",
+    "hex": "#5A3830",
+    "image": "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "رگه هماهنگ روی سطوح بزرگ"
+  },
+  {
+    "slug": "oak-veneer",
+    "title": "روکش بلوط",
+    "family": "veneer",
+    "color": "نچرال",
+    "hex": "#C9A37A",
+    "image": "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "روشن و معماری‌محور"
+  },
+  {
+    "slug": "ash-veneer",
+    "title": "روکش ون",
+    "family": "veneer",
+    "color": "خاکستری گرم",
+    "hex": "#B7A894",
+    "image": "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
+    "excerpt": "رگه آرام برای پنل‌ها"
+  },
+  {
+    "slug": "brushed-brass",
+    "title": "برنج براش",
+    "family": "metal",
+    "color": "طلایی مات",
+    "hex": "#C4A35A",
+    "image": "https://choobohonar.com/wp-content/uploads/2026/07/آباژور-گالن-1.jpg",
+    "excerpt": "جزئیات فلزی گرم"
+  },
+  {
+    "slug": "charcoal-steel",
+    "title": "فولاد ذغالی",
+    "family": "metal",
+    "color": "ذغالی",
+    "hex": "#3F3F3F",
+    "image": "https://choobohonar.com/wp-content/uploads/2026/07/آباژور-گالن-1.jpg",
+    "excerpt": "استحکام با حضور آرام"
+  },
+  {
+    "slug": "aged-bronze",
+    "title": "برنز پتینه",
+    "family": "metal",
+    "color": "برنزی",
+    "hex": "#6F5842",
+    "image": "https://choobohonar.com/wp-content/uploads/2026/07/آباژور-گالن-1.jpg",
+    "excerpt": "عمق تاریخی برای جزئیات"
+  }
+]

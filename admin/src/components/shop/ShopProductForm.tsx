@@ -4,7 +4,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { uploadMedia } from "@/lib/upload";
+import ProductMaterialsPicker from "@/components/shop/ProductMaterialsPicker";
 import {
   ROOM_LABELS,
   shopApi,
@@ -24,7 +24,7 @@ type FormState = {
   longDescription: string;
   image: string;
   gallery: string[];
-  finishes: string;
+  finishes: string[];
   shopUrl: string;
   status: ShopProductStatus;
   featured: boolean;
@@ -55,7 +55,7 @@ function fromProduct(p?: ShopProduct): FormState {
     longDescription: p?.longDescription || "",
     image: p?.image || "",
     gallery: p?.gallery?.length ? p.gallery : (p?.image ? [p.image] : []),
-    finishes: p?.finishes?.join("، ") || "",
+    finishes: p?.finishes || [],
     shopUrl: p?.shopUrl || "",
     status: p?.status || "published",
     featured: p?.featured || false,
@@ -124,7 +124,7 @@ export default function ShopProductForm({
       image: form.gallery[0] || form.image.trim(),
       gallery: form.gallery.length ? form.gallery : (form.image.trim() ? [form.image.trim()] : []),
       shopUrl: form.shopUrl.trim() || undefined,
-      finishes: form.finishes.split(/[،,]/).map((item) => item.trim()).filter(Boolean),
+      finishes: form.finishes,
       status: form.status,
       featured: form.featured,
       suggested: form.suggested,
@@ -396,7 +396,7 @@ export default function ShopProductForm({
 
           <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-4">
             <div><h2 className="text-sm font-medium text-forest">جزئیات محصول</h2><p className="mt-1 text-[10px] text-forest/40">فینیش، متریال و ابعاد برای نمایش دقیق‌تر در صفحه محصول.</p></div>
-            <Field label="متریال، رنگ و فینیش"><input className={fieldClass} value={form.finishes} onChange={(e) => set("finishes", e.target.value)} placeholder="چوب گردو، روغن مات، پارچه کرم" /><span className="mt-1 block text-[9px] text-forest/35">هر مورد را با ویرگول جدا کنید.</span></Field>
+            <ProductMaterialsPicker value={form.finishes} onChange={(finishes) => set("finishes", finishes)} />
             <div className="grid gap-4 sm:grid-cols-3"><Field label="عرض (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.width} onChange={(e) => set("width", e.target.value)} /></Field><Field label="عمق (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.depth} onChange={(e) => set("depth", e.target.value)} /></Field><Field label="ارتفاع (سانتی‌متر)"><input className={fieldClass} inputMode="decimal" value={form.height} onChange={(e) => set("height", e.target.value)} /></Field></div>
           </section>
 

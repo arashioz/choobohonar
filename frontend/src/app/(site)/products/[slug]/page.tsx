@@ -21,7 +21,7 @@ import CommerceProductEditorial from "@/components/commerce/CommerceProductEdito
 import AddToCartButton from "@/components/shop/AddToCartButton";
 import { getProductEditorialContent } from "@/lib/product-editorial";
 import { getApiBase } from "@/lib/api-base";
-import { normalizeStorefrontProduct } from "@/lib/storefront-products";
+import { fetchMaterialSwatches, normalizeStorefrontProduct } from "@/lib/storefront-products";
 
 export const dynamicParams = true;
 
@@ -66,9 +66,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const backendProduct = await getAdminProduct(slug);
+  const [backendProduct, materials] = await Promise.all([getAdminProduct(slug), fetchMaterialSwatches()]);
   if (backendProduct?.status === "published") {
-    return <CommerceProductDetail product={normalizeStorefrontProduct(backendProduct)} />;
+    return <CommerceProductDetail product={normalizeStorefrontProduct(backendProduct)} materials={materials} />;
   }
   const product = getCatalogProduct(slug);
   if (!product) {
@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: PageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
-        <CommerceProductDetail product={product} />
+        <CommerceProductDetail product={product} materials={materials} />
         <CommerceProductEditorial product={product} />
         <RelatedProducts products={related} />
       </>

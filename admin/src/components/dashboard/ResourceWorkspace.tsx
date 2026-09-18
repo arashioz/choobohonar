@@ -25,6 +25,7 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
   const [error, setError] = useState("");
   const [syncingCollections, setSyncingCollections] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [featuringId, setFeaturingId] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,8 +54,41 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
     return {
       published: list.filter((item) => item.status === "published").length,
       draft: list.filter((item) => item.status === "draft").length,
+      featured: list.filter((item) => Boolean(item.data?.featured)).length,
     };
   }, [items]);
+
+  async function toggleFeatured(item: CmsEntry) {
+    const nextFeatured = !Boolean(item.data?.featured);
+    setFeaturingId(item._id);
+    setError("");
+    try {
+      await cmsRequest(`${apiKind}/${item._id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: item.title,
+          slug: item.slug,
+          status: item.status,
+          excerpt: item.excerpt,
+          description: item.description,
+          content: item.content,
+          images: item.images,
+          seo: item.seo,
+          tags: item.tags,
+          data: {
+            ...(item.data || {}),
+            featured: nextFeatured,
+            featuredAt: nextFeatured ? new Date().toISOString() : item.data?.featuredAt,
+          },
+        }),
+      });
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تغییر پروژه شاخص انجام نشد");
+    } finally {
+      setFeaturingId("");
+    }
+  }
 
   async function togglePublish(item: CmsEntry) {
     try {
@@ -108,10 +142,11 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
           </div>
         </header>
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-3">
+        <section className={`mt-6 grid gap-3 ${kind === "projects" ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-forest">{items.length.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">کل موارد این نما</p></div>
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-forest">{counts.published.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">منتشرشده</p></div>
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-brick">{counts.draft.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">نیازمند تکمیل</p></div>
+          {kind === "projects" ? <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-forest">{counts.featured.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">پروژه شاخص (حداکثر ۲)</p></div> : null}
         </section>
 
         <section className="mt-4 overflow-hidden rounded-2xl border border-forest/10 bg-white/75 shadow-[0_10px_35px_rgba(9,43,28,0.035)]">
@@ -122,15 +157,17 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
 
           {error && <div className="m-4 rounded-xl border border-brick/15 bg-brick/[0.05] px-4 py-3 text-xs text-brick">{error}<button type="button" onClick={load} className="mr-3 underline">تلاش دوباره</button></div>}
 
-          <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_140px] gap-4 border-b border-forest/[0.06] bg-forest/[0.018] px-5 py-3 text-[10px] text-forest/35 md:grid"><span>عنوان</span><span>{labels.categoryLabel}</span><span>{kind === "products" ? "قیمت / موجودی" : "آخرین تغییر"}</span><span>وضعیت</span><span></span></div>
+          <div className={cn("hidden gap-4 border-b border-forest/[0.06] bg-forest/[0.018] px-5 py-3 text-[10px] text-forest/35 md:grid", kind === "projects" ? "grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_110px_140px]" : "grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_140px]")}><span>عنوان</span><span>{labels.categoryLabel}</span><span>{kind === "products" ? "قیمت / موجودی" : "آخرین تغییر"}</span><span>وضعیت</span>{kind === "projects" ? <span>شاخص</span> : null}<span></span></div>
           <div className="divide-y divide-forest/[0.07]">
             {loading ? Array.from({ length: 4 }).map((_, index) => <div key={index} className="grid animate-pulse gap-4 px-5 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_140px]"><span className="h-10 rounded-xl bg-forest/[0.05]"/><span className="h-5 rounded bg-forest/[0.04]"/><span className="h-5 rounded bg-forest/[0.04]"/></div>) : items.map((item) => {
               const data = item.data || {};
-              return <div key={item._id} className="group grid gap-3 px-5 py-4 transition-colors hover:bg-peach/[0.045] md:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_140px] md:items-center md:gap-4">
+              const isFeatured = Boolean(data.featured);
+              return <div key={item._id} className={cn("group grid gap-3 px-5 py-4 transition-colors hover:bg-peach/[0.045] md:items-center md:gap-4", kind === "projects" ? "md:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_110px_140px]" : "md:grid-cols-[minmax(0,1.4fr)_minmax(0,.8fr)_130px_120px_140px]")}>
                 <Link href={`/admin/manage/${kind}/${item._id}`} className="flex min-w-0 items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#ebe5dc] text-xs text-forest/45" style={item.images?.[0] ? { backgroundImage: `url(${item.images[0]})`, backgroundSize: "cover", backgroundPosition: "center", color: "transparent" } : undefined}>◇</span><span className="min-w-0"><span className="block truncate text-xs font-medium text-forest">{item.title}</span><span className="mt-1 block truncate text-[10px] text-forest/32" dir="ltr">/{item.slug}</span></span></Link>
                 <span className="pr-[52px] text-[11px] text-forest/45 md:pr-0">{String(data[labels.categoryKey] || "—")}</span>
                 <span className="pr-[52px] text-[10px] text-forest/38 md:pr-0">{kind === "products" ? <>{formatMoney(data.price)}<small className="mt-1 block text-[9px] text-forest/30">موجودی: {Number(data.inventory || 0).toLocaleString("fa-IR")}</small></> : new Date(item.updatedAt).toLocaleDateString("fa-IR")}</span>
                 <button type="button" onClick={() => togglePublish(item)} className={cn("mr-[52px] w-fit rounded-full px-2.5 py-1.5 text-[9px] transition-opacity hover:opacity-75 md:mr-0", item.status === "published" ? "bg-sage/35 text-forest" : item.status === "archived" ? "bg-forest/10 text-forest/50" : "bg-peach/40 text-brick")}>{statusCopy[item.status]}</button>
+                {kind === "projects" ? <button type="button" disabled={featuringId === item._id} onClick={() => void toggleFeatured(item)} className={cn("mr-[52px] w-fit rounded-full px-2.5 py-1.5 text-[9px] transition-opacity hover:opacity-75 disabled:opacity-45 md:mr-0", isFeatured ? "bg-forest text-paper" : "bg-forest/10 text-forest/55")}>{featuringId === item._id ? "…" : isFeatured ? "شاخص" : "شاخص کردن"}</button> : null}
                 <div className="mr-[52px] flex w-fit items-center gap-3 md:mr-0"><Link href={`/admin/manage/${kind}/${item._id}`} className="inline-flex items-center gap-1 text-[10px] font-medium text-brick">ویرایش <span>←</span></Link><button type="button" disabled={deletingId === item._id} onClick={() => void removeItem(item)} className="text-[10px] text-brick/75 underline hover:text-brick disabled:opacity-45">{deletingId === item._id ? "در حال حذف…" : "حذف"}</button></div>
               </div>;
             })}

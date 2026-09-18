@@ -42,12 +42,10 @@ const nextConfig: NextConfig = {
 
     const uploadOrigin = api.replace(/\/api\/?$/, "");
     return [
-      {
-        source: "/api/:path*",
-        destination: `${api.replace(/\/$/, "")}/:path*`,
-      },
-      // Uploaded media is returned as /uploads/<file>; make that URL work
-      // while the admin is running on its own development port as well.
+      // App Route Handlers under /api already attach the admin JWT and proxy
+      // to the right Nest paths. A catch-all rewrite would steal /api/cms/:id
+      // and hit the public CMS, which looks up slugs and returns
+      // "Published entry not found".
       { source: "/uploads/:path*", destination: `${uploadOrigin}/uploads/:path*` },
     ];
   },

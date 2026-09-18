@@ -326,6 +326,7 @@ export type ShopProduct = {
   isInStock: boolean;
   hasOptions: boolean;
   shopUrl: string;
+  finishes?: string[];
   variants?: { id: string; sku?: string; options: { name: string; value: string }[]; price?: number; compareAtPrice?: number; stockQty: number; image?: string; enabled: boolean }[];
 };
 

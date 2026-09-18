@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default async function ProjectsIndexPage() {
   const all = await fetchPublicProjects();
-  const featured = featuredProjectsFrom(all, 3);
+  const featured = featuredProjectsFrom(all, 2);
   const featuredSlugs = new Set(featured.map((project) => project.slug));
   const standard = all.filter((project) => !featuredSlugs.has(project.slug));
 

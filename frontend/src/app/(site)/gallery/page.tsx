@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { getGalleryItems } from "@/data/gallery";
+import { getGalleryItems, normalizeGalleryItem } from "@/data/gallery";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import GalleryExperience from "@/components/gallery/GalleryExperience";
@@ -17,7 +17,11 @@ export const metadata: Metadata = {
 export default async function GalleryPage() {
   const pages = await fetchPublicCmsEntries("page");
   const migratedItems = pages.find((page) => page.slug === "gallery")?.items;
-  const items = Array.isArray(migratedItems) && migratedItems.length ? migratedItems as GalleryItem[] : getGalleryItems();
+  const items = Array.isArray(migratedItems) && migratedItems.length
+    ? migratedItems
+        .map((item, index) => normalizeGalleryItem(item as Record<string, unknown>, index))
+        .filter((item): item is GalleryItem => Boolean(item))
+    : getGalleryItems();
 
   return (
     <section className="bg-paper pt-32 pb-24 md:pt-40 md:pb-32">

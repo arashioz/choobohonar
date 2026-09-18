@@ -10,6 +10,7 @@ import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
 import { useCart, type CartOption } from "@/components/commerce/cart/CartProvider";
+import type { MaterialSwatch } from "@/lib/storefront-products";
 
 const roomCategoryPaths = {
   living: "livingroom",
@@ -22,11 +23,48 @@ const roomCategoryPaths = {
   dishes: "decor",
 } as const;
 
-export default function CommerceProductDetail({ product }: { product: ShopProduct }) {
+const WOOD_ATTRIBUTE = /متریال|پرداخت|فینیش|چوب|رویه|material|finish|wood/i;
+
+function matchSwatch(swatches: MaterialSwatch[], value: string) {
+  const normalized = value.trim().toLowerCase();
+  return swatches.find(
+    (item) =>
+      item.slug === value ||
+      item.slug.toLowerCase() === normalized ||
+      item.name === value ||
+      item.color === value ||
+      item.name.toLowerCase() === normalized ||
+      item.color.toLowerCase() === normalized,
+  );
+}
+
+export default function CommerceProductDetail({
+  product,
+  materials = [],
+}: {
+  product: ShopProduct;
+  materials?: MaterialSwatch[];
+}) {
   const { addProduct, addItem } = useCart();
   const gallery = product.gallery.length ? product.gallery : [product.image];
   const [activeImage, setActiveImage] = useState(gallery[0]);
   const attributes = useMemo(() => getProductAttributeOptions(product).slice(0, 5), [product]);
+  const swatches = useMemo(() => materials.filter((item) => item.sample !== false), [materials]);
+  const assignedSwatches = useMemo(() => {
+    const fromProduct = (product.finishes || [])
+      .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "", color: "", hex: "", image: "", excerpt: "", href: `/materials/${slug}` })
+      .filter((item, index, list) => list.findIndex((entry) => entry.slug === item.slug) === index);
+    if (fromProduct.length) return fromProduct.slice(0, 1);
+    const materialOptions = attributes.find((attribute) => WOOD_ATTRIBUTE.test(attribute.label))?.options || [];
+    const attributeValue = materialOptions.find((option) => option.default)?.label || materialOptions[0]?.label || "";
+    const matched = attributeValue ? matchSwatch(swatches, attributeValue) : undefined;
+    if (matched) return [matched];
+    if (attributeValue) return [{ slug: attributeValue, name: attributeValue, family: "", color: "", hex: "", image: "", excerpt: "", href: "" }];
+    return [];
+  }, [attributes, product.finishes, swatches]);
+  const visibleSwatches = assignedSwatches;
+  const materialAttribute = attributes.find((attribute) => WOOD_ATTRIBUTE.test(attribute.label));
+  const otherAttributes = attributes.filter((attribute) => !WOOD_ATTRIBUTE.test(attribute.label));
   const [selected, setSelected] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       attributes.map((attribute) => [
@@ -35,6 +73,11 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
       ]),
     ),
   );
+  const initialMaterial = assignedSwatches[0]?.slug
+    || matchSwatch(swatches, materialAttribute?.options.find((option) => option.default)?.label || materialAttribute?.options[0]?.label || "")?.slug
+    || visibleSwatches[0]?.slug
+    || "";
+  const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
   const [added, setAdded] = useState(false);
   const collection = getCollectionName(product);
   const selectedVariant = useMemo(() => product.variants?.find((variant) => variant.enabled && variant.options.every((option) => {
@@ -54,7 +97,7 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
   }, [selectedVariant?.image]);
 
   const handleAddToCart = () => {
-    const options: CartOption[] = attributes
+    const options: CartOption[] = otherAttributes
       .map((attribute) => {
         const option = attribute.options.find((item) => item.id === selected[attribute.id]);
         return option
@@ -62,6 +105,10 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
           : null;
       })
       .filter((option): option is CartOption => Boolean(option));
+    const material = visibleSwatches.find((item) => item.slug === selectedMaterial);
+    if (material) {
+      options.push({ id: materialAttribute?.id || "material", label: materialAttribute?.label || "متریال", valueId: material.slug, value: material.name });
+    }
     if (selectedVariant?.price) {
       addItem({ productId: product.id, slug: product.slug, name: product.name, category: product.category, image: product.image, unitPrice: selectedVariant.price, currencySymbol: product.prices?.currencySymbol || "تومان", options: [...options, { id: "variant", label: "ترکیب", valueId: selectedVariant.id, value: selectedVariant.options.map((option) => option.value).join(" / ") }] });
     } else addProduct(product, options);
@@ -156,7 +203,43 @@ export default function CommerceProductDetail({ product }: { product: ShopProduc
               </div>
 
               <div className="mt-7 space-y-7">
-                {attributes.map((attribute) => (
+                {visibleSwatches.length ? (
+                  <fieldset>
+                    <legend className="text-sm font-medium text-forest">{materialAttribute?.label || "متریال"}</legend>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="h-4 w-4 shrink-0 rounded-full border border-forest/30 bg-transparent" aria-hidden />
+                      {visibleSwatches.length > 1 ? (
+                        <select
+                          value={selectedMaterial}
+                          onChange={(event) => {
+                            const next = visibleSwatches.find((item) => item.slug === event.target.value);
+                            if (!next) return;
+                            setSelectedMaterial(next.slug);
+                            setAdded(false);
+                            if (materialAttribute) {
+                              const option = materialAttribute.options.find(
+                                (entry) => matchSwatch([next], entry.label) || matchSwatch([next], entry.id),
+                              );
+                              if (option) {
+                                setSelected((current) => ({ ...current, [materialAttribute.id]: option.id }));
+                              }
+                            }
+                          }}
+                          className="min-w-0 flex-1 border-0 bg-transparent py-0 text-xs text-forest focus:outline-none"
+                        >
+                          {visibleSwatches.map((item) => (
+                            <option key={item.slug} value={item.slug}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-xs text-forest">{visibleSwatches[0]?.name}</span>
+                      )}
+                    </div>
+                  </fieldset>
+                ) : null}
+                {otherAttributes.map((attribute) => (
                   <fieldset key={attribute.id}>
                     <div className="flex items-center justify-between gap-4">
                       <legend className="text-sm font-medium text-forest">{attribute.label}</legend>

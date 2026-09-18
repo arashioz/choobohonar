@@ -73,7 +73,7 @@ export default function GalleryExperience({ items }: Props) {
       </div>
 
       {active ? (
-        <GalleryLightbox item={active} onClose={() => setActive(null)} onSelect={setActive} />
+        <GalleryLightbox item={active} catalog={items} onClose={() => setActive(null)} onSelect={setActive} />
       ) : null}
     </div>
   );

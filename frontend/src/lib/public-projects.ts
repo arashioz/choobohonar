@@ -14,8 +14,14 @@ export async function fetchPublicProjects(): Promise<Project[]> {
     : [...getFeaturedProjects(), ...getStandardProjects()];
 }
 
-export function featuredProjectsFrom(projects: Project[], count?: number): Project[] {
+export function featuredProjectsFrom(projects: Project[], count = 2): Project[] {
   const featured = projects.filter((project) => project.featured);
-  const result = featured.length ? featured : projects;
-  return count === undefined ? result : result.slice(0, count);
+  const ranked = featured.length
+    ? [...featured].sort((a, b) => {
+        const aTime = Date.parse(a.featuredAt || "") || 0;
+        const bTime = Date.parse(b.featuredAt || "") || 0;
+        return bTime - aTime;
+      })
+    : projects;
+  return ranked.slice(0, count);
 }

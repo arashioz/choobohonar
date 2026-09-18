@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type ResourcePath } from "@/lib/cms";
 import { uploadMedia } from "@/lib/upload";
+import GalleryPageEditor, { asGalleryMediaItems } from "@/components/gallery/GalleryPageEditor";
+import ProjectProductsPicker from "@/components/projects/ProjectProductsPicker";
 
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
 
@@ -145,6 +147,19 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
       </div>
 
       <div className="mx-auto grid max-w-[1380px] gap-5 px-5 py-7 sm:px-8 lg:grid-cols-12 lg:px-10">
+        {kind === "page" && entry.slug === "gallery" ? (
+          <div className="space-y-5 lg:col-span-12">
+            {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
+            <Panel title="اطلاعات صفحه گالری" description="عنوان صفحه در سایت؛ رسانه‌ها را در بخش پایین مدیریت کنید.">
+              <Field label="عنوان صفحه" required><input value={entry.title} onChange={(e) => setField("title", e.target.value)} className={inputClass} /></Field>
+              <Field label="خلاصه کوتاه"><textarea value={entry.excerpt || ""} onChange={(e) => setField("excerpt", e.target.value)} className={`${inputClass} min-h-24 resize-y`} /></Field>
+            </Panel>
+            <GalleryPageEditor items={asGalleryMediaItems(data.items)} onChange={(items) => setData("items", items)} onBusyChange={setUploading} />
+            {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
+          </div>
+        ) : null}
+        {!(kind === "page" && entry.slug === "gallery") ? (
+        <>
         <div className="space-y-5 lg:col-span-8">
           {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
           <Panel title={`اطلاعات اصلی ${labels.singular}`} description="عنوان و محتوایی که در سایت دیده می‌شود.">
@@ -155,7 +170,11 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {kind === "article" && <Field label="متن مقاله" hint="نسخه فعلی ویرایشگر متنی است؛ ساختار بلوکی در فاز بعد قابل افزودن است."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
           </Panel>
 
+<<<<<<< HEAD
           <SpecificFields kind={kind} title={entry.title} images={entry.images || []} data={data} setData={setData} dataText={dataText} relations={relations} />
+=======
+          <SpecificFields kind={kind} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} />
+>>>>>>> 7eab36dd2cf1d7e1cf258d497da3b0b74d2a9eff
 
           {kind !== "article" && <Panel title="محتوای تکمیلی" description="جزئیات روایی یا فنی برای صفحه کامل."><Field label="محتوای تفصیلی"><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-56 resize-y leading-7`} placeholder="جزئیات بیشتر، شیوه نگهداری یا روایت تکمیلی…" /></Field><TagInput label="برچسب‌ها" hint="برای افزودن هر تگ Enter بزنید." value={entry.tags || []} onChange={(tags) => setField("tags", tags)} placeholder="مثلاً طراحی معاصر" /></Panel>}
 
@@ -169,6 +188,8 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
 
           {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
         </aside>
+        </>
+        ) : null}
       </div>
     </main>
   );
@@ -181,6 +202,7 @@ function splitList(value: string) { return value.split(/[،,]/).map((item) => it
 type ProductVariant = { name: string; sku: string; price: number; inventory: number; attributes: string[] };
 type MaterialHighlight = { title: string; description: string };
 
+<<<<<<< HEAD
 function safeColor(value: string) { return /^#[0-9a-f]{6}$/i.test(value) ? value : "#8b6b52"; }
 
 function MaterialPreview({ title, image, color, type }: { title: string; image?: string; color: string; type?: string }) {
@@ -193,6 +215,9 @@ function HighlightEditor({ value, onChange }: { value: MaterialHighlight[]; onCh
 }
 
 function SpecificFields({ kind, title, images, data, setData, dataText, relations }: { kind: CmsKind; title: string; images: string[]; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] } }) {
+=======
+function SpecificFields({ kind, data, setData, dataText, relations, images = [] }: { kind: CmsKind; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] }; images?: string[] }) {
+>>>>>>> 7eab36dd2cf1d7e1cf258d497da3b0b74d2a9eff
   if (kind === "page") return <Panel title="دادهٔ صفحه" description="ساختار این صفحه از دیتابیس خوانده می‌شود. برای تغییر محتوای ناوبری، برند یا فرم‌ها JSON را ویرایش کنید."><textarea dir="ltr" defaultValue={JSON.stringify(data, null, 2)} onBlur={(event) => { try { const parsed = JSON.parse(event.currentTarget.value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setData("__replace", parsed); } catch { /* keep the last valid payload */ } }} className={`${inputClass} min-h-[520px] resize-y font-mono text-[11px] leading-6`} spellCheck={false} /><p className="text-[9px] leading-5 text-forest/35">پس از ویرایش، ابتدا JSON را معتبر نگه دارید و سپس ذخیره کنید.</p></Panel>;
   if (kind === "product") {
     const categories = arrayValue(data.categories, data.category);
@@ -252,7 +277,48 @@ function SpecificFields({ kind, title, images, data, setData, dataText, relation
     </Panel>
   </>;
   if (kind === "story") return <Panel title="نمایش در سایت" description="این اطلاعات روی ویدیوی عمودی در صفحه محصولات نشان داده می‌شوند."><Field label="برچسب بالای ویدیو"><input value={dataText("label")} onChange={(e) => setData("label", e.target.value)} className={inputClass} placeholder="مثلاً نشیمن / چوب گردو" /></Field><p className="rounded-xl bg-forest/[0.04] px-3.5 py-3 text-[10px] leading-5 text-forest/45">برای پخش سریع، ویدیو را عمودی، با کدک H.264 و بدون صدای ضروری آپلود کنید. پخش فقط پس از انتخاب کاربر آغاز می‌شود.</p></Panel>;
-  if (kind === "project") return <Panel title="مشخصات پروژه" description="اطلاعات اجرایی، نوع کاربری و اعتباری پروژه."><div className="grid gap-4 sm:grid-cols-2"><Field label="دسته‌بندی پروژه" hint="برای گروه‌بندی و فیلتر پروژه‌ها در سایت استفاده می‌شود."><select value={dataText("projectType")} onChange={(e) => setData("projectType", e.target.value)} className={inputClass}><option value="">انتخاب دسته‌بندی</option><option value="ویلایی">ویلایی</option><option value="آپارتمانی">آپارتمانی</option><option value="مسکونی">مسکونی</option><option value="اداری">اداری</option><option value="تجاری">تجاری</option><option value="هتل و اقامتی">هتل و اقامتی</option><option value="رستوران و کافه">رستوران و کافه</option></select></Field><Field label="کارفرما"><input value={dataText("client")} onChange={(e) => setData("client", e.target.value)} className={inputClass} /></Field><Field label="موقعیت"><input value={dataText("location")} onChange={(e) => setData("location", e.target.value)} className={inputClass} /></Field><Field label="سال اجرا"><input value={dataText("year")} onChange={(e) => setData("year", e.target.value)} className={inputClass} /></Field><Field label="مساحت (متر مربع)"><input type="number" min="0" value={dataText("area")} onChange={(e) => setData("area", Number(e.target.value))} className={inputClass} /></Field></div><TagInput label="خدمات انجام‌شده" value={arrayValue(data.services)} onChange={(values) => setData("services", values)} placeholder="مثلاً طراحی داخلی" /><TagInput label="محصولات استفاده‌شده" value={arrayValue(data.products)} onChange={(values) => setData("products", values)} placeholder="نام یا اسلاگ محصول" /></Panel>;
+  if (kind === "project") return <>
+    <Panel title="مشخصات پروژه" description="اطلاعات اجرایی، نوع کاربری و اعتباری پروژه.">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="دسته‌بندی پروژه" hint="برای گروه‌بندی و فیلتر پروژه‌ها در سایت استفاده می‌شود.">
+          <select value={dataText("projectType")} onChange={(e) => setData("projectType", e.target.value)} className={inputClass}>
+            <option value="">انتخاب دسته‌بندی</option>
+            <option value="ویلایی">ویلایی</option>
+            <option value="آپارتمانی">آپارتمانی</option>
+            <option value="مسکونی">مسکونی</option>
+            <option value="اداری">اداری</option>
+            <option value="تجاری">تجاری</option>
+            <option value="هتل و اقامتی">هتل و اقامتی</option>
+            <option value="رستوران و کافه">رستوران و کافه</option>
+          </select>
+        </Field>
+        <Field label="کارفرما"><input value={dataText("client")} onChange={(e) => setData("client", e.target.value)} className={inputClass} /></Field>
+        <Field label="موقعیت"><input value={dataText("location")} onChange={(e) => setData("location", e.target.value)} className={inputClass} /></Field>
+        <Field label="سال اجرا"><input value={dataText("year")} onChange={(e) => setData("year", e.target.value)} className={inputClass} /></Field>
+        <Field label="مساحت (متر مربع)"><input type="number" min="0" value={dataText("area")} onChange={(e) => setData("area", Number(e.target.value))} className={inputClass} /></Field>
+      </div>
+      <TagInput label="خدمات انجام‌شده" value={arrayValue(data.services)} onChange={(values) => setData("services", values)} placeholder="مثلاً طراحی داخلی" />
+      <ProjectProductsPicker value={productSlugValue(data)} onChange={(slugs) => { setData("productSlugs", slugs); setData("productIds", slugs); }} />
+    </Panel>
+    <Panel title="پروژه شاخص" description="حداکثر دو پروژه شاخص در صفحه خانه و صفحه پروژه‌ها با همین عنوان و خلاصه نمایش داده می‌شوند. عکس‌های بنر را از گالری همین پروژه انتخاب کنید.">
+      <label className="flex items-center justify-between rounded-xl border border-forest/10 bg-[#faf8f5] px-4 py-3">
+        <span>
+          <span className="block text-[11px] font-medium text-forest">نمایش به‌عنوان پروژه شاخص</span>
+          <span className="mt-1 block text-[9px] text-forest/35">اگر دو پروژه دیگر شاخص باشند، قدیمی‌تر از شاخص خارج می‌شود.</span>
+        </span>
+        <input
+          type="checkbox"
+          checked={Boolean(data.featured)}
+          onChange={(e) => {
+            setData("featured", e.target.checked);
+            if (e.target.checked) setData("featuredAt", new Date().toISOString());
+          }}
+          className="h-4 w-4 accent-forest"
+        />
+      </label>
+      <FeaturedBannerPicker images={images} value={arrayValue(data.featuredImages)} onChange={(values) => setData("featuredImages", values)} />
+    </Panel>
+  </>;
   if (kind === "collection") return <Panel title="ساختار کالکشن" description="هویت مجموعه و محصولاتی که به آن تعلق دارند."><div className="grid gap-4 sm:grid-cols-2"><Field label="نام انگلیسی"><input value={dataText("nameEn")} onChange={(e) => setData("nameEn", e.target.value)} className={inputClass} dir="ltr" /></Field><Field label="فصل / سال"><input value={dataText("season")} onChange={(e) => setData("season", e.target.value)} className={inputClass} placeholder="پاییز ۱۴۰۵" /></Field></div><TagInput label="محصولات کالکشن" hint="نام یا اسلاگ هر محصول را اضافه کنید." value={arrayValue(data.productIds)} onChange={(values) => setData("productIds", values)} placeholder="مثلاً sarv-table" /><label className="flex items-center justify-between rounded-xl border border-forest/10 bg-[#faf8f5] px-4 py-3"><span><span className="block text-[11px] font-medium text-forest">کالکشن ویژه</span><span className="mt-1 block text-[9px] text-forest/35">در بخش‌های شاخص سایت نمایش داده شود.</span></span><input type="checkbox" checked={Boolean(data.featured)} onChange={(e) => setData("featured", e.target.checked)} className="h-4 w-4 accent-forest" /></label></Panel>;
   return null;
 }
@@ -261,6 +327,58 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
 function asRecord(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
 function nestedNumber(data: Record<string, unknown>, parent: string, key: string) { return Number(asRecord(data[parent])[key] || 0); }
 function arrayValue(value: unknown, fallback?: unknown): string[] { if (Array.isArray(value)) return value.map(String).filter(Boolean); return fallback ? [String(fallback)] : []; }
+function productSlugValue(data: Record<string, unknown>): string[] {
+  const fromList = (value: unknown) => {
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => {
+      if (typeof item === "string" && item.trim()) return [item.trim()];
+      if (item && typeof item === "object") {
+        const record = item as { productSlug?: unknown; slug?: unknown };
+        const slug = record.productSlug || record.slug;
+        return typeof slug === "string" && slug.trim() ? [slug.trim()] : [];
+      }
+      return [];
+    });
+  };
+  return [...new Set([...fromList(data.productSlugs), ...fromList(data.productIds), ...fromList(data.products)])];
+}
+
+function FeaturedBannerPicker({ images, value, onChange }: { images: string[]; value: string[]; onChange: (value: string[]) => void }) {
+  const pool = [...new Set([...value, ...images])];
+  function toggle(src: string) {
+    if (value.includes(src)) onChange(value.filter((item) => item !== src));
+    else if (value.length < 2) onChange([...value, src]);
+    else onChange([value[1], src]);
+  }
+  return (
+    <div>
+      <span className="mb-2 block text-[11px] font-medium text-forest/60">تصاویر بنر شاخص</span>
+      <p className="mb-3 text-[9px] leading-5 text-forest/35">تا دو تصویر انتخاب کنید. ترتیب انتخاب همان ترتیب اسکرول بنر در خانه و صفحه پروژه‌ها است. اگر خالی بماند، دو تصویر اول گالری استفاده می‌شود.</p>
+      {pool.length ? (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {pool.map((src, index) => {
+            const selectedIndex = value.indexOf(src);
+            return (
+              <button
+                key={`${src}-${index}`}
+                type="button"
+                onClick={() => toggle(src)}
+                className={cn("relative aspect-[4/5] overflow-hidden rounded-xl border bg-cover bg-center", selectedIndex >= 0 ? "border-forest ring-2 ring-forest/20" : "border-forest/10")}
+                style={{ backgroundImage: `url(${src})` }}
+              >
+                {selectedIndex >= 0 ? (
+                  <span className="absolute right-1.5 top-1.5 rounded-md bg-forest px-1.5 py-0.5 text-[8px] text-paper">{(selectedIndex + 1).toLocaleString("fa-IR")}</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-dashed border-forest/15 px-3 py-4 text-[10px] text-forest/40">ابتدا در ستون گالری تصویر آپلود کنید، سپس اینجا برای بنر انتخاب کنید.</p>
+      )}
+    </div>
+  );
+}
 
 function TagInput({ label, value, onChange, placeholder = "یک مقدار بنویسید", hint }: { label: string; value: string[]; onChange: (value: string[]) => void; placeholder?: string; hint?: string }) {
   const [draft, setDraft] = useState("");
