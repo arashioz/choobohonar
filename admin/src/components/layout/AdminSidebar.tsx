@@ -72,15 +72,15 @@ export default function AdminSidebar() {
 
   return (
     <>
-      <aside className="fixed inset-y-0 right-0 z-40 hidden w-[248px] flex-col border-l border-forest/[0.08] bg-[#f3efe8]/95 px-5 backdrop-blur-xl md:flex">
-        <div className="flex h-[102px] items-center border-b border-forest/[0.07] px-1">
+      <aside className="fixed inset-y-0 right-0 z-40 hidden h-dvh w-[248px] flex-col overflow-hidden border-l border-forest/[0.08] bg-[#f3efe8]/95 px-5 backdrop-blur-xl md:flex">
+        <div className="flex h-[102px] shrink-0 items-center border-b border-forest/[0.07] px-1">
           <Link href="/admin" className="relative block h-[58px] w-[148px]" aria-label="خانه پنل مدیریت">
             <Image src="/brand/downloads/choobohonar-lockup-persian-black.svg" alt="خانه چوب و هنر" fill priority className="object-contain object-right opacity-[0.86]" />
           </Link>
         </div>
 
-        <div className="px-2 pb-2.5 pt-7 text-[9px] font-medium tracking-[0.12em] text-forest/28">فضای مدیریت</div>
-        <nav className="space-y-1">
+        <div className="shrink-0 px-2 pb-2.5 pt-7 text-[9px] font-medium tracking-[0.12em] text-forest/28">فضای مدیریت</div>
+        <nav className="h-0 min-h-0 flex-1 space-y-1 overflow-y-scroll overscroll-contain pb-2 [scrollbar-gutter:stable]">
           {navItems.map((item) => {
             const active = isItemActive(pathname, item.href);
             return (
@@ -105,7 +105,7 @@ export default function AdminSidebar() {
           })}
         </nav>
 
-        <div className="mt-auto border-t border-forest/[0.07] py-4">
+        <div className="mt-auto shrink-0 border-t border-forest/[0.07] py-4">
           <div className="mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest/[0.07] text-[10px] font-semibold text-forest">مد</span>
             <span className="min-w-0 flex-1">
