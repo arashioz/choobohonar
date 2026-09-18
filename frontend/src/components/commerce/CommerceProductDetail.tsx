@@ -53,7 +53,7 @@ export default function CommerceProductDetail({
   const swatches = useMemo(() => materials.filter((item) => item.sample !== false), [materials]);
   const assignedSwatches = useMemo(() => {
     const fromProduct = (product.finishes || [])
-      .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "", color: "", hex: "", image: "", excerpt: "", href: `/materials/${slug}` })
+      .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "", color: "", hex: "", image: "", excerpt: "", href: `/materials/wood/${slug}` })
       .filter((item, index, list) => list.findIndex((entry) => entry.slug === item.slug) === index);
     if (fromProduct.length) return fromProduct.slice(0, 1);
     const materialOptions = attributes.find((attribute) => WOOD_ATTRIBUTE.test(attribute.label))?.options || [];

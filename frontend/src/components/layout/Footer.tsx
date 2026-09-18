@@ -6,6 +6,7 @@ import Stagger from "@/components/motion/Stagger";
 import BrandMark from "@/components/brand/BrandMark";
 import { fetchPublicCmsPage } from "@/lib/public-cms";
 import type { NavItem } from "@/data/nav-types";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 
 export default async function Footer() {
   const navPage = await fetchPublicCmsPage<{
@@ -51,7 +52,7 @@ export default async function Footer() {
                   </li>
                 ))}
                 <li>
-                  <Link href="/materials" className="transition-colors hover:text-peach focus-visible:text-peach">
+                  <Link href={DEFAULT_MATERIALS_HREF} className="transition-colors hover:text-peach focus-visible:text-peach">
                     متریال‌ها
                   </Link>
                 </li>

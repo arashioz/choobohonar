@@ -1,5 +1,11 @@
 export type MaterialId = "wood" | "fabric" | "veneer" | "metal";
 
+/** Public “متریال‌ها” links land on wood until more families are launched. */
+export const DEFAULT_MATERIALS_HREF = "/materials/wood";
+
+/** Families shown on the materials hub. Veneer and metal stay in data for later. */
+export const LAUNCHED_MATERIAL_FAMILIES: MaterialId[] = ["wood", "fabric"];
+
 export type WoodFinish = {
   id: string;
   label: string;

@@ -16,6 +16,7 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import AddToCartButton from "@/components/shop/AddToCartButton";
 import { toFa } from "@/lib/utils";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 
 const ALL_ROOMS = "all";
 const ALL_CATEGORIES = "all";
@@ -161,7 +162,7 @@ export default function ProductsCatalogPage() {
             {" · "}
             {toFa(categoryCount)} دسته در کل کاتالوگ
           </p>
-          <Link href="/materials" className="inline-flex items-center gap-2 text-forest transition-colors hover:text-brick">
+          <Link href={DEFAULT_MATERIALS_HREF} className="inline-flex items-center gap-2 text-forest transition-colors hover:text-brick">
             مشاهده متریال‌ها
             <span>←</span>
           </Link>

@@ -92,6 +92,48 @@ export const materialCommerceItems: MaterialCommerceItem[] = [
     care: "گردگیری منظم و بازبینی دوره‌ای سطح برای حفظ پوشش توصیه می‌شود.",
   },
   {
+    slug: "beech",
+    categoryId: "wood",
+    name: "راش",
+    code: "WD-04",
+    subtitle: "سخت، یکدست و مناسب سازه",
+    description: "چوب راش با بافت منظم و استحکام بالا، انتخاب رایج اسکلت مبلمان و سرویس خواب است؛ پرداخت روشن یا دودی هر دو روی همین سازه می‌نشینند.",
+    color: "#B08968",
+    accent: "#D4B496",
+    applicationImage: applicationImages.bedroom,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "متر مربع / قطعه",
+    commerceMode: "quote",
+    specs: [
+      { label: "سختی", value: "بالا" },
+      { label: "پرداخت", value: "روشن، طبیعی یا دودی" },
+      { label: "کاربرد اصلی", value: "اسکلت و کلاف" },
+    ],
+    uses: ["اسکلت مبل", "سرویس خواب", "صندلی غذاخوری"],
+    care: "رطوبت کنترل‌شده و گردگیری خشک؛ از شویندهٔ قوی روی سطح خام پرهیز شود.",
+  },
+  {
+    slug: "alder",
+    categoryId: "wood",
+    name: "توسکا",
+    code: "WD-05",
+    subtitle: "سبک، گرم و خوش‌کار",
+    description: "توسکا چوبی نسبتاً سبک با تن گرم است؛ برای قطعاتی که باید فرم بپذیرند و رنگ یکنواخت بگیرند مناسب است.",
+    color: "#C49A6C",
+    accent: "#E2C49A",
+    applicationImage: applicationImages.alder,
+    priceLabel: "قیمت بر اساس پروژه",
+    unit: "متر مربع / قطعه",
+    commerceMode: "sample",
+    specs: [
+      { label: "وزن", value: "سبک تا متوسط" },
+      { label: "پرداخت", value: "رنگ‌پذیر" },
+      { label: "پایداری", value: "مناسب فضای داخلی" },
+    ],
+    uses: ["بدنه مبلمان", "رویه میز", "جزئیات دکوراتیو"],
+    care: "دور از رطوبت مستقیم نگهداری شود؛ پرداخت سطح را دوره‌ای بازبینی کنید.",
+  },
+  {
     slug: "boucle-sand",
     categoryId: "fabric",
     name: "بوکله شنی",
@@ -287,5 +329,11 @@ export function getMaterialCommerceItems(categoryId: string) {
 }
 
 export function getMaterialCommerceItem(categoryId: string, slug: string) {
-  return materialCommerceItems.find((item) => item.categoryId === categoryId && item.slug === slug);
+  const aliases: Record<string, string> = {
+    walnut: "american-walnut",
+    oak: "natural-oak",
+    راش: "beech",
+  };
+  const resolved = aliases[slug] || slug;
+  return materialCommerceItems.find((item) => item.categoryId === categoryId && item.slug === resolved);
 }

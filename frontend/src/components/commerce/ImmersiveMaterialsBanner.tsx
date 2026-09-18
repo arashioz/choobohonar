@@ -9,6 +9,7 @@ import {
   registerGsap,
   scrollTriggerConfig,
 } from "@/lib/gsap";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 
 export default function ImmersiveMaterialsBanner() {
   const rootRef = useRef<HTMLElement>(null);
@@ -112,7 +113,7 @@ export default function ImmersiveMaterialsBanner() {
     <section ref={rootRef} className="relative h-[145svh] bg-[#e8ded2]" aria-label="کتابخانه متریال">
       <Link
         ref={panelRef}
-        href="/materials"
+        href={DEFAULT_MATERIALS_HREF}
         className="group sticky top-0 block h-[100svh] overflow-hidden bg-forest text-paper will-change-transform"
       >
         <Image

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Container from "@/components/layout/Container";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
-import { getMaterial } from "@/data/materials";
+import { DEFAULT_MATERIALS_HREF, getMaterial } from "@/data/materials";
 import {
   getMaterialCommerceItem,
   getMaterialCommerceItems,
@@ -75,7 +75,7 @@ export default async function MaterialProductPage({ params }: PageProps) {
           <nav className="mb-auto flex flex-wrap items-center gap-2 text-xs text-paper/65">
             <Link href="/" className="hover:text-paper">خانه</Link>
             <span>/</span>
-            <Link href="/materials" className="hover:text-paper">متریال</Link>
+            <Link href={DEFAULT_MATERIALS_HREF} className="hover:text-paper">متریال</Link>
             <span>/</span>
             <Link href={`/materials/${material.id}`} className="hover:text-paper">{material.label}</Link>
             <span>/</span>

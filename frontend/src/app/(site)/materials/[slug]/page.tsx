@@ -7,6 +7,7 @@ import MaterialCategoryCatalog from "@/components/materials/MaterialCategoryCata
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import { getMaterialCommerceItems } from "@/data/material-products";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import { isUploadedMedia } from "@/lib/media";
 import { fetchPublicMaterial } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
@@ -50,7 +51,7 @@ export default async function MaterialCategoryPage({ params }: PageProps) {
           <nav className="mb-10 flex items-center gap-2 text-xs text-paper/60">
             <Link href="/" className="hover:text-paper">خانه</Link>
             <span>/</span>
-            <Link href="/materials" className="hover:text-paper">متریال</Link>
+            <Link href={DEFAULT_MATERIALS_HREF} className="hover:text-paper">متریال</Link>
             <span>/</span>
             <span className="text-peach">{material.label}</span>
           </nav>

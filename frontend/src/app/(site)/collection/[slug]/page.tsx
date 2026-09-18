@@ -12,6 +12,7 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import AddToCartButton from "@/components/shop/AddToCartButton";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 
 export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }));
@@ -98,7 +99,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
 
           <div className="mt-16 flex flex-wrap gap-4">
             <Button as="a" href="/collection" variant="secondary">همه کالکشن‌ها</Button>
-            <Button as="a" href="/materials" variant="secondary" showArrow>متریال‌ها</Button>
+            <Button as="a" href={DEFAULT_MATERIALS_HREF} variant="secondary" showArrow>متریال‌ها</Button>
           </div>
         </Container>
       </section>
@@ -168,7 +169,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
 
         <div className="mt-16 flex flex-wrap gap-4">
           <Button as="a" href="/collection" variant="secondary">همه کالکشن‌ها</Button>
-          <Button as="a" href="/materials" variant="secondary" showArrow>متریال‌ها</Button>
+          <Button as="a" href={DEFAULT_MATERIALS_HREF} variant="secondary" showArrow>متریال‌ها</Button>
         </div>
       </Container>
     </section>

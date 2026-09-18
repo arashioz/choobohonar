@@ -7,7 +7,7 @@ import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 import { getMaterialCommerceItems } from "@/data/material-products";
 import { isUploadedMedia } from "@/lib/media";
-import { fetchPublicMaterials } from "@/lib/public-materials";
+import { fetchPublicMaterialFamilies } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MaterialsPage() {
-  const visibleMaterials = await fetchPublicMaterials();
+  const visibleMaterials = await fetchPublicMaterialFamilies();
   return (
     <>
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#73563d] text-paper">
@@ -58,7 +58,7 @@ export default async function MaterialsPage() {
         <Container>
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <FadeUp>
-              <p className="eyebrow text-brick">چهار خانواده اصلی</p>
+              <p className="eyebrow text-brick">چوب و پارچه</p>
               <h2 className="mt-6 text-[clamp(3rem,6vw,6rem)] font-extralight leading-[0.9] tracking-tightest text-forest">
                 برای چشم،
                 <br />
@@ -67,7 +67,7 @@ export default async function MaterialsPage() {
             </FadeUp>
             <FadeUp delay={0.1} className="max-w-xl lg:justify-self-end">
               <p className="text-lg leading-9 text-forest/60">
-                هر خانواده منطق انتخاب خودش را دارد؛ از رگه و سختی چوب تا سایش پارچه و نوع پرداخت فلز.
+                هر خانواده منطق انتخاب خودش را دارد؛ فعلاً چوب و پارچه در کتابخانه باز است و خانواده‌های بعدی به‌تدریج اضافه می‌شوند.
               </p>
             </FadeUp>
           </div>

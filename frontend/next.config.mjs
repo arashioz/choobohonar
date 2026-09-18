@@ -89,6 +89,16 @@ const nextConfig = {
         destination: "/collection/:path*",
         permanent: true,
       },
+      {
+        source: "/materials/wood/walnut",
+        destination: "/materials/wood/american-walnut",
+        permanent: true,
+      },
+      {
+        source: "/materials/wood/oak",
+        destination: "/materials/wood/natural-oak",
+        permanent: true,
+      },
       ...Object.entries(finishDestinations).flatMap(([id, destination]) => [
         {
           source: `/collection/${id}`,

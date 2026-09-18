@@ -6,6 +6,7 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import GalleryExperience from "@/components/gallery/GalleryExperience";
 import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import type { GalleryItem } from "@/data/gallery";
 
 export const metadata: Metadata = {
@@ -68,7 +69,7 @@ export default async function GalleryPage() {
               کالکشن‌ها
               <span>←</span>
             </Link>
-            <Link href="/materials" className="inline-flex items-center gap-2 text-forest/55 transition-colors hover:text-forest">
+            <Link href={DEFAULT_MATERIALS_HREF} className="inline-flex items-center gap-2 text-forest/55 transition-colors hover:text-forest">
               متریال‌ها
               <span>←</span>
             </Link>

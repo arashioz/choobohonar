@@ -5,6 +5,7 @@ import { collections, getCollectionProductCount, fetchApiCollections } from "@/d
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
+import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import { toFa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -82,9 +83,9 @@ export default async function CollectionPage() {
 
         <FadeUp delay={0.2} className="mt-20 border-t border-forest/10 pt-10">
           <p className="max-w-xl text-base leading-relaxed text-forest/60">
-            برای آشنایی با چوب، پارچه، روکش و فلز به بخش متریال‌ها سر بزنید.
+            برای آشنایی با چوب به بخش متریال‌ها سر بزنید.
           </p>
-          <Link href="/materials" className="mt-4 inline-flex items-center gap-2 text-sm text-forest transition-colors hover:text-brick">
+          <Link href={DEFAULT_MATERIALS_HREF} className="mt-4 inline-flex items-center gap-2 text-sm text-forest transition-colors hover:text-brick">
             مشاهده متریال‌ها <span>←</span>
           </Link>
         </FadeUp>

@@ -1,4 +1,4 @@
-import { getMaterial, materials } from "@/data/materials";
+import { getMaterial, LAUNCHED_MATERIAL_FAMILIES, materials } from "@/data/materials";
 import {
   fetchPublicCmsEntries,
   fetchPublicCmsEntry,
@@ -130,6 +130,14 @@ export async function fetchPublicMaterials(): Promise<PublicMaterial[]> {
   const entries = await fetchPublicCmsEntries("material");
   if (entries.length) return entries.map(normalizePublicMaterial);
   return materials.map((material) => fallbackMaterial(material.id)!).filter(Boolean);
+}
+
+export async function fetchPublicMaterialFamilies(): Promise<PublicMaterial[]> {
+  const all = await fetchPublicMaterials();
+  const byId = new Map(all.map((material) => [material.id, material]));
+  return LAUNCHED_MATERIAL_FAMILIES.map((id) => byId.get(id) || fallbackMaterial(id)).filter(
+    (material): material is PublicMaterial => Boolean(material),
+  );
 }
 
 export async function fetchPublicMaterial(slug: string): Promise<PublicMaterial | null> {
