@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductRichDescription from "@/components/products/ProductRichDescription";
 import type { ShopProduct } from "@/data/products";
-import { formatCatalogPrice, getCollectionName, getProductAttributeOptions } from "@/lib/commerce";
+import { formatCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
@@ -49,6 +49,7 @@ export default function CommerceProductDetail({
   const gallery = product.gallery.length ? product.gallery : [product.image];
   const [activeImage, setActiveImage] = useState(gallery[0]);
   const attributes = useMemo(() => getProductAttributeOptions(product).slice(0, 5), [product]);
+  const craftAttributes = useMemo(() => getCraftAttributes(product), [product]);
   const swatches = useMemo(() => materials.filter((item) => item.sample !== false), [materials]);
   const assignedSwatches = useMemo(() => {
     const fromProduct = (product.finishes || [])
@@ -66,12 +67,7 @@ export default function CommerceProductDetail({
   const materialAttribute = attributes.find((attribute) => WOOD_ATTRIBUTE.test(attribute.label));
   const otherAttributes = attributes.filter((attribute) => !WOOD_ATTRIBUTE.test(attribute.label));
   const [selected, setSelected] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      attributes.map((attribute) => [
-        attribute.id,
-        attribute.options.find((option) => option.default)?.id ?? attribute.options[0]?.id ?? "",
-      ]),
-    ),
+    selectionFromVariant(attributes, getHighestPricedVariant(product)),
   );
   const initialMaterial = assignedSwatches[0]?.slug
     || matchSwatch(swatches, materialAttribute?.options.find((option) => option.default)?.label || materialAttribute?.options[0]?.label || "")?.slug
@@ -80,10 +76,10 @@ export default function CommerceProductDetail({
   const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
   const [added, setAdded] = useState(false);
   const collection = getCollectionName(product);
-  const selectedVariant = useMemo(() => product.variants?.find((variant) => variant.enabled && variant.options.every((option) => {
-    const attribute = attributes.find((item) => item.label === option.name);
-    return attribute?.options.find((item) => item.id === selected[attribute.id])?.label === option.value;
-  })), [attributes, product.variants, selected]);
+  const selectedVariant = useMemo(
+    () => variantMatchingSelection(product, attributes, selected),
+    [attributes, product, selected],
+  );
   const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
   const canAddToCart =
     product.isInStock &&
@@ -248,12 +244,12 @@ export default function CommerceProductDetail({
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {attribute.options.slice(0, 10).map((option) => (
+                      {attribute.options.map((option) => (
                         <button
                           key={option.id}
                           type="button"
                           onClick={() => {
-                            setSelected((current) => ({ ...current, [attribute.id]: option.id }));
+                            setSelected((current) => selectionForAttributeOption(product, attributes, current, attribute.id, option.id));
                             setAdded(false);
                           }}
                           className={cn(
@@ -326,7 +322,7 @@ export default function CommerceProductDetail({
               </h2>
             </div>
             <div className="grid gap-px bg-paper/15 sm:grid-cols-2">
-              {product.attributes.slice(0, 6).map((attribute, index) => (
+              {craftAttributes.map((attribute, index) => (
                 <div key={attribute.id} className="bg-forest p-6 md:p-8">
                   <p className="font-display text-2xl text-peach">0{toFa(index + 1)}</p>
                   <h3 className="mt-4 text-xl font-light">{attribute.name}</h3>
@@ -335,7 +331,7 @@ export default function CommerceProductDetail({
                   </p>
                 </div>
               ))}
-              {!product.attributes.length ? (
+              {!craftAttributes.length ? (
                 <div className="col-span-full bg-forest p-8 text-paper/65">
                   مشخصات فنی تکمیلی پس از اتصال API جدید نمایش داده می‌شود.
                 </div>

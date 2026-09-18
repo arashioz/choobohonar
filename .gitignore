@@ -74,3 +74,9 @@ volumes/
 # Downloaded product-media migration assets are deployed to the persistent
 # backend uploads volume, not committed as source code.
 backend/uploads/products/
+
+# Content-team product reshoots stay local until import.
+content/product-photos/**/*.jpg
+content/product-photos/**/*.jpeg
+content/product-photos/**/*.png
+content/product-photos/**/*.webp
