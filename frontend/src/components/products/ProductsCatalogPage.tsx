@@ -50,7 +50,7 @@ export default function ProductsCatalogPage() {
       if (room !== ALL_ROOMS && p.room !== room) return false;
       if (finish !== "all") {
         if (!("finishes" in p)) return false;
-        if (!p.finishes.includes(finish)) return false;
+        if (!p.finishes?.includes(finish)) return false;
       }
       return true;
     });

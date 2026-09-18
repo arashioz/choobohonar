@@ -9,28 +9,6 @@ import { getMaterialCommerceItems } from "@/data/material-products";
 import { isUploadedMedia } from "@/lib/media";
 import { fetchPublicMaterials } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
-<<<<<<< HEAD
-=======
-import { fetchPublicCmsEntries } from "@/lib/public-cms";
-import type { Material, MaterialId } from "@/data/materials";
-
-const FAMILY_IDS = new Set<MaterialId>(["wood", "fabric", "veneer", "metal"]);
-
-function toMaterialFamily(entry: Record<string, unknown>): Material | null {
-  const id = String(entry.id || entry.slug || "") as MaterialId;
-  const label = String(entry.label || entry.title || "").trim();
-  if (!FAMILY_IDS.has(id) || !label) return null;
-  return {
-    id,
-    label,
-    eyebrow: String(entry.eyebrow || ""),
-    shortDescription: String(entry.shortDescription || entry.excerpt || ""),
-    longDescription: String(entry.longDescription || entry.description || ""),
-    image: String(entry.image || (Array.isArray(entry.images) ? entry.images[0] : "") || ""),
-    highlights: Array.isArray(entry.highlights) ? (entry.highlights as Material["highlights"]) : [],
-  };
-}
->>>>>>> 7eab36dd2cf1d7e1cf258d497da3b0b74d2a9eff
 
 export const metadata: Metadata = {
   title: "کتابخانه و فروشگاه متریال | خانه چوب و هنر",
@@ -38,14 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MaterialsPage() {
-<<<<<<< HEAD
   const visibleMaterials = await fetchPublicMaterials();
-=======
-  const migrated = (await fetchPublicCmsEntries("material"))
-    .map((entry) => toMaterialFamily(entry as unknown as Record<string, unknown>))
-    .filter((entry): entry is Material => Boolean(entry));
-  const visibleMaterials = migrated.length ? migrated : materials;
->>>>>>> 7eab36dd2cf1d7e1cf258d497da3b0b74d2a9eff
   return (
     <>
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#73563d] text-paper">

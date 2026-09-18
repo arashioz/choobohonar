@@ -170,7 +170,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {kind === "article" && <Field label="متن مقاله" hint="نسخه فعلی ویرایشگر متنی است؛ ساختار بلوکی در فاز بعد قابل افزودن است."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
           </Panel>
 
-          <SpecificFields kind={kind} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} />
+          <SpecificFields kind={kind} title={entry.title} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} />
 
           {kind !== "article" && <Panel title="محتوای تکمیلی" description="جزئیات روایی یا فنی برای صفحه کامل."><Field label="محتوای تفصیلی"><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-56 resize-y leading-7`} placeholder="جزئیات بیشتر، شیوه نگهداری یا روایت تکمیلی…" /></Field><TagInput label="برچسب‌ها" hint="برای افزودن هر تگ Enter بزنید." value={entry.tags || []} onChange={(tags) => setField("tags", tags)} placeholder="مثلاً طراحی معاصر" /></Panel>}
 
@@ -198,7 +198,18 @@ function splitList(value: string) { return value.split(/[،,]/).map((item) => it
 type ProductVariant = { name: string; sku: string; price: number; inventory: number; attributes: string[] };
 type MaterialHighlight = { title: string; description: string };
 
-function SpecificFields({ kind, data, setData, dataText, relations, images = [] }: { kind: CmsKind; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] }; images?: string[] }) {
+function safeColor(value: string) { return /^#[0-9a-f]{6}$/i.test(value) ? value : "#8b6b52"; }
+
+function MaterialPreview({ title, image, color, type }: { title: string; image?: string; color: string; type?: string }) {
+  return <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-[#ebe5dc] p-5 text-forest" style={image ? { backgroundImage: `linear-gradient(90deg, rgba(250,248,245,.96), rgba(250,248,245,.5)), url(${image})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(135deg, ${safeColor(color)}, #f7f3ed)` }}><p className="text-[9px] font-medium tracking-[0.16em] text-forest/45">پیش‌نمایش کارت سایت</p><div className="mt-8 flex items-end justify-between gap-4"><div><p className="text-xs text-forest/55">{type || "کتابخانه متریال"}</p><p className="mt-2 text-xl font-light">{title || "نام متریال"}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-full border border-forest/20 bg-paper/75 text-lg">↙</span></div></div>;
+}
+
+function HighlightEditor({ value, onChange }: { value: MaterialHighlight[]; onChange: (value: MaterialHighlight[]) => void }) {
+  const rows = value.length ? value : [{ title: "", description: "" }];
+  return <div><span className="mb-2 block text-[11px] font-medium text-forest/60">نکات کلیدی متریال</span><p className="mb-3 text-[9px] leading-5 text-forest/35">حداکثر سه نکته کوتاه در بخش بالای صفحه متریال نمایش داده می‌شود.</p><div className="space-y-2">{rows.map((row, index) => <div key={index} className="rounded-xl border border-forest/10 bg-[#faf8f5] p-3"><div className="grid gap-2 sm:grid-cols-[.8fr_1.2fr_34px]"><input value={row.title} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, title: e.target.value } : item))} className={inputClass} placeholder="مثلاً مقاومت سایشی" /><input value={row.description} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, description: e.target.value } : item))} className={inputClass} placeholder="توضیح کوتاه و کاربردی" /><button type="button" onClick={() => onChange(rows.filter((_, current) => current !== index))} className="rounded-xl border border-forest/10 text-forest/35 hover:text-brick" aria-label="حذف نکته">×</button></div></div>)}</div><button type="button" onClick={() => onChange([...rows, { title: "", description: "" }].slice(0, 3))} disabled={rows.length >= 3} className="mt-2 text-[10px] font-medium text-brick disabled:opacity-35">+ افزودن نکته</button></div>;
+}
+
+function SpecificFields({ kind, title, data, setData, dataText, relations, images = [] }: { kind: CmsKind; title: string; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] }; images?: string[] }) {
   if (kind === "page") return <Panel title="دادهٔ صفحه" description="ساختار این صفحه از دیتابیس خوانده می‌شود. برای تغییر محتوای ناوبری، برند یا فرم‌ها JSON را ویرایش کنید."><textarea dir="ltr" defaultValue={JSON.stringify(data, null, 2)} onBlur={(event) => { try { const parsed = JSON.parse(event.currentTarget.value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setData("__replace", parsed); } catch { /* keep the last valid payload */ } }} className={`${inputClass} min-h-[520px] resize-y font-mono text-[11px] leading-6`} spellCheck={false} /><p className="text-[9px] leading-5 text-forest/35">پس از ویرایش، ابتدا JSON را معتبر نگه دارید و سپس ذخیره کنید.</p></Panel>;
   if (kind === "product") {
     const categories = arrayValue(data.categories, data.category);

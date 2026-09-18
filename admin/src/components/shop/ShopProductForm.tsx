@@ -4,6 +4,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { uploadMedia } from "@/lib/upload";
 import ProductMaterialsPicker from "@/components/shop/ProductMaterialsPicker";
 import {
   ROOM_LABELS,
