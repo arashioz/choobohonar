@@ -10,6 +10,7 @@ import {
   refreshScrollTriggers,
   enableLenisScroll,
   disableLenisScroll,
+  shouldSkipScrollMotion,
 } from "@/lib/gsap";
 import { registerLenisInstance, scrollToHash, scrollToTarget } from "@/lib/lenis-control";
 
@@ -83,18 +84,34 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   // Recalculate trigger positions after client navigations and layout shifts.
   useEffect(() => {
     registerGsap();
-    const t1 = window.setTimeout(refreshScrollTriggers, 50);
-    const t2 = window.setTimeout(refreshScrollTriggers, 400);
-    const t3 = window.setTimeout(refreshScrollTriggers, 1200);
-    const hashTimers = [120, 500, 1300].map((ms) => window.setTimeout(() => scrollToHash(), ms));
-    const onHashChange = () => scrollToHash();
+    const skipMotion = shouldSkipScrollMotion();
+    let userMoved = false;
+    const markMoved = () => {
+      userMoved = true;
+    };
+    window.addEventListener("touchmove", markMoved, { passive: true, once: true });
+    window.addEventListener("wheel", markMoved, { passive: true, once: true });
+
+    const refreshTimers = skipMotion
+      ? []
+      : [50, 400, 1200].map((ms) => window.setTimeout(refreshScrollTriggers, ms));
+    const hashTimers = [120, 500, 1300].map((ms) =>
+      window.setTimeout(() => {
+        if (userMoved || window.scrollY > 24) return;
+        scrollToHash();
+      }, ms),
+    );
+    const onHashChange = () => {
+      if (userMoved) return;
+      scrollToHash();
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => {
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-      window.clearTimeout(t3);
+      refreshTimers.forEach((timer) => window.clearTimeout(timer));
       hashTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("touchmove", markMoved);
+      window.removeEventListener("wheel", markMoved);
     };
   }, [pathname]);
 

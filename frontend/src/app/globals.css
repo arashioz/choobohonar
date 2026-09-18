@@ -17,6 +17,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
+    overflow-anchor: none;
     width: 100%;
     scroll-padding-top: 6rem;
   }

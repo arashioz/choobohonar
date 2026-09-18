@@ -10,12 +10,23 @@ let refreshFrame = 0;
 export function registerGsap() {
   if (registered || typeof window === "undefined") return;
   gsap.registerPlugin(ScrollTrigger);
+  // iOS/Android hide the browser chrome after the first couple of scrolls.
+  // That resize would otherwise refresh every ScrollTrigger and yank the
+  // page to the last trigger (usually the footer).
+  ScrollTrigger.config({ ignoreMobileResize: true });
   registered = true;
 }
 
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Touch / small viewports keep native scroll; GSAP pin/refresh is a jump source. */
+export function shouldSkipScrollMotion(): boolean {
+  if (typeof window === "undefined") return true;
+  if (prefersReducedMotion()) return true;
+  return window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(max-width: 1023px)").matches;
 }
 
 /** Shared ScrollTrigger options — must match the Lenis scroller proxy target. */

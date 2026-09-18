@@ -25,7 +25,7 @@ export default async function Footer() {
   const currentYear = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
 
   return (
-    <footer className="relative flex min-h-screen flex-col overflow-hidden bg-forest text-paper">
+    <footer className="relative flex min-h-0 flex-col overflow-hidden bg-forest text-paper md:min-h-screen">
       <div className="pointer-events-none absolute -bottom-[8vw] -left-[5vw] h-[clamp(16rem,34vw,38rem)] w-[clamp(14rem,30vw,34rem)] opacity-[0.035]" aria-hidden>
         <Image src={brandAssets.logo.white} alt="" fill sizes="34vw" className="object-contain" />
       </div>

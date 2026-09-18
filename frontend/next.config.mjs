@@ -3,6 +3,7 @@ const nextConfig = {
   distDir: process.env.DIST_DIR || ".next",
   output: "standalone",
   poweredByHeader: false,
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   serverExternalPackages: ["gsap"],
   images: {
     formats: ["image/avif", "image/webp"],

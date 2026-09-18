@@ -4,6 +4,7 @@ import Link from "next/link";
 import { collections, getCollectionProductCount, fetchApiCollections } from "@/data/collections";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
+import Stagger from "@/components/motion/Stagger";
 import { toFa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -33,10 +34,9 @@ export default async function CollectionPage() {
         </div>
 
         {showApi ? (
-          <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {apiCollections.map((collection, index) => (
-              <FadeUp key={collection.slug} delay={index * 0.08}>
-                <Link href={`/collection/${collection.slug}`} className="group block">
+          <Stagger className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2" selector="[data-collection-card]" amount={0.45}>
+            {apiCollections.map((collection) => (
+                <Link data-collection-card key={collection.slug} href={`/collection/${collection.slug}`} className="group block">
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
                     {collection.image ? (
                       <Image src={collection.image} alt={collection.name} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
@@ -55,16 +55,14 @@ export default async function CollectionPage() {
                     مشاهده کالکشن <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
                   </span>
                 </Link>
-              </FadeUp>
             ))}
-          </div>
+          </Stagger>
         ) : (
-          <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {collections.map((collection, index) => {
+          <Stagger className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-2" selector="[data-collection-card]" amount={0.45}>
+            {collections.map((collection) => {
               const productCount = getCollectionProductCount(collection.slug);
               return (
-                <FadeUp key={collection.slug} delay={index * 0.08}>
-                  <Link href={`/collection/${collection.slug}`} className="group block">
+                  <Link data-collection-card key={collection.slug} href={`/collection/${collection.slug}`} className="group block">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
                       <Image src={collection.image} alt={collection.name} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
                     </div>
@@ -77,10 +75,9 @@ export default async function CollectionPage() {
                       مشاهده کالکشن <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
                     </span>
                   </Link>
-                </FadeUp>
               );
             })}
-          </div>
+          </Stagger>
         )}
 
         <FadeUp delay={0.2} className="mt-20 border-t border-forest/10 pt-10">

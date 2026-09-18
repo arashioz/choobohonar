@@ -25,17 +25,35 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
       if (!rail || !stories.length) return;
       const cards = rail.querySelectorAll<HTMLElement>("[data-story-card]");
       const normalized = (index + stories.length) % stories.length;
-      cards[normalized]?.scrollIntoView({ behavior, block: "nearest", inline: "center" });
+      const card = cards[normalized];
+      if (!card) return;
+      const left = card.offsetLeft - (rail.clientWidth - card.clientWidth) / 2;
+      rail.scrollTo({ left: Math.max(0, left), behavior });
       activeRef.current = normalized;
       setActive(normalized);
     },
     [stories.length],
   );
 
+  const inViewRef = useRef(false);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = Boolean(entry?.isIntersecting);
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (prefersReducedMotion() || stories.length < 2) return;
     const timer = window.setInterval(() => {
-      if (!pausedRef.current && !document.hidden) goTo(activeRef.current + 1);
+      if (!pausedRef.current && !document.hidden && inViewRef.current) goTo(activeRef.current + 1);
     }, 3000);
     return () => window.clearInterval(timer);
   }, [goTo, stories.length]);
