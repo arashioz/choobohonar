@@ -13,7 +13,11 @@ import { fetchProductStories } from "@/lib/product-stories";
 
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
-  const featured = getFeaturedCommerceProducts(32, backendProducts.length ? backendProducts : undefined);
+  const featured = (() => {
+    const live = backendProducts.filter((product) => product.image);
+    if (live.length >= 8) return live.slice(0, 32);
+    return getFeaturedCommerceProducts(32, live.length ? live : undefined);
+  })();
   const stories = await fetchProductStories();
   const heroProduct = featured[0];
 
