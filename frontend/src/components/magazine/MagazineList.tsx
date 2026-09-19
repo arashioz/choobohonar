@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { posts, CATEGORY_DESCRIPTIONS } from "@/data/posts";
+import { FEATURED_MAGAZINE_SLUGS, posts, CATEGORY_DESCRIPTIONS } from "@/data/posts";
 import type { Post } from "@/data/posts";
 import { cn } from "@/lib/utils";
 import FadeUp from "@/components/motion/FadeUp";
@@ -17,6 +17,13 @@ type CmsArticleRecord = {
   data?: Record<string, unknown>;
   seo?: { description?: unknown };
 };
+
+function featuredFirst(items: Post[]): Post[] {
+  const bySlug = new Map(items.map((post) => [post.slug, post]));
+  const pinned = FEATURED_MAGAZINE_SLUGS.map((slug) => bySlug.get(slug)).filter(Boolean) as Post[];
+  const pinnedSlugs = new Set(pinned.map((post) => post.slug));
+  return [...pinned, ...items.filter((post) => !pinnedSlugs.has(post.slug))];
+}
 
 export default function MagazineList() {
   const [active, setActive] = useState("همه");
@@ -48,16 +55,16 @@ export default function MagazineList() {
 
   const allPosts = useMemo(() => {
     const serverSlugs = new Set(cmsPosts.map((post) => post.slug));
-    if (source === "cms") return cmsPosts;
-    if (source === "static") return posts;
-    return [...cmsPosts, ...posts.filter((post) => !serverSlugs.has(post.slug))];
+    if (source === "cms") return featuredFirst(cmsPosts);
+    if (source === "static") return featuredFirst(posts);
+    return featuredFirst([...cmsPosts, ...posts.filter((post) => !serverSlugs.has(post.slug))]);
   }, [cmsPosts, source]);
   const postCategories = useMemo(() => ["همه", ...Array.from(new Set(allPosts.map((post) => post.category)))], [allPosts]);
 
-  const filtered = useMemo(
-    () => (active === "همه" ? allPosts : allPosts.filter((p) => p.category === active)),
-    [active, allPosts],
-  );
+  const filtered = useMemo(() => {
+    if (active !== "همه") return allPosts.filter((p) => p.category === active);
+    return allPosts.slice(0, FEATURED_MAGAZINE_SLUGS.length);
+  }, [active, allPosts]);
 
   const categoryDescription =
     active !== "همه" ? CATEGORY_DESCRIPTIONS[active] : undefined;
@@ -67,7 +74,7 @@ export default function MagazineList() {
       <FadeUp className="mt-14 flex flex-wrap gap-3 md:mt-20">
         {postCategories.map((cat) => {
           const selected = cat === active;
-          const count = cat === "همه" ? allPosts.length : allPosts.filter((p) => p.category === cat).length;
+          const count = cat === "همه" ? FEATURED_MAGAZINE_SLUGS.length : allPosts.filter((p) => p.category === cat).length;
           return (
             <button
               key={cat}

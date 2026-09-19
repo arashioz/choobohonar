@@ -54,12 +54,17 @@ export function writeTasteState(state: GalleryTasteState) {
   window.localStorage.setItem(GALLERY_TASTE_STORAGE_KEY, JSON.stringify(state));
 }
 
+export function clearTasteState() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(GALLERY_TASTE_STORAGE_KEY);
+}
+
 export function productToGalleryItem(product: Pick<AnyProduct, "slug" | "name" | "image" | "room" | "shortDescription">): GalleryItem {
   return {
     id: `shop-${product.slug}`,
     src: product.image,
     alt: product.name,
-    caption: product.shortDescription || product.name,
+    caption: product.name,
     tag: "product",
     href: `/products/${product.slug}`,
     entityKind: "product",
@@ -70,7 +75,7 @@ export function productToGalleryItem(product: Pick<AnyProduct, "slug" | "name" |
 }
 
 function haystack(item: GalleryItem) {
-  return `${item.tag} ${item.caption} ${item.alt} ${item.productCategory || ""}`.toLowerCase();
+  return `${item.id} ${item.tag} ${item.caption} ${item.alt} ${item.productCategory || ""} ${item.entitySlug || ""}`.toLowerCase();
 }
 
 function scoreEditorial(item: GalleryItem, answers: GalleryTasteAnswers) {
@@ -123,28 +128,42 @@ export function mixGalleryFeed(
   answers: GalleryTasteAnswers,
 ) {
   const rooms = allowedProductRooms(answers);
+  const wantedRoom = roomForObject(answers.object);
   const shop = products.filter((item) => {
     if (item.tag !== "product") return false;
     if (rooms === "all") return true;
     return rooms.includes((item.productCategory || "") as ProductRoom);
   });
 
-  const rankedEditorial = [...editorial].sort((left, right) => scoreEditorial(right, answers) - scoreEditorial(left, answers));
-  const rankedShop = [...shop]
-    .sort((left, right) => scoreProduct(right, answers) - scoreProduct(left, answers))
-    .slice(0, MAX_PRODUCT_INSERTS);
+  const rankedEditorial = [...editorial].sort(
+    (left, right) =>
+      scoreEditorial(right, answers) - scoreEditorial(left, answers) ||
+      left.id.localeCompare(right.id),
+  );
+  const rankedShop = [...shop].sort(
+    (left, right) =>
+      scoreProduct(right, answers) - scoreProduct(left, answers) ||
+      left.id.localeCompare(right.id),
+  );
+  const preferred = wantedRoom
+    ? rankedShop.filter((item) => item.productCategory === wantedRoom)
+    : rankedShop;
+  const remainder = wantedRoom
+    ? rankedShop.filter((item) => item.productCategory !== wantedRoom)
+    : [];
+  const pickedShop = [...preferred, ...remainder].slice(0, MAX_PRODUCT_INSERTS);
 
   const mixed: GalleryItem[] = [];
   let shopIndex = 0;
   rankedEditorial.forEach((item, index) => {
     mixed.push(item);
-    if ((index + 1) % 2 === 0 && shopIndex < rankedShop.length) {
-      mixed.push(rankedShop[shopIndex]);
+    if ((index + 1) % 2 === 0 && shopIndex < pickedShop.length) {
+      mixed.push(pickedShop[shopIndex]);
       shopIndex += 1;
     }
   });
-  while (shopIndex < rankedShop.length) {
-    mixed.push(rankedShop[shopIndex]);
+  while (shopIndex < pickedShop.length) {
+    mixed.push(pickedShop[shopIndex]);
     shopIndex += 1;
   }
   return mixed;

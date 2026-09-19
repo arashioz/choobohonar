@@ -10,7 +10,13 @@ export type ProductStory = {
   video: string;
 };
 
-export default function ProductStoriesRail({ stories }: { stories: ProductStory[] }) {
+export default function ProductStoriesRail({
+  stories,
+  compact = false,
+}: {
+  stories: ProductStory[];
+  compact?: boolean;
+}) {
   const railRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(0);
   const pausedRef = useRef(false);
@@ -97,7 +103,8 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
   };
 
   return (
-    <div className="mt-16 lg:mt-24">
+    <div className={compact ? "" : "mt-10 md:mt-14"}>
+      {compact || stories.length < 2 ? null : (
       <div className="mb-6 flex items-center justify-between gap-6 border-t border-paper/15 pt-5">
         <div className="flex items-center gap-3 text-xs tracking-[0.18em] text-paper/55">
           <span className="text-peach">{toFa(active + 1).padStart(2, "۰")}</span>
@@ -123,6 +130,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
           </button>
         </div>
       </div>
+      )}
 
       <div
         ref={railRef}
@@ -131,14 +139,18 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
         onPointerLeave={() => { pausedRef.current = false; }}
         onFocusCapture={() => { pausedRef.current = true; }}
         onBlurCapture={() => { pausedRef.current = false; }}
-        className="no-scrollbar -mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 md:-mx-10 md:px-10 lg:-mx-16 lg:gap-5 lg:px-16"
+        className={compact
+          ? "flex"
+          : "no-scrollbar -mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 md:-mx-10 md:px-10 lg:-mx-16 lg:gap-5 lg:px-16"}
         aria-label="روایت‌های ویدیویی محصولات"
       >
         {stories.map((story, index) => (
           <article
             data-story-card
             key={`${story.title}-${index}`}
-            className="group relative aspect-[9/16] w-[76vw] shrink-0 snap-center overflow-hidden rounded-[1.25rem] bg-paper/5 sm:w-[47vw] lg:w-[27vw] xl:w-[22vw]"
+            className={compact
+              ? "group relative aspect-[9/16] w-full overflow-hidden rounded-[1.25rem] bg-paper/5"
+              : "group relative aspect-[9/16] w-[76vw] shrink-0 snap-center overflow-hidden rounded-[1.25rem] bg-paper/5 sm:w-[47vw] lg:w-[27vw] xl:w-[22vw]"}
           >
             <video
               ref={(element) => { videoRefs.current[index] = element; }}
@@ -170,6 +182,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
         ))}
       </div>
 
+      {compact || stories.length < 2 ? null : (
       <div className="mt-1 flex h-px gap-1" aria-hidden>
         {stories.map((story, index) => (
           <span
@@ -178,6 +191,7 @@ export default function ProductStoriesRail({ stories }: { stories: ProductStory[
           />
         ))}
       </div>
+      )}
     </div>
   );
 }

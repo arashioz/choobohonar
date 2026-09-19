@@ -36,3 +36,13 @@ export function scrollToHash(hash = typeof window === "undefined" ? "" : window.
   if (!id) return;
   scrollToTarget(id, 0);
 }
+
+export function scrollToTop() {
+  if (typeof window === "undefined") return;
+  if (lenisInstance) {
+    lenisInstance.scrollTo(0, { immediate: true, duration: 0 });
+  }
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}

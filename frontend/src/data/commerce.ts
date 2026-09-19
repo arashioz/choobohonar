@@ -1,5 +1,6 @@
 import type { ProductRoom, ShopProduct } from "@/data/products";
 import { shopProducts } from "@/data/products";
+import { productMatchesFamily, productMatchesType } from "@/data/product-families";
 
 export type CommerceSubcategory = {
   slug: string;
@@ -31,9 +32,10 @@ export const commerceCategories: CommerceCategory[] = [
       { slug: "sofa", label: "کاناپه" },
       { slug: "armchair", label: "مبل تک نفره" },
       { slug: "modular-sofa", label: "مبل ال" },
+      { slug: "outdoor-furniture", label: "مبلمان فضای باز" },
+      { slug: "chair", label: "صندلی" },
       { slug: "table", label: "میز" },
-      { slug: "consoles", label: "کمد و کنسول" },
-      { slug: "outdoor-furniture", label: "فضای باز" },
+      { slug: "consoles", label: "کمد کنسول" },
     ],
   },
   {
@@ -48,6 +50,7 @@ export const commerceCategories: CommerceCategory[] = [
       { slug: "bed", label: "تخت خواب" },
       { slug: "nightstand", label: "پاتختی" },
       { slug: "makeup-table", label: "میز آرایش" },
+      { slug: "chair", label: "صندلی" },
       { slug: "drawer", label: "دراور" },
       { slug: "mirror", label: "آینه" },
       { slug: "loveseat", label: "لاوست" },
@@ -62,6 +65,8 @@ export const commerceCategories: CommerceCategory[] = [
     image: "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
     room: "dining",
     children: [
+      { slug: "table", label: "میز" },
+      { slug: "chair", label: "صندلی" },
       { slug: "dining-table", label: "میز غذاخوری" },
       { slug: "diningchairs", label: "صندلی غذاخوری" },
       { slug: "bar-stools", label: "صندلی کانتر" },
@@ -124,6 +129,7 @@ export const commerceCategories: CommerceCategory[] = [
       { slug: "vase", label: "گلدان" },
       { slug: "dishes", label: "ظروف" },
       { slug: "candle", label: "شمع" },
+      { slug: "candlestick", label: "شمعدان" },
       { slug: "cushion", label: "کوسن" },
       { slug: "decorative", label: "دکوراتیو" },
     ],
@@ -146,32 +152,42 @@ export function resolveCommerceCategory(path: string[]): ResolvedCommerceCategor
   return { root, active, path: [rootSlug, childSlug] };
 }
 
-export function getCommerceCategoryProducts(category: ResolvedCommerceCategory): ShopProduct[] {
+export function filterCommerceCategoryProducts(
+  products: ShopProduct[],
+  category: ResolvedCommerceCategory,
+): ShopProduct[] {
   if (category.active) {
-    const exact = shopProducts.filter((product) =>
-      product.categories.some((term) => term.slug === category.active?.slug) &&
-      (!category.root.room || product.room === category.root.room),
-    );
-    if (exact.length) return exact;
+    const roomMatch = (product: ShopProduct) => !category.root.room || product.room === category.root.room;
+    const byType = products.filter((product) => roomMatch(product) && productMatchesType(product, category.active!.slug));
+    if (byType.length) return byType;
+    const byFamily = products.filter((product) => roomMatch(product) && productMatchesFamily(product, category.active!.slug));
+    if (byFamily.length) return byFamily;
   }
 
   if (category.root.taxonomySlug) {
-    return shopProducts.filter((product) =>
+    return products.filter((product) =>
       product.categories.some((term) => term.slug === category.root.taxonomySlug),
     );
   }
 
   return category.root.room
-    ? shopProducts.filter((product) => product.room === category.root.room)
+    ? products.filter((product) => product.room === category.root.room)
     : [];
 }
 
-export function getFeaturedCommerceProducts(count = 8): ShopProduct[] {
+export function getCommerceCategoryProducts(
+  category: ResolvedCommerceCategory,
+  products: ShopProduct[] = shopProducts,
+): ShopProduct[] {
+  return filterCommerceCategoryProducts(products, category);
+}
+
+export function getFeaturedCommerceProducts(count = 8, products: ShopProduct[] = shopProducts): ShopProduct[] {
   const selected: ShopProduct[] = [];
   const used = new Set<string>();
 
   for (const root of commerceCategories) {
-    const categoryProducts = getCommerceCategoryProducts({ root, active: null, path: [root.slug] });
+    const categoryProducts = filterCommerceCategoryProducts(products, { root, active: null, path: [root.slug] });
     const product =
       categoryProducts.find((item) => item.image && item.isInStock && Number(item.prices?.value ?? 0) > 0) ??
       categoryProducts.find((item) => item.image);
@@ -183,7 +199,7 @@ export function getFeaturedCommerceProducts(count = 8): ShopProduct[] {
   }
 
   if (selected.length < count) {
-    for (const product of shopProducts) {
+    for (const product of products) {
       if (!product.image || used.has(product.slug)) continue;
       selected.push(product);
       used.add(product.slug);

@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { GalleryItem } from "@/data/gallery";
 import { tagLabels } from "@/data/gallery";
 import FadeUp from "@/components/motion/FadeUp";
+import { isUploadedMedia } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
 const bentoClass: Record<GalleryItem["bento"], string> = {
@@ -44,6 +45,7 @@ export default function GalleryBentoGrid({ items, onOpen }: Props) {
               src={item.src}
               alt={item.alt}
               fill
+              unoptimized={isUploadedMedia(item.src)}
               sizes={
                 item.bento === "hero" || item.bento === "wide"
                   ? "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"

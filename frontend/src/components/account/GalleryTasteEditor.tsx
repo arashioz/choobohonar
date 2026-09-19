@@ -42,7 +42,7 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
       if (answers) writeTasteState({ status: "complete", answers });
       else writeTasteState({ status: "skipped" });
       onSaved(answers);
-      setMessage(answers ? "سلیقه گالری ذخیره شد. فید بر اساس همین چهار پاسخ چیده می‌شود." : "فید گالری به حالت پیش‌فرض برگشت.");
+      setMessage(answers ? "سلیقه گالری ذخیره شد." : "فید گالری به حالت پیش‌فرض برگشت.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "ذخیره سلیقه انجام نشد");
     } finally {
@@ -51,26 +51,19 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
   }
 
   return (
-    <section className="mt-20 border-t border-forest/10 pt-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-display text-sm text-brick">04</p>
-          <h2 className="mt-3 text-3xl font-light tracking-tight text-forest md:text-4xl">سلیقه فید گالری</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-forest/55">
-            همان چهار سؤال گالری: فضا، سطح، حس خانه، و چیزی که به خانه می‌آورید. ذخیره روی حساب می‌نشیند و صفحه گالری همان منطق را برای چیدن فید استفاده می‌کند.
-          </p>
-        </div>
-        <Link href="/gallery" className="text-sm text-brick underline decoration-brick/30 underline-offset-4">
-          مشاهده فید گالری ←
+    <section className="mt-20 border-t border-forest/10 pt-16">
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <h2 className="text-2xl font-extralight tracking-tight text-forest">سلیقه فید گالری</h2>
+        <Link href="/gallery" className="text-xs text-forest/40 transition-colors hover:text-forest">
+          مشاهده فید ←
         </Link>
       </div>
 
-      <div className="mt-10 space-y-12">
-        {tasteQuestions.map((question, index) => (
-          <div key={question.id}>
-            <p className="text-[10px] tracking-[0.16em] text-forest/35" dir="ltr">0{index + 1}</p>
-            <h3 className="mt-2 text-xl font-light text-forest">{question.prompt}</h3>
-            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-14 grid grid-cols-1 gap-x-16 gap-y-16 md:grid-cols-2 md:gap-x-20 md:gap-y-20">
+        {tasteQuestions.map((question) => (
+          <div key={question.id} className="min-w-0">
+            <h3 className="max-w-xs text-sm font-light leading-6 text-forest/60">{question.prompt}</h3>
+            <div className="mt-7 grid max-w-sm grid-cols-2 gap-5">
               {question.options.map((option) => {
                 const selected = picked[question.id] === option.id;
                 return (
@@ -78,15 +71,19 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
                     key={option.id}
                     type="button"
                     onClick={() => setPicked((current) => ({ ...current, [question.id]: option.id }))}
-                    className={cn(
-                      "overflow-hidden bg-forest/5 text-right transition-shadow",
-                      selected ? "ring-2 ring-forest" : "hover:ring-1 hover:ring-forest/30",
-                    )}
+                    className="group text-right"
                   >
-                    <span className="relative block aspect-[4/3]">
-                      <Image src={option.src} alt={option.alt} fill sizes="(max-width: 768px) 50vw, 20vw" className="object-cover" />
+                    <span
+                      className={cn(
+                        "relative block aspect-square overflow-hidden bg-forest/[0.04] transition-[box-shadow,opacity]",
+                        selected ? "ring-1 ring-forest" : "opacity-80 hover:opacity-100",
+                      )}
+                    >
+                      <Image src={option.src} alt="" fill sizes="(max-width: 768px) 40vw, 12vw" className="object-cover" />
                     </span>
-                    <span className="block px-3 py-2.5 text-sm text-forest">{option.label}</span>
+                    <span className={cn("mt-2.5 block text-[11px] leading-5", selected ? "text-forest" : "text-forest/45 group-hover:text-forest/70")}>
+                      {option.label}
+                    </span>
                   </button>
                 );
               })}
@@ -95,25 +92,25 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
         ))}
       </div>
 
-      {error ? <p className="mt-6 text-sm text-brick">{error}</p> : null}
-      {message ? <p className="mt-6 text-sm text-forest/70">{message}</p> : null}
+      {error ? <p className="mt-12 text-xs text-brick">{error}</p> : null}
+      {message ? <p className="mt-12 text-xs text-forest/50">{message}</p> : null}
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-14 flex flex-wrap items-center gap-8">
         <button
           type="button"
           disabled={saving || !complete}
           onClick={() => void persist(complete)}
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-forest px-6 text-sm text-paper disabled:opacity-40"
+          className="text-sm text-forest underline decoration-forest/20 underline-offset-8 disabled:opacity-40"
         >
-          {saving ? "در حال ذخیره…" : "ذخیره سلیقه گالری"}
+          {saving ? "در حال ذخیره…" : "ذخیره سلیقه"}
         </button>
         <button
           type="button"
           disabled={saving || !parsed}
           onClick={() => void persist(null)}
-          className="inline-flex min-h-12 items-center justify-center rounded-full border border-forest/20 px-6 text-sm text-forest/60 disabled:opacity-40"
+          className="text-xs text-forest/35 hover:text-forest disabled:opacity-40"
         >
-          بازگرداندن فید پیش‌فرض
+          بازگرداندن پیش‌فرض
         </button>
       </div>
     </section>

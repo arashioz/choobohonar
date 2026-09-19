@@ -5,8 +5,6 @@ import type { Project } from "@/data/projects";
 import ProjectCard from "@/components/projects/ProjectCard";
 
 export default function InteriorProjectsBand({ projects }: { projects: Project[] }) {
-  const featured = projects.slice(0, 2);
-
   return (
     <section className="bg-paper py-24 md:py-32">
       <Container>
@@ -32,15 +30,18 @@ export default function InteriorProjectsBand({ projects }: { projects: Project[]
             </Link>
           </FadeUp>
         </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {featured.map((project, index) => (
-            <FadeUp key={project.slug} delay={index * 0.08}>
-              <ProjectCard project={project} />
-            </FadeUp>
-          ))}
-        </div>
       </Container>
+
+      <div
+        data-lenis-prevent
+        className="no-scrollbar mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-2 md:px-10 lg:px-16"
+      >
+        {projects.map((project) => (
+          <div key={project.slug} className="w-[min(22rem,78vw)] shrink-0 snap-start lg:w-[28rem]">
+            <ProjectCard project={project} />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

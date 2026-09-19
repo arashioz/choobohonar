@@ -55,7 +55,7 @@ export default async function InteriorArchitectureServicesPage() {
       <InteriorBenefitsSection items={content.benefits} />
       <InteriorProcessSection steps={content.processSteps} />
       <InteriorCustomizationBand items={content.customizationPieces} />
-      <InteriorProjectsBand projects={featuredProjectsFrom(projects, 2)} />
+      <InteriorProjectsBand projects={featuredProjectsFrom(projects, 8)} />
       <InteriorConsultationCta channels={content.consultationChannels} />
     </>
   );

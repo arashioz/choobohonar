@@ -17,12 +17,9 @@ export default function InteriorConsultationCta({ channels = fallbackChannels }:
               برای ثبت سفارش طراحی داخلی، فرم هوشمند را تکمیل کنید تا سلیقه و نیازهای فنی شما را بهتر بشناسیم؛ یا
               مستقیماً با کارشناسان ما در تماس باشید.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10">
               <Button href="/interior-architecture-services/order" variant="primary" showArrow>
                 شروع فرم سفارش
-              </Button>
-              <Button href="/contact/consultation" variant="secondary">
-                درخواست مشاوره
               </Button>
             </div>
           </FadeUp>

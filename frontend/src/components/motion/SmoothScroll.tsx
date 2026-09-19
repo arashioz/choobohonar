@@ -12,7 +12,7 @@ import {
   disableLenisScroll,
   shouldSkipScrollMotion,
 } from "@/lib/gsap";
-import { registerLenisInstance, scrollToHash, scrollToTarget } from "@/lib/lenis-control";
+import { registerLenisInstance, scrollToHash, scrollToTarget, scrollToTop } from "@/lib/lenis-control";
 
 /**
  * Lenis smooth scroll bound to the GSAP ticker so ScrollTrigger and Lenis
@@ -82,9 +82,19 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   }, []);
 
   // Recalculate trigger positions after client navigations and layout shifts.
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    if (!window.location.hash) scrollToTop();
+  }, [pathname]);
+
   useEffect(() => {
     registerGsap();
     const skipMotion = shouldSkipScrollMotion();
+    const hasHash = Boolean(window.location.hash);
+    if (!hasHash) scrollToTop();
     let userMoved = false;
     const markMoved = () => {
       userMoved = true;
@@ -95,6 +105,14 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     const refreshTimers = skipMotion
       ? []
       : [50, 400, 1200].map((ms) => window.setTimeout(refreshScrollTriggers, ms));
+    const topTimers = hasHash
+      ? []
+      : [0, 80, 400, 900].map((ms) =>
+          window.setTimeout(() => {
+            if (userMoved || window.location.hash) return;
+            scrollToTop();
+          }, ms),
+        );
     const hashTimers = [120, 500, 1300].map((ms) =>
       window.setTimeout(() => {
         if (userMoved || window.scrollY > 24) return;
@@ -108,6 +126,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     window.addEventListener("hashchange", onHashChange);
     return () => {
       refreshTimers.forEach((timer) => window.clearTimeout(timer));
+      topTimers.forEach((timer) => window.clearTimeout(timer));
       hashTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("hashchange", onHashChange);
       window.removeEventListener("touchmove", markMoved);

@@ -6,6 +6,7 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import GalleryExperience from "@/components/gallery/GalleryExperience";
 import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import type { GalleryItem } from "@/data/gallery";
 
@@ -16,7 +17,10 @@ export const metadata: Metadata = {
 };
 
 export default async function GalleryPage() {
-  const pages = await fetchPublicCmsEntries("page");
+  const [pages, catalogProducts] = await Promise.all([
+    fetchPublicCmsEntries("page"),
+    fetchStorefrontProducts().catch(() => []),
+  ]);
   const migratedItems = pages.find((page) => page.slug === "gallery")?.items;
   const items = Array.isArray(migratedItems) && migratedItems.length
     ? migratedItems
@@ -55,7 +59,7 @@ export default async function GalleryPage() {
 
         <Suspense fallback={<div className="mt-14 h-40 animate-pulse bg-forest/5" />}>
           <div className="mt-12 md:mt-16">
-            <GalleryExperience items={items} />
+            <GalleryExperience items={items} catalogProducts={catalogProducts} />
           </div>
         </Suspense>
 

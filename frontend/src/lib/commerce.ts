@@ -8,9 +8,27 @@ const PRODUCT_TYPE_ATTRIBUTE =
 const PURCHASE_ATTRIBUTE =
   /سایز|اندازه|طول|عرض|ارتفاع|عمق|ابعاد|رنگ|پرداخت|فینیش|چوب|رویه|پارچه|size|length|width|height|depth|color|finish|material/i;
 
-export function isPurchaseAttribute(name: string) {
+export function isLengthAttribute(name: string) {
+  return /^(طول|length)$/i.test(name.trim());
+}
+
+const SEAT_VALUE = /^(یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|یازده|دوازده|\d+)\s*(نفره|seat|seater)$/i;
+
+export function isSeatAttribute(name: string, values: string[] = []) {
   const label = name.trim();
-  if (!label || CLASSIFICATION_ATTRIBUTE.test(label) || PRODUCT_TYPE_ATTRIBUTE.test(label)) return false;
+  if (/^(ظرفیت|نفره|seats?|seater)$/i.test(label)) return true;
+  return values.some((value) => SEAT_VALUE.test(value.trim()));
+}
+
+export function purchaseAttributeLabel(name: string, values: string[] = []) {
+  return isSeatAttribute(name, values) ? "ظرفیت" : name.trim();
+}
+
+export function isPurchaseAttribute(name: string, values: string[] = []) {
+  const label = name.trim();
+  if (!label || isLengthAttribute(label)) return false;
+  if (isSeatAttribute(label, values)) return true;
+  if (CLASSIFICATION_ATTRIBUTE.test(label) || PRODUCT_TYPE_ATTRIBUTE.test(label)) return false;
   return PURCHASE_ATTRIBUTE.test(label);
 }
 
@@ -92,11 +110,7 @@ export function optionMagnitude(label: string) {
 }
 
 function isSizeAttribute(label: string) {
-  return /^(سایز|اندازه|size)$/i.test(label.trim());
-}
-
-function isLengthAttribute(label: string) {
-  return /^(طول|length)$/i.test(label.trim());
+  return /^(سایز|اندازه|size|ظرفیت)$/i.test(label.trim()) || isSeatAttribute(label);
 }
 
 function pairOptionsByMagnitude(from: PurchaseAttribute, to: PurchaseAttribute) {
@@ -133,21 +147,18 @@ function applyLinkedDimensions(
   return next;
 }
 
-export function formatCatalogPrice(product: Pick<ShopProduct, "prices">): string {
-  const price = product.prices;
-  if (!price?.value) return "استعلام قیمت";
+export function getCatalogHighestPrice(product: Pick<ShopProduct, "prices" | "variants">): number {
+  const fromVariants = enabledVariants(product as ShopProduct).map(variantPrice).filter((value) => value > 0);
+  const listed = [product.prices?.maxValue, product.prices?.value, product.prices?.regularValue]
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  return Math.max(0, ...listed, ...fromVariants);
+}
 
-  const min = Number(price.minValue ?? price.value);
-  const max = Number(price.maxValue ?? price.value);
-  if (!Number.isFinite(min) || min <= 0) return "استعلام قیمت";
-  const formatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 });
-  const suffix = price.currencySymbol || "تومان";
-
-  if (Number.isFinite(min) && Number.isFinite(max) && max > min) {
-    return `از ${formatter.format(min)} ${suffix}`;
-  }
-
-  return `${formatter.format(Number(price.value))} ${suffix}`;
+export function formatCatalogPrice(product: Pick<ShopProduct, "prices" | "variants">): string {
+  const amount = getCatalogHighestPrice(product);
+  if (!amount) return "استعلام قیمت";
+  return formatMoney(amount, product.prices?.currencySymbol || "تومان");
 }
 
 export function getCollectionName(product: ShopProduct): string | null {
@@ -159,7 +170,7 @@ export function getCollectionName(product: ShopProduct): string | null {
 
 export function getProductAttributeOptions(product: ShopProduct): PurchaseAttribute[] {
   const attributes = product.attributes
-    .filter((attribute) => attribute.terms.length > 0 && isPurchaseAttribute(attribute.name))
+    .filter((attribute) => attribute.terms.length > 0 && isPurchaseAttribute(attribute.name, attribute.terms.map((term) => term.name)))
     .map((attribute) => ({
       id: attribute.taxonomy || String(attribute.id),
       label: attribute.name,
@@ -173,7 +184,8 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
 
   for (const variant of enabledVariants(product)) {
     for (const option of variant.options) {
-      if (!isPurchaseAttribute(option.name) || !option.value) continue;
+      const siblingValues = variant.options.filter((entry) => entry.name === option.name).map((entry) => entry.value);
+      if (!isPurchaseAttribute(option.name, siblingValues) || !option.value) continue;
       let attribute = attributes.find((item) => item.label === option.name);
       if (!attribute) {
         attribute = { id: option.name, label: option.name, options: [] };

@@ -222,6 +222,22 @@ input[type="search"]::-webkit-search-cancel-button {
   will-change: transform;
 }
 
+.seasonal-marquee-track,
+.seasonal-marquee-track-reverse {
+  animation-duration: 72s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.seasonal-marquee-track {
+  animation-name: gallery-marquee;
+}
+
+.seasonal-marquee-track-reverse {
+  animation-name: gallery-marquee-reverse;
+}
+
 @keyframes gallery-marquee {
   from {
     transform: translate3d(0, 0, 0);
@@ -231,8 +247,19 @@ input[type="search"]::-webkit-search-cancel-button {
   }
 }
 
+@keyframes gallery-marquee-reverse {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .gallery-marquee-track {
+  .gallery-marquee-track,
+  .seasonal-marquee-track,
+  .seasonal-marquee-track-reverse {
     animation: none;
   }
 }

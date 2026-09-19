@@ -13,6 +13,15 @@ export { CATEGORY_DESCRIPTIONS } from "./helpers";
 
 export const posts = editorialPosts;
 
+/** Landing mix: 2 design styles, 2 home products, 1 decor. */
+export const FEATURED_MAGAZINE_SLUGS = [
+  "coordinating-sofa-dining-and-materials",
+  "small-living-room-sofa-layout",
+  "sofa-selection-living-room-guide",
+  "bedroom-set-selection-guide",
+  "rug-selection-for-living-room-guide",
+] as const;
+
 export const postCategories = getPostCategories(posts);
 
 export function getPost(slug: string) {

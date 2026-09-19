@@ -11,7 +11,6 @@ import {
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
-import AddToCartButton from "@/components/shop/AddToCartButton";
 import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 
 export function generateStaticParams() {
@@ -75,8 +74,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product, index) => (
               <FadeUp key={product.slug} delay={Math.min(index * 0.06, 0.36)}>
-                <article className="group block">
-                  <Link href={`/products/${product.slug}`} className="block">
+                <Link href={`/products/${product.slug}`} className="group block">
                     <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">
                       <Image src={product.image} alt={product.name} fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
                     </div>
@@ -86,13 +84,6 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                     </div>
                     <p className="mt-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
                   </Link>
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <Link href={`/products/${product.slug}`} className="inline-flex items-center gap-2 text-sm text-brick transition-colors hover:text-forest">
-                      معرفی محصول <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
-                    </Link>
-                    <AddToCartButton slug={product.slug} name={product.name} image={product.image} label="افزودن به سبد" />
-                  </div>
-                </article>
               </FadeUp>
             ))}
           </div>
@@ -145,8 +136,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
         <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {matchingProducts.map((product, index) => (
             <FadeUp key={product.slug} delay={Math.min(index * 0.06, 0.36)}>
-              <article className="group block">
-                <Link href={`/products/${product.slug}`} className="block">
+              <Link href={`/products/${product.slug}`} className="group block">
                   <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">
                     <Image src={product.image} alt={product.name} fill unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.04]" />
                   </div>
@@ -156,13 +146,6 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
                 </Link>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Link href={`/products/${product.slug}`} className="inline-flex items-center gap-2 text-sm text-brick transition-colors hover:text-forest">
-                    معرفی محصول <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
-                  </Link>
-                  <AddToCartButton slug={product.slug} name={product.name} image={product.image} label="افزودن به سبد" />
-                </div>
-              </article>
             </FadeUp>
           ))}
         </div>

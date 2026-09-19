@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
 import type { ShopProduct } from "@/data/products";
+import {
+  getFamiliesInProducts,
+  getTypesInProducts,
+  productMatchesFamily,
+  productMatchesType,
+} from "@/data/product-families";
 import { getCollectionName } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
@@ -29,6 +35,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [family, setFamily] = useState(searchParams.get("family") ?? "all");
   const [type, setType] = useState(searchParams.get("type") ?? "all");
   const [collection, setCollection] = useState(searchParams.get("collection") ?? "all");
   const [stockOnly, setStockOnly] = useState(searchParams.get("stock") === "1");
@@ -38,11 +45,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   const catalogRef = useRef<HTMLElement>(null);
   const scrollToProductsAfterSync = useRef(false);
 
-  const typeOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    products.forEach((product) => counts.set(product.category, (counts.get(product.category) ?? 0) + 1));
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  }, [products]);
+  const familyOptions = useMemo(() => getFamiliesInProducts(products), [products]);
+  const typeOptions = useMemo(() => getTypesInProducts(products, family), [family, products]);
+  const showTypeFilter = family !== "all" && typeOptions.length > 1;
 
   const collectionOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -60,7 +65,8 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         const haystack = `${product.name} ${product.category} ${product.shortDescription}`.toLocaleLowerCase("fa");
         if (!haystack.includes(normalizedQuery)) return false;
       }
-      if (type !== "all" && product.category !== type) return false;
+      if (family !== "all" && !productMatchesFamily(product, family)) return false;
+      if (type !== "all" && !productMatchesType(product, type)) return false;
       if (collection !== "all" && getCollectionName(product) !== collection) return false;
       if (stockOnly && !product.isInStock) return false;
       return true;
@@ -71,12 +77,13 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
     if (sort === "price-asc") next.sort((a, b) => numericPrice(a) - numericPrice(b));
     if (sort === "price-desc") next.sort((a, b) => numericPrice(b) - numericPrice(a));
     return next;
-  }, [collection, products, query, sort, stockOnly, type]);
+  }, [collection, family, products, query, sort, stockOnly, type]);
 
   useEffect(() => {
     setVisibleCount(18);
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
+    if (family !== "all") params.set("family", family);
     if (type !== "all") params.set("type", type);
     if (collection !== "all") params.set("collection", collection);
     if (stockOnly) params.set("stock", "1");
@@ -97,7 +104,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
       }
     }, 180);
     return () => window.clearTimeout(timeout);
-  }, [collection, pathname, query, router, searchParams, sort, stockOnly, type]);
+  }, [collection, family, pathname, query, router, searchParams, sort, stockOnly, type]);
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -109,10 +116,17 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   }, [filterOpen]);
 
   const visible = filtered.slice(0, visibleCount);
-  const activeFilterCount = Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
+  const activeFilterCount = Number(family !== "all") + Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
+
+  const selectFamily = (next: string) => {
+    scrollToProductsAfterSync.current = true;
+    setFamily(next);
+    setType("all");
+  };
 
   const clearFilters = () => {
     scrollToProductsAfterSync.current = true;
+    setFamily("all");
     setType("all");
     setCollection("all");
     setStockOnly(false);
@@ -129,20 +143,22 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         ) : null}
       </div>
 
-      <fieldset>
-        <legend className="text-sm font-medium text-forest">نوع محصول</legend>
-        <div className="mt-4 max-h-64 space-y-2.5 overflow-y-auto pl-2">
-          <FilterRadio label="همه" count={products.length} active={type === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} />
-          {typeOptions.map(([label, count]) => (
-            <FilterRadio key={label} label={label} count={count} active={type === label} onClick={() => { scrollToProductsAfterSync.current = true; setType(label); }} />
-          ))}
-        </div>
-      </fieldset>
+      {showTypeFilter ? (
+        <fieldset>
+          <legend className="text-sm font-medium text-forest">نوع محصول</legend>
+          <ScrollableFilterList className="max-h-64">
+            <FilterRadio label="همه انواع" count={family === "all" ? products.length : products.filter((product) => productMatchesFamily(product, family)).length} active={type === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} />
+            {typeOptions.map(({ type: option, count }) => (
+              <FilterRadio key={option.slug} label={option.label} count={count} active={type === option.slug} onClick={() => { scrollToProductsAfterSync.current = true; setType(option.slug); }} />
+            ))}
+          </ScrollableFilterList>
+        </fieldset>
+      ) : null}
 
       {collectionOptions.length ? (
         <fieldset>
           <legend className="text-sm font-medium text-forest">کالکشن</legend>
-          <div className="mt-4 max-h-56 space-y-2.5 overflow-y-auto pl-2">
+          <ScrollableFilterList>
             <FilterRadio label="همه کالکشن‌ها" count={products.length} active={collection === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} />
             {collectionOptions.map(([label, count]) => (
               <FilterRadio
@@ -153,7 +169,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
                 onClick={() => { scrollToProductsAfterSync.current = true; setCollection(label); }}
               />
             ))}
-          </div>
+          </ScrollableFilterList>
         </fieldset>
       ) : null}
 
@@ -175,12 +191,14 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   return (
     <section ref={catalogRef} className="bg-paper py-20 md:py-28">
       <div className="mx-auto w-full max-w-container px-6 md:px-10 lg:px-16">
-        {typeOptions.length ? (
+        {familyOptions.length ? (
           <div className="mb-8 border-b border-forest/10 pb-6">
-            <p className="mb-3 text-xs tracking-[0.16em] text-forest/45">نوع محصول</p>
+            <p className="mb-3 text-xs tracking-[0.16em] text-forest/45">دسته</p>
             <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-              <button type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه محصولات</button>
-              {typeOptions.map(([label, count]) => <button key={label} type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType(label); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === label ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>)}
+              <button type="button" onClick={() => selectFamily("all")} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه محصولات</button>
+              {familyOptions.map(({ family: option, count }) => (
+                <button key={option.slug} type="button" onClick={() => selectFamily(option.slug)} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === option.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>
+              ))}
             </div>
           </div>
         ) : null}
@@ -230,13 +248,14 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         </div>
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[18rem_minmax(0,1fr)]">
-          <aside className="sticky top-40 hidden lg:block">{filterPanel}</aside>
+          <aside data-lenis-prevent className="sticky top-40 hidden max-h-[calc(100svh-11rem)] overflow-y-auto overscroll-contain lg:block">{filterPanel}</aside>
 
           <div className="min-w-0">
             <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-forest/10 pb-5 text-sm text-forest/55">
               <p>{toFa(filtered.length)} نتیجه</p>
               <div className="flex flex-wrap gap-2">
-                {type !== "all" ? <ActiveChip label={type} onRemove={() => { scrollToProductsAfterSync.current = true; setType("all"); }} /> : null}
+                {family !== "all" ? <ActiveChip label={familyOptions.find((item) => item.family.slug === family)?.family.label ?? family} onRemove={() => selectFamily("all")} /> : null}
+                {type !== "all" ? <ActiveChip label={typeOptions.find((item) => item.type.slug === type)?.type.label ?? type} onRemove={() => { scrollToProductsAfterSync.current = true; setType("all"); }} /> : null}
                 {collection !== "all" ? <ActiveChip label={`کالکشن ${collection}`} onRemove={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} /> : null}
                 {stockOnly ? <ActiveChip label="موجود" onRemove={() => { scrollToProductsAfterSync.current = true; setStockOnly(false); }} /> : null}
               </div>
@@ -327,6 +346,18 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         </div>
       </div>
     </section>
+  );
+}
+
+function ScrollableFilterList({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      data-lenis-prevent
+      onWheel={(event) => event.stopPropagation()}
+      className={cn("mt-4 max-h-56 space-y-2.5 overflow-y-auto overscroll-contain pl-2 pr-1", className)}
+    >
+      {children}
+    </div>
   );
 }
 

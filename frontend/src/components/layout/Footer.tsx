@@ -16,8 +16,15 @@ export default async function Footer() {
     productMegaMenu?: typeof fallbackProductMegaMenu;
   }>("nav");
   const navData = navPage?.items;
-  const navItems = (navData?.navItems?.length ? navData.navItems : fallbackNavItems).filter((item) => item.href !== "/materials");
-  const homeSectionLinks = navData?.homeSectionLinks?.length ? navData.homeSectionLinks : fallbackHomeSectionLinks;
+  const sitemapHrefs = new Set(["/magazine", "/gallery", "/contact", "/materials"]);
+  const navItems = (navData?.navItems?.length ? navData.navItems : fallbackNavItems).filter((item) => !sitemapHrefs.has(item.href));
+  const homeSectionLinks = [
+    ...(navData?.homeSectionLinks?.length ? navData.homeSectionLinks : fallbackHomeSectionLinks).filter(
+      (item) => item.href !== "/#work-areas" && item.href !== "/#consultation" && item.href !== "/magazine" && item.href !== "/gallery",
+    ),
+    { label: "مجله", href: "/magazine" },
+    { label: "گالری", href: "/gallery" },
+  ];
   // Product groups have one canonical order shared with the primary menu.
   // Keep this list local rather than letting an older CMS navigation record
   // reintroduce retired or out-of-order categories in the footer.
@@ -26,41 +33,47 @@ export default async function Footer() {
   const currentYear = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
 
   return (
-    <footer className="relative flex min-h-0 flex-col overflow-hidden bg-forest text-paper md:min-h-screen">
+    <footer className="relative flex min-h-0 flex-col overflow-hidden bg-forest text-paper">
       <div className="pointer-events-none absolute -bottom-[8vw] -left-[5vw] h-[clamp(16rem,34vw,38rem)] w-[clamp(14rem,30vw,34rem)] opacity-[0.035]" aria-hidden>
         <Image src={brandAssets.logo.white} alt="" fill sizes="34vw" className="object-contain" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-container flex-1 flex-col justify-center px-6 py-20 md:px-10 md:py-24 lg:px-16">
+      <div className="relative mx-auto w-full max-w-container px-6 py-16 md:px-10 md:py-20 lg:px-16">
         <Stagger className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8" selector="[data-footer-column]" amount={0.55} y={28}>
           <div data-footer-column className="lg:col-span-4">
-            <BrandMark invert size="footer" />
-            <p className="mt-11 max-w-sm text-lg font-light leading-relaxed text-paper/85 md:text-xl">
+            <BrandMark invert size="footer" className="translate-x-6 md:translate-x-10" />
+            <p className="mt-8 max-w-sm text-lg font-light leading-relaxed text-paper/85 md:text-xl">
               {brand.sloganFa}
             </p>
           </div>
 
           <div data-footer-column className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-5">
             <div>
-              <h3 className="eyebrow text-peach">نقشه سایت خانه</h3>
+              <h3 className="eyebrow text-peach">خانه</h3>
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
-                {navItems.map((item) => (
-                  <li key={item.href}>
-                    <Link href={item.href} className="transition-colors hover:text-peach focus-visible:text-peach">
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-                <li>
-                  <Link href={DEFAULT_MATERIALS_HREF} className="transition-colors hover:text-peach focus-visible:text-peach">
-                    متریال‌ها
-                  </Link>
-                </li>
+                {navItems.flatMap((item) => {
+                  const link = (
+                    <li key={item.href}>
+                      <Link href={item.href} className="transition-colors hover:text-peach focus-visible:text-peach">
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                  if (item.href !== "/projects") return [link];
+                  return [
+                    link,
+                    <li key={DEFAULT_MATERIALS_HREF}>
+                      <Link href={DEFAULT_MATERIALS_HREF} className="transition-colors hover:text-peach focus-visible:text-peach">
+                        متریال‌ها
+                      </Link>
+                    </li>,
+                  ];
+                })}
               </ul>
             </div>
 
             <div>
-              <h3 className="eyebrow text-peach">دسته بندی خانه</h3>
+              <h3 className="eyebrow text-peach">محصولات خانه</h3>
               <ul className="mt-4 space-y-2 text-sm text-paper/80">
                 {productMegaMenu.map((item) => (
                   <li key={item.href}>
@@ -92,7 +105,7 @@ export default async function Footer() {
               {/* <li>{brand.}</li> */}
               {/* <li>{brand.showroomHoursFa}</li> */}
               <li dir="ltr" className="text-right">
-                {brand.phone}
+                {/۰۲۱|021/.test(brand.phone) ? brand.phone : `۰۲۱ ${brand.phone}`}
               </li>
               <li dir="ltr" className="text-right">
                 {brand.email}
@@ -115,11 +128,6 @@ export default async function Footer() {
               <li>
                 <Link href="/contact/representation" className="transition-colors hover:text-peach focus-visible:text-peach">
                   درخواست نمایندگی
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact/consultation" className="transition-colors hover:text-peach focus-visible:text-peach">
-                  درخواست مشاوره
                 </Link>
               </li>
             </ul>

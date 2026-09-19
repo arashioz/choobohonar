@@ -11,7 +11,7 @@ import {
   getMaterialCommerceItems,
   materialCommerceItems,
 } from "@/data/material-products";
-import { shopProducts } from "@/data/products";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { toFa } from "@/lib/utils";
 
 export const dynamicParams = false;
@@ -45,7 +45,8 @@ export default async function MaterialProductPage({ params }: PageProps) {
   const material = getMaterial(slug);
   if (!item || !material) notFound();
   const relatedMaterials = getMaterialCommerceItems(material.id).filter((entry) => entry.slug !== item.slug).slice(0, 3);
-  const relatedProducts = shopProducts
+  const storefront = await fetchStorefrontProducts();
+  const relatedProducts = storefront
     .filter((product) => product.image && product.room !== "bedding")
     .slice(item.categoryId === "fabric" ? 4 : 0, item.categoryId === "fabric" ? 7 : 3);
 

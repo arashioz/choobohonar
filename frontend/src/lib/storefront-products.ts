@@ -1,5 +1,7 @@
 import type { ShopProduct, ProductRoom } from "@/data/products";
+import { shopProducts } from "@/data/products";
 import { getApiBase } from "@/lib/api-base";
+import { getCatalogHighestPrice } from "@/lib/commerce";
 
 type BackendProduct = {
   _id?: string;
@@ -25,10 +27,45 @@ type BackendProduct = {
   inStock?: boolean;
 };
 
+function applyCatalogTruth(product: ShopProduct): ShopProduct {
+  const catalog = shopProducts.find((item) => item.slug === product.slug);
+  const highest = getCatalogHighestPrice(product);
+  const currency = product.prices?.currencySymbol || catalog?.prices?.currencySymbol || "تومان";
+  const categories = product.categories?.some((term) => term.slug && term.slug !== (product.category || ""))
+    ? product.categories
+    : (catalog?.categories?.length ? catalog.categories : product.categories);
+  return {
+    ...product,
+    categories,
+    prices: highest
+      ? {
+          value: String(highest),
+          regularValue: String(highest),
+          saleValue: null,
+          minValue: product.prices?.minValue || catalog?.prices?.minValue || String(highest),
+          maxValue: String(highest),
+          currencyCode: product.prices?.currencyCode || catalog?.prices?.currencyCode || "IRR",
+          currencySymbol: currency,
+          minorUnit: 0,
+        }
+      : product.prices,
+  };
+}
+
 export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
   const price = Number.isFinite(Number(item.price)) && Number(item.price) > 0 ? String(item.price) : null;
   const image = item.image || item.gallery?.[0] || "";
-  return {
+  const variants = item.variants?.map((variant, index) => ({
+    id: variant._id || variant.sku || String(index),
+    sku: variant.sku,
+    options: variant.options || [],
+    price: variant.price,
+    compareAtPrice: variant.compareAtPrice,
+    stockQty: variant.stockQty || 0,
+    image: variant.image,
+    enabled: variant.enabled !== false,
+  }));
+  return applyCatalogTruth({
     kind: "catalog",
     id: Number.parseInt(item._id || "0", 16) || 0,
     slug: item.slug,
@@ -65,8 +102,8 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
     hasOptions: Boolean(item.attributes?.length),
     shopUrl: item.shopUrl || "",
     finishes: item.finishes || [],
-    variants: item.variants?.map((variant, index) => ({ id: variant._id || variant.sku || String(index), sku: variant.sku, options: variant.options || [], price: variant.price, compareAtPrice: variant.compareAtPrice, stockQty: variant.stockQty || 0, image: variant.image, enabled: variant.enabled !== false })),
-  };
+    variants,
+  });
 }
 
 export async function fetchStorefrontProducts(): Promise<ShopProduct[]> {

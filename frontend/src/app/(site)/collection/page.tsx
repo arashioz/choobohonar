@@ -46,10 +46,14 @@ export default async function CollectionPage() {
                         <span className="text-sm">{collection.name}</span>
                       </div>
                     )}
+                    {collection.series ? (
+                      <span className="absolute right-4 top-4 rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-forest backdrop-blur-md">
+                        سری {collection.series}
+                      </span>
+                    ) : null}
                   </div>
                   <div className="mt-6">
-                    <p className="eyebrow text-brick">سری {collection.series || "—"}</p>
-                    <h2 className="mt-3 text-3xl font-light tracking-tight text-forest md:text-4xl">{collection.name}</h2>
+                    <h2 className="text-3xl font-light tracking-tight text-forest md:text-4xl">{collection.name}</h2>
                     <p className="mt-3 text-sm text-forest/50">{toFa(collection.productCount ?? collection.products?.length ?? 0)} محصول در این مجموعه</p>
                   </div>
                   <span className="mt-6 inline-flex items-center gap-2 text-sm text-brick transition-colors group-hover:text-forest">
@@ -66,10 +70,14 @@ export default async function CollectionPage() {
                   <Link data-collection-card key={collection.slug} href={`/collection/${collection.slug}`} className="group block">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-forest/5">
                       <Image src={collection.image} alt={collection.name} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-[1.03]" />
+                      {collection.nameEn || collection.eyebrow ? (
+                        <span className="absolute right-4 top-4 rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-forest backdrop-blur-md">
+                          سری {collection.nameEn || collection.eyebrow}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="mt-6">
-                      <p className="eyebrow text-brick">سری {collection.nameEn || collection.eyebrow}</p>
-                      <h2 className="mt-3 text-3xl font-light tracking-tight text-forest md:text-4xl">{collection.name}</h2>
+                      <h2 className="text-3xl font-light tracking-tight text-forest md:text-4xl">{collection.name}</h2>
                       <p className="mt-3 text-sm text-forest/50">{toFa(productCount)} محصول در این مجموعه</p>
                     </div>
                     <span className="mt-6 inline-flex items-center gap-2 text-sm text-brick transition-colors group-hover:text-forest">

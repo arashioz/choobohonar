@@ -23,9 +23,9 @@ export const navItems: NavItem[] = [
 
 export const homeSectionLinks: NavChildItem[] = [
   { label: "پروژه‌های منتخب", href: "/#projects" },
-  { label: "گروه‌های کالایی", href: "/#work-areas" },
+  { label: "مجله", href: "/magazine" },
+  { label: "گالری", href: "/gallery" },
   { label: "رویکرد ما", href: "/#approach" },
-  { label: "فرم مشاوره", href: "/#consultation" },
 ];
 
 export const brand = {
@@ -33,8 +33,8 @@ export const brand = {
   nameEn: "ChooboHonar Home",
   sloganFa: "سبک دلخواه من",
   sloganSubFa: "همراه تو در خلق خانه‌ای که دوستش داری",
-  phone: "۵۴۱۶۹",
-  phoneIntl: "54169",
+  phone: "۰۲۱ ۵۴۱۶۹",
+  phoneIntl: "02154169",
   email: "info@choobohonar.com",
   instagram: "https://instagram.com/choobohonar",
   addressFa: "تهران، شوروم خانه چوب و هنر",

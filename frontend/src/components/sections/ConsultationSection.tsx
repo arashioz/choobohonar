@@ -115,14 +115,6 @@ export default function ConsultationSection() {
               برای مشاوره فرم زیر را تکمیل کنید؛ یا برای ثبت سفارش طراحی داخلی، فرم هوشمند را
               شروع کنید تا سلیقه و جزئیات فنی فضای خود را با تیم معماری داخلی به اشتراک بگذارید.
             </FadeUp>
-            <FadeUp delay={0.14} className="mt-10 flex flex-wrap gap-4">
-              <Button href="/interior-architecture-services/order" variant="primary" showArrow>
-                شروع فرم سفارش طراحی
-              </Button>
-              <Button href="/interior-architecture-services" variant="secondary">
-                بیشتر درباره خدمات
-              </Button>
-            </FadeUp>
           </div>
 
           <div className="lg:col-span-6 lg:col-start-7">

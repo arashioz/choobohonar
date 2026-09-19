@@ -1,25 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
-import CommerceProductCard from "@/components/commerce/CommerceProductCard";
-import ProductStoriesRail from "@/components/commerce/ProductStoriesRail";
+import ProductStoriesSection from "@/components/commerce/ProductStoriesSection";
+import SeasonalProductRails from "@/components/commerce/SeasonalProductRails";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 import { commerceCategories, getFeaturedCommerceProducts } from "@/data/commerce";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { isUploadedMedia } from "@/lib/media";
-import { fetchPublicCmsEntries } from "@/lib/public-cms";
+import { fetchProductStories } from "@/lib/product-stories";
 
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
-  const featured = backendProducts.length ? backendProducts.filter((product) => product.image).slice(0, 8) : getFeaturedCommerceProducts(8);
-  const storyEntries = await fetchPublicCmsEntries("story");
-  const stories = storyEntries.map((story) => ({
-    label: typeof story.data?.label === "string" ? story.data.label : "Product Stories",
-    title: story.title,
-    video: typeof story.data?.video === "string" ? story.data.video : "",
-  })).filter((story) => Boolean(story.video));
+  const featured = getFeaturedCommerceProducts(32, backendProducts.length ? backendProducts : undefined);
+  const stories = await fetchProductStories();
   const heroProduct = featured[0];
 
   return (
@@ -132,41 +127,20 @@ export default async function ProductsLanding() {
             <FadeUp>
               <p className="eyebrow text-brick">انتخاب این فصل</p>
               <h2 className="mt-5 text-[clamp(2.7rem,5vw,5.5rem)] font-extralight leading-none tracking-tightest text-forest">
-                هشت قطعه، هشت حضور
+                حضور این فصل
               </h2>
             </FadeUp>
-            <Link href="/products/category/livingroom" className="group inline-flex items-center gap-3 text-sm text-forest">
-              مشاهده کاتالوگ کامل
+            <Link href="/products" className="group inline-flex items-center gap-3 text-sm text-forest">
+              مشاهده کامل محصولات
               <span className="transition-transform duration-300 group-hover:-translate-x-1">←</span>
             </Link>
           </div>
 
-          <div className="mt-14 grid gap-x-5 gap-y-14 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
-            {featured.map((product, index) => (
-              <FadeUp key={product.slug} delay={Math.min(index * 0.04, 0.2)} className="h-full">
-                <CommerceProductCard product={product} imageAspect="portrait" />
-              </FadeUp>
-            ))}
-          </div>
+          <SeasonalProductRails products={featured} />
         </Container>
       </section>
 
-      {stories.length > 0 && <section className="overflow-hidden bg-forest py-24 text-paper md:py-32 lg:py-40">
-        <Container>
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
-            <FadeUp>
-              <p className="eyebrow text-peach">Product Stories</p>
-              <h2 className="mt-6 text-[clamp(2.8rem,6vw,6rem)] font-extralight leading-[0.9] tracking-tightest">
-                نزدیک‌تر
-                <br />
-                از همیشه
-              </h2>
-            </FadeUp>
-          </div>
-
-          <ProductStoriesRail stories={stories} />
-        </Container>
-      </section>}
+      <ProductStoriesSection stories={stories} />
     </>
   );
 }

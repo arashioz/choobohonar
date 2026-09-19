@@ -25,9 +25,10 @@ import { cn, toFa } from "@/lib/utils";
 
 type Props = {
   items: GalleryItem[];
+  catalogProducts?: AnyProduct[];
 };
 
-export default function GalleryExperience({ items }: Props) {
+export default function GalleryExperience({ items, catalogProducts = [] }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -41,50 +42,49 @@ export default function GalleryExperience({ items }: Props) {
   const [signedIn, setSignedIn] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const [completedAnswers, setCompletedAnswers] = useState<GalleryTasteAnswers | null>(null);
-  const [products, setProducts] = useState<AnyProduct[]>([]);
+  const [products, setProducts] = useState<AnyProduct[]>(() =>
+    catalogProducts.length ? catalogProducts : getAllCatalogProducts(),
+  );
   const [, startTransition] = useTransition();
 
   useEffect(() => {
     let cancelled = false;
-    fetchStorefrontProducts()
-      .then((list) => {
-        if (!cancelled) setProducts(list.length ? list : getAllCatalogProducts());
-      })
-      .catch(() => {
-        if (!cancelled) setProducts(getAllCatalogProducts());
-      });
 
-    fetch(`${getApiBase()}/public/account/me`, { credentials: "include" })
+    const productsReady = catalogProducts.length
+      ? Promise.resolve(catalogProducts)
+      : fetchStorefrontProducts()
+          .then((list) => (list.length ? list : getAllCatalogProducts()))
+          .catch(() => getAllCatalogProducts());
+
+    const sessionReady = fetch(`${getApiBase()}/public/account/me`, { credentials: "include" })
       .then(async (response) => {
         if (!response.ok) throw new Error("unsigned");
         const payload = (await response.json()) as { customer?: { galleryTaste?: unknown } };
-        if (cancelled) return;
-        setSignedIn(true);
-        const answers = parseTasteAnswers(payload.customer?.galleryTaste);
-        if (answers) {
-          writeTasteState({ status: "complete", answers });
-          setTaste({ status: "complete", answers });
-          setQuizOpen(false);
-        } else {
-          const stored = readTasteState();
-          setTaste(stored);
-          setQuizOpen(!stored);
-        }
-        setReady(true);
+        return { signedIn: true as const, answers: parseTasteAnswers(payload.customer?.galleryTaste) };
       })
-      .catch(() => {
-        if (cancelled) return;
-        setSignedIn(false);
+      .catch(() => ({ signedIn: false as const, answers: null as ReturnType<typeof parseTasteAnswers> }));
+
+    Promise.all([productsReady, sessionReady]).then(([list, session]) => {
+      if (cancelled) return;
+      setProducts(list);
+      setSignedIn(session.signedIn);
+      if (session.answers) {
+        const next = { status: "complete" as const, answers: session.answers };
+        writeTasteState(next);
+        setTaste(next);
+        setQuizOpen(false);
+      } else {
         const stored = readTasteState();
         setTaste(stored);
-        setQuizOpen(!stored);
-        setReady(true);
-      });
+        setQuizOpen(stored?.status !== "complete");
+      }
+      setReady(true);
+    });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [catalogProducts]);
 
   useEffect(() => {
     const next = (searchParams.get("tag") as GalleryFilter | null) ?? "all";
@@ -92,7 +92,7 @@ export default function GalleryExperience({ items }: Props) {
   }, [searchParams]);
 
   const productItems = useMemo(
-    () => products.filter((product) => product.image).slice(0, 48).map(productToGalleryItem),
+    () => products.filter((product) => product.image).map(productToGalleryItem),
     [products],
   );
 
@@ -163,7 +163,15 @@ export default function GalleryExperience({ items }: Props) {
       ) : null}
 
       <FadeUp className="flex flex-col gap-6 border-y border-forest/10 py-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div>
+          {taste?.status === "complete" ? (
+            <p className="mb-3 text-xs text-forest/45">فید بر اساس سلیقه شما چیده شده؛ عکس محصول‌های هماهنگ بین آرشیو می‌آیند.</p>
+          ) : taste?.status === "skipped" ? (
+            <p className="mb-3 text-xs text-forest/45">ترتیب پیش‌فرض آرشیو. سلیقه برای این مرورگر رد شده است.</p>
+          ) : (
+            <p className="mb-3 text-xs text-forest/45">با چند سؤال کوتاه، ترتیب گالری را با سلیقه شما می‌چینیم.</p>
+          )}
+        <div className="flex flex-wrap items-center gap-2">
           {galleryFilters.map((item) => {
             const selected = filter === item.id;
             return (
@@ -182,12 +190,24 @@ export default function GalleryExperience({ items }: Props) {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setQuizOpen(true)}
+            className="border border-brick/30 px-4 py-2 text-xs tracking-[0.12em] text-brick transition-colors duration-300 hover:border-brick hover:bg-brick hover:text-paper"
+          >
+            {taste?.status === "complete" ? "تغییر سلیقه" : "شخصی‌سازی فید"}
+          </button>
         </div>
-        <p className="text-sm text-forest/50">{toFa(filtered.length)} تصویر</p>
+        </div>
+        <p className="text-sm text-forest/50">{ready ? `${toFa(filtered.length)} تصویر` : "در حال چیدن فید…"}</p>
       </FadeUp>
 
       <div className="mt-10 md:mt-14">
-        <GalleryBentoGrid items={filtered} onOpen={setActive} />
+        {ready ? (
+          <GalleryBentoGrid items={filtered} onOpen={setActive} />
+        ) : (
+          <div className="h-40 animate-pulse bg-forest/5" />
+        )}
       </div>
 
       {active ? (

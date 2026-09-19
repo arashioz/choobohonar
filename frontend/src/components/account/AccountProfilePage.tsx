@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/commerce";
 import { cn, toFa } from "@/lib/utils";
 import { isUploadedMedia } from "@/lib/media";
 import GalleryTasteEditor from "@/components/account/GalleryTasteEditor";
+import { clearTasteState } from "@/lib/gallery-taste";
 
 type Customer = {
   id: string;
@@ -74,28 +75,20 @@ export default function AccountProfilePage() {
     city: "",
     password: "",
   });
+  const loadGeneration = useRef(0);
 
   async function loadProfile() {
+    const generation = ++loadGeneration.current;
     setLoading(true);
     try {
       const next = await request<ProfilePayload>("/me");
+      if (generation !== loadGeneration.current) return;
       applyProfile(next);
     } catch {
-      if (isLocal) {
-        try {
-          await request<{ customer: Customer }>("/dev-login", { method: "POST" });
-          const next = await request<ProfilePayload>("/me");
-          applyProfile(next);
-          setMessage("با حساب آزمایشی bezivafaei وارد شدید.");
-          return;
-        } catch {
-          setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
+      if (generation !== loadGeneration.current) return;
+      setProfile(null);
     } finally {
-      setLoading(false);
+      if (generation === loadGeneration.current) setLoading(false);
     }
   }
 
@@ -168,10 +161,30 @@ export default function AccountProfilePage() {
   }
 
   async function logout() {
-    await request<{ ok: true }>("/logout", { method: "POST" }).catch(() => undefined);
+    loadGeneration.current += 1;
     setProfile(null);
+    setLoading(false);
     setMessage("از حساب کاربری خارج شدید.");
+    setError("");
     setCredentials({ name: "", phone: "", email: "", city: "", password: "" });
+    await request<{ ok: true }>("/logout", { method: "POST" }).catch(() => undefined);
+    clearTasteState();
+  }
+
+  async function localTestLogin() {
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      await request<{ customer: Customer }>("/dev-login", { method: "POST" });
+      const next = await request<ProfilePayload>("/me");
+      applyProfile(next);
+      setMessage("با حساب آزمایشی bezivafaei وارد شدید.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ورود آزمایشی انجام نشد");
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) {
@@ -218,8 +231,7 @@ export default function AccountProfilePage() {
           <div className="mt-12 grid gap-14 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start xl:gap-20">
             <aside className="space-y-8">
               <form onSubmit={saveProfile} className="border border-forest/10 bg-white/50 p-6 md:p-8">
-                <p className="font-display text-sm text-brick">01</p>
-                <h2 className="mt-3 text-2xl font-light tracking-tight text-forest">اطلاعات شما</h2>
+                <h2 className="text-2xl font-light tracking-tight text-forest">اطلاعات شما</h2>
                 <p className="mt-2 text-xs leading-6 text-forest/50">شماره موبایل شناسه حساب است و تغییر نمی‌کند.</p>
                 <div className="mt-8 grid gap-6">
                   <ProfileField label="نام و نام خانوادگی" value={credentials.name} onChange={(value) => setCredentials((current) => ({ ...current, name: value }))} />
@@ -232,24 +244,12 @@ export default function AccountProfilePage() {
                 </div>
               </form>
 
-              <div className="border border-forest/10 p-6 md:p-8">
-                <p className="font-display text-sm text-brick">02</p>
-                <h2 className="mt-3 text-2xl font-light tracking-tight text-forest">دسترسی سریع</h2>
-                <div className="mt-6 divide-y divide-forest/10 border-y border-forest/10">
-                  <QuickLink href="/gallery" label="گالری شخصی" note="فید بر اساس سلیقه شما" />
-                  <QuickLink href="/products" label="فروشگاه محصولات" note="ادامه انتخاب برای خانه" />
-                  <QuickLink href="/cart" label="سبد خرید" note="مرور اقلام ذخیره‌شده" />
-                  <QuickLink href="/checkout" label="ثبت پیش‌فاکتور" note="هماهنگی ساخت و پرداخت" />
-                  <QuickLink href="/contact/consultation" label="مشاوره حضوری" note="هماهنگی با کارشناس" />
-                </div>
-              </div>
             </aside>
 
             <div>
               <div className="flex flex-wrap items-end justify-between gap-4 border-b border-forest/10 pb-6">
                 <div>
-                  <p className="font-display text-sm text-brick">03</p>
-                  <h2 className="mt-3 text-3xl font-light tracking-tight text-forest md:text-4xl">تاریخچه خرید</h2>
+                  <h2 className="text-3xl font-light tracking-tight text-forest md:text-4xl">تاریخچه خرید</h2>
                 </div>
                 <div className="flex gap-2">
                   <TabChip active={commerceTab === "online"} onClick={() => setCommerceTab("online")} label={`سفارشات آنلاین (${toFa(onlineOrders.length)})`} />
@@ -303,6 +303,17 @@ export default function AccountProfilePage() {
                   </Link>
                 </div>
               )}
+
+              <div className="mt-14 border-t border-forest/10 pt-10">
+                <h2 className="text-2xl font-light tracking-tight text-forest">دسترسی سریع</h2>
+                <div className="mt-6 divide-y divide-forest/10 border-y border-forest/10">
+                  <QuickLink href="/gallery" label="گالری شخصی" note="فید بر اساس سلیقه شما" />
+                  <QuickLink href="/products" label="فروشگاه محصولات" note="ادامه انتخاب برای خانه" />
+                  <QuickLink href="/cart" label="سبد خرید" note="مرور اقلام ذخیره‌شده" />
+                  <QuickLink href="/checkout" label="ثبت پیش‌فاکتور" note="هماهنگی ساخت و پرداخت" />
+                  <QuickLink href="/contact/consultation" label="مشاوره حضوری" note="هماهنگی با کارشناس" />
+                </div>
+              </div>
             </div>
           </div>
           <GalleryTasteEditor
@@ -343,6 +354,11 @@ export default function AccountProfilePage() {
                 <button disabled={saving} className="inline-flex min-h-14 items-center justify-center rounded-full bg-forest px-8 text-sm font-medium text-paper transition-colors hover:bg-brick disabled:opacity-50">
                   {saving ? "در حال انجام…" : mode === "login" ? "ورود به حساب" : "ساخت حساب کاربری"}
                 </button>
+                {isLocal ? (
+                  <button type="button" disabled={saving} onClick={() => void localTestLogin()} className="text-sm text-forest/50 underline decoration-forest/20 underline-offset-4 hover:text-forest">
+                    ورود آزمایشی bezivafaei
+                  </button>
+                ) : null}
               </div>
             </form>
             <aside className="border-r border-forest/10 pr-6">

@@ -9,12 +9,15 @@ import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import {
   commerceCategories,
-  getCommerceCategoryProducts,
+  filterCommerceCategoryProducts,
   resolveCommerceCategory,
 } from "@/data/commerce";
+import { shopProducts } from "@/data/products";
 import { toFa } from "@/lib/utils";
-import { fetchStorefrontProducts } from "@/lib/storefront-products";
+import ProductStoriesSection from "@/components/commerce/ProductStoriesSection";
 import { fetchCampaignBanner } from "@/lib/campaign-banners";
+import { fetchProductStories, storiesForCategory } from "@/lib/product-stories";
+import { fetchStorefrontProducts } from "@/lib/storefront-products";
 
 export const dynamicParams = false;
 
@@ -50,15 +53,14 @@ export default async function ProductCategoryPage({ params }: PageProps) {
   const { slug } = await params;
   const category = resolveCommerceCategory(slug);
   if (!category) notFound();
-  const backendProducts = await fetchStorefrontProducts();
-  const campaign = await fetchCampaignBanner(category.root.slug);
-  const products = (backendProducts.length
-    ? backendProducts.filter((product) => {
-        if (category.root.room && product.room !== category.root.room) return false;
-        if (category.active && product.category !== category.active.label && !product.slug.includes(category.active.slug)) return false;
-        return true;
-      })
-    : getCommerceCategoryProducts(category)).filter((product) =>
+  const [backendProducts, campaign, allStories] = await Promise.all([
+    fetchStorefrontProducts(),
+    fetchCampaignBanner(category.root.slug),
+    fetchProductStories(),
+  ]);
+  const stories = storiesForCategory(allStories, category.root.room, category.active?.slug || category.root.slug);
+  const catalog = backendProducts.length ? backendProducts : shopProducts;
+  const products = filterCommerceCategoryProducts(catalog, category).filter((product) =>
       category.root.slug !== "decor" || !/دراور|قاب\s*آینه\s*آلدر/u.test(product.name),
     );
   const activeLabel = category.active?.label ?? category.root.label;
@@ -118,6 +120,8 @@ export default async function ProductCategoryPage({ params }: PageProps) {
       <Suspense fallback={<div className="min-h-[40rem] bg-paper" />}>
         <CategoryCatalog products={products} categoryLabel={activeLabel} campaignImage={campaign?.image || category.root.image} campaign={campaign} />
       </Suspense>
+
+      <ProductStoriesSection stories={stories} />
     </>
   );
 }

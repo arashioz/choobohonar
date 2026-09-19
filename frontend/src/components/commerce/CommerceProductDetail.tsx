@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { scrollToTop } from "@/lib/lenis-control";
 import Image from "next/image";
 import Link from "next/link";
 import ProductRichDescription from "@/components/products/ProductRichDescription";
 import type { ShopProduct } from "@/data/products";
-import { formatCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection } from "@/lib/commerce";
+import { formatCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, purchaseAttributeLabel, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
@@ -86,7 +87,11 @@ export default function CommerceProductDetail({
     product.isPurchasable &&
     Number.isFinite(priceValue) &&
     priceValue > 0 &&
-    (!product.variants?.length || Boolean(selectedVariant && selectedVariant.stockQty > 0));
+    (!product.variants?.length || Boolean(selectedVariant && (selectedVariant.stockQty > 0 || product.isInStock)));
+
+  useLayoutEffect(() => {
+    scrollToTop();
+  }, [product.slug]);
 
   useEffect(() => {
     if (selectedVariant?.image) setActiveImage(selectedVariant.image);
@@ -179,8 +184,7 @@ export default function CommerceProductDetail({
             </div>
 
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <p className="eyebrow text-brick">{collection ? `Collection ${collection}` : product.category}</p>
-              <h1 className="mt-5 text-[clamp(3rem,6vw,6rem)] font-extralight leading-[0.88] tracking-tightest text-forest">
+              <h1 className="text-[clamp(3rem,6vw,6rem)] font-extralight leading-[0.88] tracking-tightest text-forest">
                 {product.name}
               </h1>
               <p className="mt-6 max-w-lg text-base leading-8 text-forest/60">{product.shortDescription}</p>
@@ -238,7 +242,9 @@ export default function CommerceProductDetail({
                 {otherAttributes.map((attribute) => (
                   <fieldset key={attribute.id}>
                     <div className="flex items-center justify-between gap-4">
-                      <legend className="text-sm font-medium text-forest">{attribute.label}</legend>
+                      <legend className="text-sm font-medium text-forest">
+                        {purchaseAttributeLabel(attribute.label, attribute.options.map((option) => option.label))}
+                      </legend>
                       <span className="text-xs text-forest/45">
                         {attribute.options.find((option) => option.id === selected[attribute.id])?.label}
                       </span>
