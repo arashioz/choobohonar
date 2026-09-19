@@ -90,10 +90,7 @@ export class PublicCustomersController {
 
   @Post('account/logout')
   logout(@Res() response: Response) {
-    return response
-      .clearCookie('customer_session', { path: '/' })
-      .status(200)
-      .json({ ok: true });
+    return this.clearSession(response).status(200).json({ ok: true });
   }
 
   @Post('account/dev-login')
@@ -137,6 +134,17 @@ export class PublicCustomersController {
       secure: process.env.FORCE_HTTPS === 'true',
       path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  private clearSession(response: Response) {
+    return response.cookie('customer_session', '', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.FORCE_HTTPS === 'true',
+      path: '/',
+      maxAge: 0,
+      expires: new Date(0),
     });
   }
 
