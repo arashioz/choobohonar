@@ -16,6 +16,7 @@ type BackendProduct = {
   gallery?: string[];
   shopUrl?: string;
   finishes?: string[];
+  materialImageMappings?: { attribute: string; value: string; image: string }[];
   price?: number;
   stockQty?: number;
   trackInventory?: boolean;
@@ -102,6 +103,7 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
     hasOptions: Boolean(item.attributes?.length),
     shopUrl: item.shopUrl || "",
     finishes: item.finishes || [],
+    materialImageMappings: item.materialImageMappings || [],
     variants,
   });
 }

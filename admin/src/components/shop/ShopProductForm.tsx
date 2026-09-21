@@ -26,6 +26,7 @@ type FormState = {
   image: string;
   gallery: string[];
   finishes: string[];
+  materialImageMappings: { attribute: string; value: string; image: string }[];
   shopUrl: string;
   status: ShopProductStatus;
   featured: boolean;
@@ -57,6 +58,7 @@ function fromProduct(p?: ShopProduct): FormState {
     image: p?.image || "",
     gallery: p?.gallery?.length ? p.gallery : (p?.image ? [p.image] : []),
     finishes: p?.finishes || [],
+    materialImageMappings: p?.materialImageMappings || [],
     shopUrl: p?.shopUrl || "",
     status: p?.status || "published",
     featured: p?.featured || false,
@@ -126,6 +128,7 @@ export default function ShopProductForm({
       gallery: form.gallery.length ? form.gallery : (form.image.trim() ? [form.image.trim()] : []),
       shopUrl: form.shopUrl.trim() || undefined,
       finishes: form.finishes,
+      materialImageMappings: form.materialImageMappings.filter((item) => item.attribute.trim() && item.value.trim() && form.gallery.includes(item.image)),
       status: form.status,
       featured: form.featured,
       suggested: form.suggested,
@@ -406,6 +409,12 @@ export default function ShopProductForm({
           <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights.map((item) => ({ title: item.title || "", description: item.description || "" })))} left="عنوان" right="توضیح کوتاه" />
 
           <ProductMediaGallery images={form.gallery} uploading={uploading} uploadProgress={uploadProgress} onUpload={uploadImages} onChange={setGallery} />
+          <MaterialGalleryImageMapper
+            attributes={form.attributes}
+            gallery={form.gallery}
+            value={form.materialImageMappings}
+            onChange={(materialImageMappings) => set("materialImageMappings", materialImageMappings)}
+          />
 
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-3">
             <p className="text-xs font-medium text-forest/55">ویترین و پیشنهاد</p>
@@ -602,6 +611,84 @@ function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { at
         ))}
         <button type="button" onClick={nextVariant} className="text-[10px] font-medium text-brick">+ افزودن متغیر</button>
       </div>
+    </section>
+  );
+}
+
+const MATERIAL_ATTRIBUTE = /چوب|متریال|پرداخت|فینیش|رویه|wood|material|finish|پارچه|fabric|کوسن|cushion/i;
+
+function MaterialGalleryImageMapper({
+  attributes,
+  gallery,
+  value,
+  onChange,
+}: {
+  attributes: { name: string; values: string[] }[];
+  gallery: string[];
+  value: { attribute: string; value: string; image: string }[];
+  onChange: (mappings: { attribute: string; value: string; image: string }[]) => void;
+}) {
+  const materialOptions = attributes.flatMap((attribute) =>
+    MATERIAL_ATTRIBUTE.test(attribute.name)
+      ? attribute.values.filter((item) => item.trim()).map((item) => ({ attribute: attribute.name, value: item }))
+      : [],
+  );
+
+  function selectedImage(attribute: string, materialValue: string) {
+    return value.find((item) => item.attribute === attribute && item.value === materialValue)?.image || "";
+  }
+
+  function setImage(attribute: string, materialValue: string, image: string) {
+    const withoutCurrent = value.filter((item) => !(item.attribute === attribute && item.value === materialValue));
+    onChange(image ? [...withoutCurrent, { attribute, value: materialValue, image }] : withoutCurrent);
+  }
+
+  return (
+    <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 sm:p-5">
+      <div className="mb-4">
+        <h2 className="text-sm font-medium text-forest">تصویر محصول بر اساس متریال</h2>
+        <p className="mt-1 text-[10px] leading-5 text-forest/40">
+          برای هر چوب یا پارچه، یکی از عکس‌های همین گالری را انتخاب کنید. در صفحهٔ محصول با تغییر متریال، همان عکس به‌عنوان تصویر اصلی نشان داده می‌شود؛ این تنظیم قیمت را تغییر نمی‌دهد.
+        </p>
+      </div>
+      {!materialOptions.length ? (
+        <p className="text-[11px] text-forest/40">ابتدا در بخش «ویژگی‌ها» محورهایی مانند چوب، پارچه یا پارچه کوسن اضافه کنید.</p>
+      ) : !gallery.length ? (
+        <p className="text-[11px] text-forest/40">ابتدا حداقل یک تصویر در گالری محصول آپلود کنید.</p>
+      ) : (
+        <div className="space-y-5">
+          {materialOptions.map((item) => {
+            const current = selectedImage(item.attribute, item.value);
+            return (
+              <div key={`${item.attribute}-${item.value}`}>
+                <div className="mb-2 flex items-baseline justify-between gap-3">
+                  <p className="text-xs font-medium text-forest">{item.attribute}: <span className="font-normal text-forest/65">{item.value}</span></p>
+                  {current ? <button type="button" onClick={() => setImage(item.attribute, item.value, "")} className="text-[10px] text-brick">حذف اتصال</button> : null}
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {gallery.map((image, index) => {
+                    const active = current === image;
+                    return (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        onClick={() => setImage(item.attribute, item.value, image)}
+                        className={cn("relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-forest/5", active ? "border-brick ring-2 ring-brick/15" : "border-transparent hover:border-forest/25")}
+                        title={`انتخاب تصویر ${index + 1}`}
+                        aria-pressed={active}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded media can use an arbitrary URL */}
+                        <img src={image} alt={`تصویر ${index + 1}`} className="h-full w-full object-cover" />
+                        {active ? <span className="absolute inset-x-0 bottom-0 bg-brick/90 py-0.5 text-[9px] text-white">انتخاب‌شده</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

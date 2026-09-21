@@ -28,6 +28,10 @@ function isWoodDisplay(attribute: { label: string; role: string; ui: string }) {
   return attribute.role === "display" && (attribute.ui === "swatch" || /چوب|متریال|پرداخت|فینیش|رویه|wood|material|finish/i.test(attribute.label));
 }
 
+function isFabricDisplay(attribute: { label: string; role: string }) {
+  return attribute.role === "display" && /پارچه|fabric|کوسن|cushion/i.test(attribute.label);
+}
+
 function matchSwatch(swatches: MaterialSwatch[], value: string) {
   const normalized = value.trim().toLowerCase();
   return swatches.find(
@@ -70,8 +74,9 @@ export default function CommerceProductDetail({
   const headboardMaterialAttribute = attributes.find((attribute) => isHeadboardMaterialAttribute(attribute.label) || attribute.role === "linked");
   const selectableAttributes = attributes.filter((attribute) => attribute.role === "purchase");
   const displayAttributes = attributes.filter(
-    (attribute) => attribute.role === "display" && !isWoodDisplay(attribute),
+    (attribute) => attribute.role === "display" && !isWoodDisplay(attribute) && !isFabricDisplay(attribute),
   );
+  const fabricAttributes = attributes.filter(isFabricDisplay);
   const [selected, setSelected] = useState<Record<string, string>>(() =>
     selectionFromVariant(attributes, getHighestPricedVariant(product)),
   );
@@ -88,6 +93,14 @@ export default function CommerceProductDetail({
     () => variantMatchingSelection(product, attributes, selected),
     [attributes, product, selected],
   );
+  const mappedMaterialImage = useMemo(() => {
+    for (const mapping of product.materialImageMappings || []) {
+      const attribute = attributes.find((item) => item.label.trim() === mapping.attribute.trim());
+      const selectedOption = attribute?.options.find((item) => item.id === selected[attribute.id]);
+      if (selectedOption?.label.trim() === mapping.value.trim() && mapping.image) return mapping.image;
+    }
+    return "";
+  }, [attributes, product.materialImageMappings, selected]);
   const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
   const canAddToCart =
     product.isInStock &&
@@ -103,6 +116,10 @@ export default function CommerceProductDetail({
   useEffect(() => {
     if (selectedVariant?.image) setActiveImage(selectedVariant.image);
   }, [selectedVariant?.image]);
+
+  useEffect(() => {
+    if (mappedMaterialImage) setActiveImage(mappedMaterialImage);
+  }, [mappedMaterialImage]);
 
   const selectMaterial = (slug: string) => {
     const next = visibleSwatches.find((item) => item.slug === slug);
@@ -243,6 +260,38 @@ export default function CommerceProductDetail({
                     setAdded={setAdded}
                   />
                 ))}
+                {fabricAttributes.map((attribute) => {
+                  const label = purchaseAttributeLabel(attribute.label, attribute.options.map((option) => option.label));
+                  return (
+                    <fieldset key={attribute.id}>
+                      <legend className="text-sm font-medium text-forest">{label}</legend>
+                      <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                        {attribute.options.map((option) => {
+                          const swatch = matchSwatch(swatches, option.label);
+                          const active = selected[attribute.id] === option.id;
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => { setSelected((current) => ({ ...current, [attribute.id]: option.id })); setAdded(false); }}
+                              title={option.label}
+                              aria-label={`انتخاب ${label} ${option.label}`}
+                              aria-pressed={active}
+                              className={cn(
+                                "group relative h-9 w-9 overflow-hidden rounded-full border bg-[#e8e2d9] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
+                                active ? "scale-110 border-forest ring-2 ring-forest/20" : "border-forest/15 hover:border-forest/45",
+                              )}
+                            >
+                              {swatch?.image ? <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${swatch.image})` }} /> : <span className="absolute inset-0" style={{ backgroundColor: swatch?.hex || "#c9b8a3" }} />}
+                              <span className="sr-only">{option.label}</span>
+                            </button>
+                          );
+                        })}
+                        <span className="mr-1 text-xs text-forest/70">{attribute.options.find((item) => item.id === selected[attribute.id])?.label}</span>
+                      </div>
+                    </fieldset>
+                  );
+                })}
                 {displayAttributes.map((attribute) => {
                   const optionLabels = attribute.options.map((option) => option.label);
                   const label = purchaseAttributeLabel(attribute.label, optionLabels);

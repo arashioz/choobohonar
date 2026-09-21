@@ -62,6 +62,13 @@ export class ShopProduct {
   @Prop({ type: [String], default: [] })
   finishes: string[];
 
+  /** A gallery image assigned to a visual material option (never used for pricing). */
+  @Prop({
+    type: [{ attribute: String, value: String, image: String }],
+    default: [],
+  })
+  materialImageMappings: { attribute: string; value: string; image: string }[];
+
   @Prop({
     enum: ['draft', 'published', 'archived'],
     default: 'published',

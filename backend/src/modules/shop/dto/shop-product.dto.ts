@@ -53,6 +53,17 @@ class ProductAttributeDto {
   required?: boolean;
 }
 
+class MaterialImageMappingDto {
+  @IsString()
+  attribute: string;
+
+  @IsString()
+  value: string;
+
+  @IsString()
+  image: string;
+}
+
 class VariantOptionDto {
   @IsString()
   name: string;
@@ -126,6 +137,12 @@ export class CreateShopProductDto {
   @IsArray()
   @IsString({ each: true })
   finishes?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MaterialImageMappingDto)
+  materialImageMappings?: MaterialImageMappingDto[];
 
   @IsOptional()
   @IsEnum(['draft', 'published', 'archived'])
@@ -245,6 +262,12 @@ export class UpdateShopProductDto {
   @IsArray()
   @IsString({ each: true })
   finishes?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MaterialImageMappingDto)
+  materialImageMappings?: MaterialImageMappingDto[];
 
   @IsOptional()
   @IsEnum(['draft', 'published', 'archived'])

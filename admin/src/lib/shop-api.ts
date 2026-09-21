@@ -23,6 +23,7 @@ export type ShopProduct = {
   gallery: string[];
   shopUrl?: string;
   finishes: string[];
+  materialImageMappings?: { attribute: string; value: string; image: string }[];
   status: ShopProductStatus;
   featured: boolean;
   suggested: boolean;
