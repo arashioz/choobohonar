@@ -10,7 +10,24 @@ export const productMegaMenu: NavChildItem[] = commerceCategories.map((category)
   description: category.description,
 }));
 
-export const navItems: NavItem[] = [
+function isAccessoryNavEntry(label?: string, href?: string) {
+  return /accessory|accessories|اکسسوری/i.test(`${label || ""} ${href || ""}`);
+}
+
+/** Drop retired accessory links and keep the products mega-menu aligned with decor. */
+export function sanitizeStorefrontNav(items: NavItem[]): NavItem[] {
+  return items
+    .filter((item) => !isAccessoryNavEntry(item.label, item.href))
+    .map((item) => {
+      if (item.href === "/products") {
+        return { ...item, children: productMegaMenu };
+      }
+      const children = item.children?.filter((child) => !isAccessoryNavEntry(child.label, child.href));
+      return children ? { ...item, children } : item;
+    });
+}
+
+export const navItems: NavItem[] = sanitizeStorefrontNav([
   { label: "محصولات", href: "/products", children: productMegaMenu },
   { label: "کالکشن", href: "/collection" },
   { label: "پروژه‌ها", href: "/projects" },
@@ -19,7 +36,7 @@ export const navItems: NavItem[] = [
   { label: "مجله", href: "/magazine" },
   { label: "فروشگاه‌ها", href: "/stores" },
   { label: "ارتباط با ما", href: "/contact" },
-];
+]);
 
 export const homeSectionLinks: NavChildItem[] = [
   { label: "پروژه‌های منتخب", href: "/#projects" },

@@ -62,7 +62,6 @@ export const productCategories: ProductCategoryItem[] = [
   { id: "dining-table", label: "میز غذاخوری", room: "dining" },
   { id: "dining-chair", label: "صندلی غذاخوری", room: "dining" },
   // دکوراتیو
-  { id: "accessories", label: "اکسسوری", room: "decor" },
   { id: "decor", label: "دکور", room: "decor" },
   { id: "runner", label: "رانر", room: "decor" },
   { id: "napkin", label: "دستمال سفره", room: "decor" },

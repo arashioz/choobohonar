@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { brand as fallbackBrand, homeSectionLinks as fallbackHomeSectionLinks, navItems as fallbackNavItems } from "@/data/nav";
+import { brand as fallbackBrand, homeSectionLinks as fallbackHomeSectionLinks, navItems as fallbackNavItems, sanitizeStorefrontNav } from "@/data/nav";
 import type { NavItem } from "@/data/nav-types";
 import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
@@ -39,7 +39,7 @@ export default function Header() {
           // Existing CMS navigation is authoritative, but older saved records
           // predate the materials page. Keep that route discoverable until an
           // editor saves the updated navigation in the admin.
-          const cmsNav = data.navItems;
+          const cmsNav = sanitizeStorefrontNav(data.navItems);
           const materialsItem = fallbackNavItems.find((item) => item.href === "/materials");
           setNavItems(cmsNav.some((item) => item.href === "/materials") || !materialsItem
             ? cmsNav

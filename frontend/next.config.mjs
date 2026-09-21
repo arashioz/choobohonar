@@ -122,6 +122,16 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/products/category/accessories",
+        destination: "/products/category/decor",
+        permanent: true,
+      },
+      {
+        source: "/products/category/accessory",
+        destination: "/products/category/decor",
+        permanent: true,
+      },
+      {
         source: "/materials/wood/walnut",
         destination: "/materials/wood/american-walnut",
         permanent: true,
