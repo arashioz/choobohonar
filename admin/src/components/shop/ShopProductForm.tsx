@@ -98,10 +98,12 @@ export default function ShopProductForm({
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [descriptionMode, setDescriptionMode] = useState<"preview" | "html">("preview");
   const [seriesOptions, setSeriesOptions] = useState<string[]>([]);
+  const [attributeOptions, setAttributeOptions] = useState<{ name: string; values: string[] }[]>([]);
 
   useEffect(() => {
     shopApi.categories().then((rows) => setCategoryOptions(Array.from(new Set(rows.map((row) => row.category).filter(Boolean))))).catch(() => undefined);
     shopApi.series().then((rows) => setSeriesOptions(Array.from(new Set(rows.map((row) => row.series).filter(Boolean))))).catch(() => undefined);
+    shopApi.productOptions().then((result) => setAttributeOptions(result.attributes)).catch(() => undefined);
   }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -405,7 +407,7 @@ export default function ShopProductForm({
           </section>
 
           <ProductDetailsEditor label="مشخصات فنی" description="مثل جنس پایه، نوع پارچه یا ظرفیت." rows={form.specs} onChange={(specs) => set("specs", specs.map((item) => ({ label: item.label || "", value: item.value || "" })))} left="عنوان مشخصه" right="مقدار" />
-          <VariantsEditor attributes={form.attributes} variants={form.variants} onAttributes={(attributes) => set("attributes", attributes)} onVariants={(variants) => set("variants", variants)} />
+          <VariantsEditor attributes={form.attributes} variants={form.variants} optionCatalog={attributeOptions} onAttributes={(attributes) => set("attributes", attributes)} onVariants={(variants) => set("variants", variants)} />
           <ProductDetailsEditor label="نقاط قوت محصول" description="ویژگی‌هایی که در صفحه محصول برجسته می‌شوند." rows={form.highlights} onChange={(highlights) => set("highlights", highlights.map((item) => ({ title: item.title || "", description: item.description || "" })))} left="عنوان" right="توضیح کوتاه" />
 
           <ProductMediaGallery images={form.gallery} uploading={uploading} uploadProgress={uploadProgress} onUpload={uploadImages} onChange={setGallery} />
@@ -511,9 +513,16 @@ function ProductDetailsEditor({ label, description, rows, onChange, left, right 
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
 }
 
-function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { attributes: { name: string; values: string[] }[]; variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; onAttributes: (value: { name: string; values: string[] }[]) => void; onVariants: (value: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
+function VariantsEditor({ attributes, variants, optionCatalog, onAttributes, onVariants }: { attributes: { name: string; values: string[] }[]; variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; optionCatalog: { name: string; values: string[] }[]; onAttributes: (value: { name: string; values: string[] }[]) => void; onVariants: (value: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
   const nextAttribute = () => onAttributes([...attributes, { name: "", values: [""] }]);
   const nextVariant = () => onVariants([...variants, { sku: "", options: attributes.filter((attribute) => attribute.name.trim()).map((attribute) => ({ name: attribute.name, value: attribute.values.find((value) => value.trim()) || "" })), price: "", compareAtPrice: "", stockQty: "0", enabled: true }]);
+  const knownNames = Array.from(new Set(["سایز", "ظرفیت", "مکانیزم", "نوع سرتخت", "سرتخت", "چوب", "پارچه", "پارچه کوسن", ...optionCatalog.map((item) => item.name)]));
+
+  function addKnownAttribute(name: string) {
+    if (!name || attributes.some((item) => item.name === name)) return;
+    const known = optionCatalog.find((item) => item.name === name);
+    onAttributes([...attributes, { name, values: known?.values.length ? [known.values[0]] : [""] }]);
+  }
 
   function setAttributeName(index: number, name: string) {
     const previousName = attributes[index]?.name;
@@ -552,7 +561,7 @@ function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { at
     <section className="rounded-2xl border border-forest/10 bg-white/70 p-4 space-y-5">
       <div>
         <h2 className="text-sm font-medium text-forest">ویژگی‌ها و متغیرها</h2>
-        <p className="mt-1 text-[10px] leading-5 text-forest/40">هر ویژگی و هر متغیر یک ردیف جدا در لیست است. مقدارها را هم به‌صورت لیست اضافه کنید، نه با ویرگول.</p>
+        <p className="mt-1 text-[10px] leading-5 text-forest/40">محورها و مقدارها از کاتالوگ فعلی پیشنهاد می‌شوند. فقط وقتی مورد تازه‌ای دارید، آن را دستی وارد کنید.</p>
       </div>
 
       <div className="space-y-3">
@@ -560,13 +569,13 @@ function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { at
         {(attributes.length ? attributes : []).map((attribute, index) => (
           <div key={index} className="rounded-xl border border-forest/10 p-3 space-y-2">
             <div className="flex gap-2">
-              <input className={fieldClass} placeholder="نام ویژگی؛ مثلاً رنگ" value={attribute.name} onChange={(e) => setAttributeName(index, e.target.value)} />
+              <input list="shop-attribute-names" className={fieldClass} placeholder="نام ویژگی؛ مثلاً پارچه" value={attribute.name} onChange={(e) => setAttributeName(index, e.target.value)} />
               <button type="button" className="rounded-xl border border-forest/10 px-3 text-brick" onClick={() => onAttributes(attributes.filter((_, i) => i !== index))}>×</button>
             </div>
             <ul className="space-y-2">
               {(attribute.values.length ? attribute.values : [""]).map((value, valueIndex) => (
                 <li key={valueIndex} className="flex gap-2">
-                  <input className={fieldClass} placeholder={`مقدار ${valueIndex + 1}`} value={value} onChange={(e) => setAttributeValue(index, valueIndex, e.target.value)} />
+                  <input list={`shop-attribute-values-${index}`} className={fieldClass} placeholder={`مقدار ${valueIndex + 1}`} value={value} onChange={(e) => setAttributeValue(index, valueIndex, e.target.value)} />
                   <button type="button" className="rounded-xl border border-forest/10 px-3 text-brick" onClick={() => removeAttributeValue(index, valueIndex)}>×</button>
                 </li>
               ))}
@@ -574,7 +583,15 @@ function VariantsEditor({ attributes, variants, onAttributes, onVariants }: { at
             <button type="button" onClick={() => addAttributeValue(index)} className="text-[10px] font-medium text-brick">+ افزودن مقدار</button>
           </div>
         ))}
-        <button type="button" onClick={nextAttribute} className="text-[10px] font-medium text-brick">+ افزودن ویژگی</button>
+        <datalist id="shop-attribute-names">{knownNames.map((name) => <option key={name} value={name} />)}</datalist>
+        {attributes.map((attribute, index) => <datalist key={`${attribute.name}-${index}`} id={`shop-attribute-values-${index}`}>{(optionCatalog.find((item) => item.name === attribute.name)?.values || []).map((item) => <option key={item} value={item} />)}</datalist>)}
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={nextAttribute} className="text-[10px] font-medium text-brick">+ افزودن ویژگی جدید</button>
+          <select defaultValue="" onChange={(event) => { addKnownAttribute(event.target.value); event.currentTarget.value = ""; }} className="rounded-lg border border-forest/10 bg-white px-2 py-1.5 text-[10px] text-forest">
+            <option value="">افزودن از گزینه‌های سایت…</option>
+            {knownNames.filter((name) => !attributes.some((attribute) => attribute.name === name)).map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-3">

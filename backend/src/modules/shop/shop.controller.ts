@@ -98,6 +98,11 @@ export class ShopController {
     return this.shopService.listMaterialSwatches();
   }
 
+  @Get('product-options')
+  productOptions() {
+    return this.shopService.productOptions();
+  }
+
   @Post('categories/seed')
   @UseGuards(JwtAuthGuard)
   seedCategories(@Body() body: { replaceAll?: boolean }) {

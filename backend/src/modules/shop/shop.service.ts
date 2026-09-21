@@ -1205,6 +1205,43 @@ export class ShopService implements OnModuleInit {
       .map((series) => ({ series }));
   }
 
+  /** Values already used by the catalog, for option-first product editing. */
+  async productOptions() {
+    const [products, materials] = await Promise.all([
+      this.productModel.find({}).select('attributes').lean().exec(),
+      this.listMaterialSwatches(),
+    ]);
+    const valuesByAttribute = new Map<string, Set<string>>();
+    for (const product of products) {
+      for (const attribute of product.attributes || []) {
+        const name = String(attribute.name || '').trim();
+        if (!name) continue;
+        const values = valuesByAttribute.get(name) || new Set<string>();
+        for (const value of attribute.values || []) {
+          const normalized = String(value || '').trim();
+          if (normalized) values.add(normalized);
+        }
+        valuesByAttribute.set(name, values);
+      }
+    }
+
+    const materialValues = materials.map((item) => item.name.trim()).filter(Boolean);
+    for (const name of ['چوب', 'پارچه', 'پارچه کوسن']) {
+      const values = valuesByAttribute.get(name) || new Set<string>();
+      materialValues.forEach((value) => values.add(value));
+      valuesByAttribute.set(name, values);
+    }
+
+    return {
+      attributes: [...valuesByAttribute.entries()]
+        .map(([name, values]) => ({
+          name,
+          values: [...values].sort((a, b) => a.localeCompare(b, 'fa')),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'fa')),
+    };
+  }
+
   async seedCategoriesFromCatalog(replaceAll = false) {
     const treePath = join(
       process.cwd(),

@@ -208,6 +208,8 @@ export const shopApi = {
         sample: boolean;
       }[]
     >("/materials"),
+  productOptions: () =>
+    shopFetch<{ attributes: { name: string; values: string[] }[] }>("/product-options"),
 
   orders: {
     list: (params: Record<string, string | number | undefined> = {}) => {
