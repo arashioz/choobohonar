@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
   // API clients must not be redirected from POST /api/... to /api/.../;
   // redirects can turn the request into a route that does not exist.
   trailingSlash: false,
+  experimental: {
+    serverActions: { bodySizeLimit: "500mb" },
+    middlewareClientMaxBodySize: "500mb",
+    proxyClientMaxBodySize: "500mb",
+  },
   images: {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
