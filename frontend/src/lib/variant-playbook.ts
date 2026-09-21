@@ -150,7 +150,7 @@ export function resolvePlaybookFamily(hint: ProductHint = {}): PlaybookFamily {
 export function attributeKind(name: string, values: string[] = []): AttributeKind {
   const label = name.trim();
   if (/^کالکشن$/i.test(label)) return "collection";
-  if (CLASSIFICATION.test(label) || PRODUCT_TYPE.test(label)) return "classification";
+  if (CLASSIFICATION.test(label)) return "classification";
   if (isLengthAttribute(label)) return "length";
   if (isHeadboardTypeAttribute(label, values)) return "headboard-type";
   if (isHeadboardMaterialAttribute(label)) return "headboard-material";
@@ -165,6 +165,9 @@ export function attributeKind(name: string, values: string[] = []): AttributeKin
   if (/^(فرم|شکل|form)$/i.test(label)) return "form";
   if (/نوع\s*صندلی|chair\s*type/i.test(label)) return "chair-type";
   if (/نوع\s*ساعت|clock/i.test(label)) return "clock-type";
+  // WooCommerce sometimes names the capacity axis after the product itself,
+  // e.g. «کاناپه: دو نفره / سه نفره». It is a purchase axis, not a category.
+  if (PRODUCT_TYPE.test(label)) return "classification";
   return "other";
 }
 
