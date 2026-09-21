@@ -85,6 +85,36 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/about-us",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/about-us/:path*",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/rug-buying-guide",
+        destination: "/magazine/rug-buying-guide",
+        permanent: true,
+      },
+      {
+        source: "/rug-buying-guide/:path*",
+        destination: "/magazine/rug-buying-guide",
+        permanent: true,
+      },
+      {
+        source: "/rug-care-guide",
+        destination: "/magazine/rug-care-guide",
+        permanent: true,
+      },
+      {
+        source: "/rug-care-guide/:path*",
+        destination: "/magazine/rug-care-guide",
+        permanent: true,
+      },
+      {
         source: "/branches/:path*",
         destination: "/stores",
         permanent: true,

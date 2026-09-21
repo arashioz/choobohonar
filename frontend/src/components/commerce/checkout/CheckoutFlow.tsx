@@ -353,7 +353,11 @@ export default function CheckoutFlow() {
                 <label className={cn("mt-8 flex cursor-pointer items-start gap-4 border p-5", errors.acceptedTerms ? "border-brick bg-brick/5" : "border-forest/15")}>
                   <input type="checkbox" checked={data.acceptedTerms} onChange={(e) => update("acceptedTerms", e.target.checked)} className="mt-1 h-4 w-4 accent-forest" />
                   <span className="text-sm leading-7 text-forest/65">
-                    مشخصات محصولات، نشانی تحویل و شرایط هماهنگی ساخت و ارسال را بررسی کرده‌ام.
+                    مشخصات محصولات، نشانی تحویل و{" "}
+                    <Link href="/order-and-shipping" className="text-brick underline underline-offset-4">
+                      شرایط خرید، ارسال و گارانتی
+                    </Link>{" "}
+                    را بررسی کرده‌ام.
                     {errors.acceptedTerms ? <span className="block text-xs text-brick">{errors.acceptedTerms}</span> : null}
                   </span>
                 </label>
