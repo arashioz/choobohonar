@@ -59,6 +59,7 @@ type CatalogSeedRow = {
   shopUrl?: string;
   stockQty?: number;
   trackInventory?: boolean;
+  inStock?: boolean;
 };
 
 type CatalogCollectionTerm = { name: string; slug?: string };
@@ -305,8 +306,10 @@ export class ShopService implements OnModuleInit {
           slug: entry.slug,
           name: entry.title,
           family,
-          color: String(data.color || ''),
-          hex: String(data.hex || ''),
+          // The materials workspace stores the visible colour as colorHex;
+          // retain the older keys too so existing records keep working.
+          color: String(data.color || data.colorHex || ''),
+          hex: String(data.colorHex || data.hex || ''),
           image,
           excerpt: entry.excerpt || String(data.shortDescription || ''),
           href: family
@@ -917,6 +920,7 @@ export class ShopService implements OnModuleInit {
             : 0),
         trackInventory: Boolean(row.trackInventory),
         inStock: deriveInStock({
+          inStock: row.inStock,
           trackInventory: Boolean(row.trackInventory),
           stockQty:
             row.stockQty ??

@@ -165,7 +165,7 @@
         "id": "pa_sofa",
         "name": "نوع نشیمن",
         "taxonomy": "pa_sofa",
-        "hasVariations": false,
+        "hasVariations": true,
         "terms": [
           {
             "id": 850,
@@ -5007,22 +5007,30 @@
     "shopUrl": "https://choobohonar.com/?post_type=product&#038;p=5057",
     "variants": [
       {
-        "id": "5072",
-        "sku": "۲۱۱۰۱۶۰۳۰۰",
+        "id": "2110160200",
+        "sku": "2110160200",
         "options": [
           {
+            "name": "نوع نشیمن",
+            "value": "دو نفره"
+          },
+          {
             "name": "canape",
-            "value": "مکانیزم دار"
+            "value": "بدون مکانیزم"
           }
         ],
-        "price": 275900000,
+        "price": 165400000,
         "stockQty": 1,
         "enabled": true
       },
       {
-        "id": "5073",
-        "sku": "۲۱۱۰۱۶۱۱۰۰",
+        "id": "2110161100",
+        "sku": "2110161100",
         "options": [
+          {
+            "name": "نوع نشیمن",
+            "value": "سه نفره"
+          },
           {
             "name": "canape",
             "value": "بدون مکانیزم"
@@ -5033,8 +5041,19 @@
         "enabled": true
       },
       {
-        "id": "11017",
-        "options": [],
+        "id": "2110160300",
+        "sku": "2110160300",
+        "options": [
+          {
+            "name": "نوع نشیمن",
+            "value": "سه نفره"
+          },
+          {
+            "name": "canape",
+            "value": "مکانیزم دار"
+          }
+        ],
+        "price": 275900000,
         "stockQty": 1,
         "enabled": true
       }

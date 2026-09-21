@@ -64,6 +64,12 @@ export const collections: ProductCollection[] = [
 // retains its original Persian slugs.
 const legacyCollectionSlugs: Record<string, string> = {
   maple: "میپل",
+  // WordPress collection URLs use the historical Latin identifier, while
+  // the imported catalog stores the current Persian slug.
+  alder: "الدر",
+  "alder-en": "الدر",
+  carlow: "کارلو",
+  "carlow-en": "کارلو",
 };
 
 export function getCollection(slug: string): ProductCollection | undefined {

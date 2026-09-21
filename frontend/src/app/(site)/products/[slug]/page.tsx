@@ -179,8 +179,15 @@ export default async function ProductPage({ params }: PageProps) {
 type AdminProduct = { _id?: string; slug: string; name: string; category: string; room?: import("@/data/products").ProductRoom; shortDescription?: string; longDescription?: string; image?: string; gallery?: string[]; price?: number; compareAtPrice?: number; stockQty?: number; trackInventory?: boolean; inStock?: boolean; specs?: { label: string; value: string }[]; highlights?: { title: string; description: string }[]; status: string };
 async function getAdminProduct(slug: string): Promise<AdminProduct | null> {
   try {
-    const response = await fetch(`${getApiBase()}/shop/products/slug/${encodeURIComponent(slug)}`, { cache: "no-store" });
-    return response.ok ? response.json() : null;
+    // The WordPress permalink keeps «آ», but the CSV catalog normalizes it
+    // to «ا». Query both forms so historic product URLs keep resolving while
+    // the database remains the source of truth for variants and stock.
+    const candidates = [...new Set([slug, slug.replace(/آ/g, "ا")])];
+    for (const candidate of candidates) {
+      const response = await fetch(`${getApiBase()}/shop/products/slug/${encodeURIComponent(candidate)}`, { cache: "no-store" });
+      if (response.ok) return response.json();
+    }
+    return null;
   } catch { return null; }
 }
 function AdminProductPage({ product, slug }: { product: AdminProduct; slug: string }) {

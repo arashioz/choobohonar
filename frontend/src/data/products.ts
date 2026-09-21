@@ -361,11 +361,21 @@ function normalizeSlug(slug: string): string {
   }
 }
 
+function normalizeWordPressSlug(slug: string): string {
+  // The WordPress URLs retain «آ», while the CSV importer normalizes it to
+  // «ا». Treat both forms as the same address during the migration so legacy
+  // product links do not become 404s.
+  return normalizeSlug(slug).replace(/آ/g, "ا");
+}
+
 export function getCatalogProduct(slug: string): AnyProduct | undefined {
-  const normalized = normalizeSlug(slug);
+  const normalized = normalizeWordPressSlug(slug);
   // WordPress dumps may contain percent-encoded Persian slugs while Next.js
-  // provides the decoded route value. Accept both during a rolling deploy.
-  return shopProducts.find((p) => normalizeSlug(p.slug) === normalized);
+  // provides the decoded route value. It also used a different form of alef
+  // than the CSV importer. Accept both during a rolling deploy.
+  return shopProducts.find(
+    (p) => normalizeWordPressSlug(p.slug) === normalized,
+  );
 }
 
 export function getRelatedCatalogProducts(slug: string, count = 3): AnyProduct[] {

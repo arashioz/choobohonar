@@ -22,6 +22,7 @@
     "migrate:media": "ts-node -r tsconfig-paths/register src/migrations/migrate-media.ts",
     "catalog:replace": "ts-node -r tsconfig-paths/register src/migrations/replace-shop-catalog.ts",
     "catalog:seed-wordpress-csv": "ts-node -r tsconfig-paths/register src/migrations/seed-wordpress-csv-catalog.ts",
+    "catalog:reconcile-wordpress-variants": "ts-node -r tsconfig-paths/register src/migrations/reconcile-wordpress-variants.ts",
     "catalog:clear-products": "ts-node -r tsconfig-paths/register src/migrations/clear-shop-data.ts --products",
     "catalog:clear-categories": "ts-node -r tsconfig-paths/register src/migrations/clear-shop-data.ts --categories",
     "catalog:seed-categories": "ts-node -r tsconfig-paths/register src/migrations/seed-wordpress-categories.ts",

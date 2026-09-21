@@ -58,7 +58,7 @@ export default function CommerceProductDetail({
     const fromProduct = (product.finishes || [])
       .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "", color: "", hex: "", image: "", excerpt: "", href: `/materials/wood/${slug}` })
       .filter((item, index, list) => list.findIndex((entry) => entry.slug === item.slug) === index);
-    if (fromProduct.length) return fromProduct.slice(0, 1);
+    if (fromProduct.length) return fromProduct;
     const materialOptions = attributes.find(isWoodDisplay)?.options || [];
     const attributeValue = materialOptions.find((option) => option.default)?.label || materialOptions[0]?.label || "";
     const matched = attributeValue ? matchSwatch(swatches, attributeValue) : undefined;
@@ -103,6 +103,21 @@ export default function CommerceProductDetail({
   useEffect(() => {
     if (selectedVariant?.image) setActiveImage(selectedVariant.image);
   }, [selectedVariant?.image]);
+
+  const selectMaterial = (slug: string) => {
+    const next = visibleSwatches.find((item) => item.slug === slug);
+    if (!next) return;
+    setSelectedMaterial(next.slug);
+    setAdded(false);
+    if (materialAttribute) {
+      const option = materialAttribute.options.find(
+        (entry) =>
+          matchSwatch([next], entry.label) || matchSwatch([next], entry.id),
+      );
+      if (option)
+        setSelected((current) => ({ ...current, [materialAttribute.id]: option.id }));
+    }
+  };
 
   const handleAddToCart = () => {
     const options: CartOption[] = [...selectableAttributes, ...displayAttributes]
@@ -265,36 +280,37 @@ export default function CommerceProductDetail({
                 ) : visibleSwatches.length ? (
                   <fieldset>
                     <legend className="text-sm font-medium text-forest">{materialAttribute?.label || "متریال"}</legend>
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="h-4 w-4 shrink-0 rounded-full border border-forest/30 bg-transparent" aria-hidden />
-                      {visibleSwatches.length > 1 ? (
-                        <select
-                          value={selectedMaterial}
-                          onChange={(event) => {
-                            const next = visibleSwatches.find((item) => item.slug === event.target.value);
-                            if (!next) return;
-                            setSelectedMaterial(next.slug);
-                            setAdded(false);
-                            if (materialAttribute) {
-                              const option = materialAttribute.options.find(
-                                (entry) => matchSwatch([next], entry.label) || matchSwatch([next], entry.id),
-                              );
-                              if (option) {
-                                setSelected((current) => ({ ...current, [materialAttribute.id]: option.id }));
-                              }
-                            }
-                          }}
-                          className="min-w-0 flex-1 border-0 bg-transparent py-0 text-xs text-forest focus:outline-none"
-                        >
-                          {visibleSwatches.map((item) => (
-                            <option key={item.slug} value={item.slug}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className="text-xs text-forest">{visibleSwatches[0]?.name}</span>
-                      )}
+                    <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                      {visibleSwatches.map((item) => {
+                        const isSelected = item.slug === selectedMaterial;
+                        return (
+                          <button
+                            key={item.slug}
+                            type="button"
+                            onClick={() => selectMaterial(item.slug)}
+                            title={item.name}
+                            aria-label={`انتخاب متریال ${item.name}`}
+                            aria-pressed={isSelected}
+                            className={cn(
+                              "group relative h-9 w-9 overflow-hidden rounded-full border bg-[#e8e2d9] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
+                              isSelected ? "scale-110 border-forest ring-2 ring-forest/20" : "border-forest/15 hover:border-forest/45",
+                            )}
+                          >
+                            {item.image ? (
+                              <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.image})` }} />
+                            ) : (
+                              <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
+                            )}
+                            <span className="sr-only">{item.name}</span>
+                          </button>
+                        );
+                      })}
+                      <span className="mr-1 text-xs text-forest/70">{visibleSwatches.find((item) => item.slug === selectedMaterial)?.name}</span>
+                      {visibleSwatches.find((item) => item.slug === selectedMaterial)?.href ? (
+                        <Link href={visibleSwatches.find((item) => item.slug === selectedMaterial)!.href} className="text-xs text-brick underline-offset-4 hover:underline">
+                          جزئیات
+                        </Link>
+                      ) : null}
                     </div>
                   </fieldset>
                 ) : null}

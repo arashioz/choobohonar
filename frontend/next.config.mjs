@@ -69,6 +69,35 @@ const nextConfig = {
     };
 
     return [
+      // High-traffic WordPress bases that no longer exist as app routes.
+      // Route them to their current equivalents instead of a site 404.
+      {
+        source: "/shop/:path*",
+        destination: "/products",
+        permanent: true,
+      },
+      {
+        source: "/contact-us/:path*",
+        destination: "/contact",
+        permanent: true,
+      },
+      {
+        source: "/branches/:path*",
+        destination: "/stores",
+        permanent: true,
+      },
+      {
+        source: "/product-category/:path*",
+        destination: "/products",
+        permanent: true,
+      },
+      // WooCommerce used the singular `/product/` base. Keep every indexed
+      // product permalink alive after moving the storefront to `/products/`.
+      {
+        source: "/product/:slug*",
+        destination: "/products/:slug*",
+        permanent: true,
+      },
       {
         source: "/location",
         destination: "/stores",

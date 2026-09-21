@@ -96,7 +96,7 @@ export default function SeoPlaybook() {
 
   return (
     <div className="bg-paper text-forest">
-      <section className="bg-forest text-paper">
+      <section id="seo-overview" className="scroll-mt-28 bg-forest text-paper">
         <Container className="flex flex-col justify-end py-10 md:py-14">
           <p className="text-[11px] tracking-[0.28em] text-peach">SEO PLAYBOOK / ۱۴۰۵</p>
           <h1 className="mt-6 max-w-4xl font-display text-[clamp(2.6rem,8vw,7.2rem)] font-extralight leading-[0.92] tracking-tightest">
@@ -123,7 +123,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="border-b border-forest/10 py-20 md:py-28">
+      <section id="seo-performance" className="scroll-mt-28 border-b border-forest/10 py-20 md:py-28">
         <Container>
           <p className="text-[11px] tracking-[0.22em] text-forest/40">ANNUAL SEARCH CONSOLE</p>
           <h2 className="mt-4 max-w-3xl font-display text-4xl font-extralight leading-tight md:text-6xl">
@@ -231,7 +231,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="border-b border-forest/10 py-20 md:py-28">
+      <section id="seo-issues" className="scroll-mt-28 border-b border-forest/10 py-20 md:py-28">
         <Container>
           <p className="text-[11px] tracking-[0.22em] text-forest/40">BUGS & FIXES</p>
           <h2 className="mt-4 max-w-3xl font-display text-4xl font-extralight leading-tight md:text-6xl">
@@ -330,7 +330,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="border-b border-forest/10 bg-forest text-paper py-20 md:py-28">
+      <section id="seo-competitors" className="scroll-mt-28 border-b border-forest/10 bg-forest text-paper py-20 md:py-28">
         <Container>
           <p className="text-[11px] tracking-[0.22em] text-peach">COMPETITORS</p>
           <h2 className="mt-4 max-w-3xl font-display text-4xl font-extralight leading-tight md:text-6xl">
@@ -424,7 +424,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="py-20 md:py-28">
+      <section id="seo-pillars" className="scroll-mt-28 py-20 md:py-28">
         <Container>
           <p className="text-[11px] tracking-[0.22em] text-forest/40">PILLARS & CLUSTERS</p>
           <h2 className="mt-4 max-w-3xl font-display text-4xl font-extralight leading-tight md:text-6xl">
@@ -478,7 +478,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="py-20 md:py-28">
+      <section id="seo-calendar" className="scroll-mt-28 py-20 md:py-28">
         <Container>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
@@ -610,7 +610,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="border-y border-forest/10 bg-[#E8DED2]/30 py-20 md:py-28">
+      <section id="seo-keywords" className="scroll-mt-28 border-y border-forest/10 bg-[#E8DED2]/30 py-20 md:py-28">
         <Container>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
@@ -723,7 +723,7 @@ export default function SeoPlaybook() {
         </Container>
       </section>
 
-      <section className="py-20 md:py-28">
+      <section id="seo-plan" className="scroll-mt-28 py-20 md:py-28">
         <Container>
           <p className="text-[11px] tracking-[0.22em] text-forest/40">90-DAY MOTION</p>
           <h2 className="mt-4 font-display text-4xl font-extralight md:text-6xl">اگر بخواهیم اجرا کنیم</h2>

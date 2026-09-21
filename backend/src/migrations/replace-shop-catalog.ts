@@ -47,6 +47,7 @@ type CatalogRow = {
   prices?: { value?: string | null; regularValue?: string | null } | null;
   stockQty?: number;
   trackInventory?: boolean;
+  inStock?: boolean;
   sortOrder?: number;
 };
 
@@ -115,6 +116,7 @@ async function main() {
         0,
       ),
     trackInventory: Boolean(row.trackInventory),
+    inStock: row.inStock,
     specs: row.specs || [],
     highlights: [],
     attributes: (row.attributes || [])

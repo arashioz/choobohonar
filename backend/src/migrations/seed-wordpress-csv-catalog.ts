@@ -42,6 +42,8 @@ type CatalogRow = {
   prices?: { value?: number | null; regularValue?: number | null };
   stockQty?: number;
   trackInventory?: boolean;
+  /** WooCommerce's explicit «در انبار؟» state when no numeric quantity exists. */
+  inStock?: boolean;
   sortOrder?: number;
   source?: string;
 };
@@ -93,6 +95,11 @@ async function main() {
           compareAtPrice: row.prices?.regularValue ?? undefined,
           stockQty: row.stockQty || 0,
           trackInventory: Boolean(row.trackInventory),
+          // The WordPress CSV uses a separate availability flag.  Its stock
+          // quantity is empty (and normalizes to zero) for many sellable
+          // products, so deriving availability from stockQty would mark them
+          // all unavailable.
+          inStock: row.inStock,
           attributes: (row.attributes || []).map((attribute) => ({
             name: attribute.name,
             values: (attribute.terms || []).map((term) => term.name),

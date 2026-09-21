@@ -8,10 +8,9 @@ const nextConfig: NextConfig = {
   // has a lockfile in its parent workspace, which can otherwise make Next.js
   // trace from the wrong root and leave Docker without server.js.
   outputFileTracingRoot: __dirname,
-  // Admin routes stay at /admin, while its generated JS/CSS is namespaced so
-  // nginx never serves storefront assets to the admin application.
+  // The app directory already owns `/admin/*` routes. Only namespace its
+  // generated assets, so nginx never serves storefront assets to the admin.
   assetPrefix,
-  basePath: "/admin",
   // API clients must not be redirected from POST /api/... to /api/.../;
   // redirects can turn the request into a route that does not exist.
   trailingSlash: false,
@@ -19,7 +18,7 @@ const nextConfig: NextConfig = {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
     // below /admin so nginx sends brandbook images to the admin Next server.
-    // path: assetPrefix ? `${assetPrefix}/_next/image` : "/_next/image",
+    path: assetPrefix ? `${assetPrefix}/_next/image` : "/_next/image",
     remotePatterns: [
       {
         protocol: "https",

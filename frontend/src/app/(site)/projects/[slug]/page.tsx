@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { projects, getProject, getRelatedProjects, projectFromCms } from "@/data/projects";
-import { fetchPublicCmsEntry, fetchPublicCmsEntries } from "@/lib/public-cms";
+import { fetchPublicCmsEntry, fetchPublicCmsEntries, safelyDecodeSlug } from "@/lib/public-cms";
 import { fetchPublicProjects } from "@/lib/public-projects";
 import Container from "@/components/layout/Container";
 import ProjectHero from "@/components/projects/ProjectHero";
@@ -26,14 +26,16 @@ export async function generateStaticParams() {
 }
 type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: routeSlug } = await params;
+  const slug = safelyDecodeSlug(routeSlug);
   const entry = await fetchPublicCmsEntry("project", slug);
   const project = entry ? projectFromCms(entry) : getProject(slug);
   if (!project) return { title: "پروژه یافت نشد | خانه چوب و هنر" };
   return { title: `${project.title} | خانه چوب و هنر`, description: project.summary, openGraph: { title: `${project.title} | خانه چوب و هنر`, description: project.summary, images: [project.image], type: "website", locale: "fa_IR" } };
 }
 export default async function ProjectPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug: routeSlug } = await params;
+  const slug = safelyDecodeSlug(routeSlug);
   const entry = await fetchPublicCmsEntry("project", slug);
   if (entry && entry.slug !== slug) permanentRedirect(`/projects/${entry.slug}`);
   const project = entry ? projectFromCms(entry) : getProject(slug);

@@ -29,13 +29,23 @@ export async function fetchPublicCmsEntries(kind: string): Promise<PublicCmsEntr
 
 /** Fetch one published CMS record. It may be found through a legacy project URL. */
 export async function fetchPublicCmsEntry(kind: string, slug: string): Promise<PublicCmsEntry | null> {
+  const decodedSlug = safelyDecodeSlug(slug);
   try {
-    const response = await fetch(`${getApiBase()}/public-cms/${kind}/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const response = await fetch(`${getApiBase()}/public-cms/${kind}/${encodeURIComponent(decodedSlug)}`, { cache: "no-store" });
     if (!response.ok) return null;
     const item = await response.json() as PublicCmsEntry;
     return { ...(item.data || {}), ...item, slug: item.slug, title: item.title };
   } catch {
     return null;
+  }
+}
+
+/** Accept both browser-encoded and already-decoded dynamic path segments. */
+export function safelyDecodeSlug(slug: string): string {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
   }
 }
 
