@@ -38,13 +38,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+const CMS_EDITABLE_SLUGS = new Set(["rug-buying-guide", "rug-care-guide"]);
+
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = getPost(slug);
-  if (!post) {
+  if (!post || CMS_EDITABLE_SLUGS.has(slug)) {
     const article = await getCmsArticle(slug);
-    if (!article) notFound();
-    return <CmsArticlePage article={article} />;
+    if (article) return <CmsArticlePage article={article} />;
+    if (!post) notFound();
   }
 
   const related = getRelatedPosts(post.slug, 3);

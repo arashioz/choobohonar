@@ -42,7 +42,9 @@ export const homeSectionLinks: NavChildItem[] = [
   { label: "پروژه‌های منتخب", href: "/#projects" },
   { label: "مجله", href: "/magazine" },
   { label: "گالری", href: "/gallery" },
-  { label: "رویکرد ما", href: "/#approach" },
+  { label: "پشتیبانی", href: "/order-and-shipping" },
+  { label: "راهنمای خرید فرش", href: "/magazine/rug-buying-guide" },
+  { label: "راهنمای نگهداری فرش", href: "/magazine/rug-care-guide" },
 ];
 
 export const brand = {

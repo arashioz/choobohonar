@@ -20,10 +20,21 @@ export default async function Footer() {
   const navItems = (navData?.navItems?.length ? navData.navItems : fallbackNavItems).filter((item) => !sitemapHrefs.has(item.href));
   const homeSectionLinks = [
     ...(navData?.homeSectionLinks?.length ? navData.homeSectionLinks : fallbackHomeSectionLinks).filter(
-      (item) => item.href !== "/#work-areas" && item.href !== "/#consultation" && item.href !== "/magazine" && item.href !== "/gallery",
+      (item) =>
+        item.href !== "/#work-areas" &&
+        item.href !== "/#consultation" &&
+        item.href !== "/#approach" &&
+        item.href !== "/magazine" &&
+        item.href !== "/gallery" &&
+        item.href !== "/order-and-shipping" &&
+        item.href !== "/magazine/rug-buying-guide" &&
+        item.href !== "/magazine/rug-care-guide",
     ),
     { label: "مجله", href: "/magazine" },
     { label: "گالری", href: "/gallery" },
+    { label: "پشتیبانی", href: "/order-and-shipping" },
+    { label: "راهنمای خرید فرش", href: "/magazine/rug-buying-guide" },
+    { label: "راهنمای نگهداری فرش", href: "/magazine/rug-care-guide" },
   ];
   // Product groups have one canonical order shared with the primary menu.
   // Keep this list local rather than letting an older CMS navigation record
@@ -69,6 +80,11 @@ export default async function Footer() {
                     </li>,
                   ];
                 })}
+                <li>
+                  <Link href="/about" className="transition-colors hover:text-peach focus-visible:text-peach">
+                    درباره ما
+                  </Link>
+                </li>
               </ul>
             </div>
 

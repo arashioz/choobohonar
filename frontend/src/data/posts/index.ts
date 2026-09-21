@@ -15,6 +15,8 @@ export const posts = editorialPosts;
 
 /** Landing mix: 2 design styles, 2 home products, 1 decor. */
 export const FEATURED_MAGAZINE_SLUGS = [
+  "rug-buying-guide",
+  "rug-care-guide",
   "coordinating-sofa-dining-and-materials",
   "small-living-room-sofa-layout",
   "sofa-selection-living-room-guide",
