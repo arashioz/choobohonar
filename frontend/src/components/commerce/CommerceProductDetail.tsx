@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from "react";
 import { scrollToTop } from "@/lib/lenis-control";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,17 +32,41 @@ function isFabricDisplay(attribute: { label: string; role: string }) {
   return attribute.role === "display" && /پارچه|fabric|کوسن|cushion/i.test(attribute.label);
 }
 
-function matchSwatch(swatches: MaterialSwatch[], value: string) {
-  const normalized = value.trim().toLowerCase();
-  return swatches.find(
-    (item) =>
-      item.slug === value ||
-      item.slug.toLowerCase() === normalized ||
-      item.name === value ||
-      item.color === value ||
-      item.name.toLowerCase() === normalized ||
-      item.color.toLowerCase() === normalized,
+function normalizeSwatchKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[آأإ]/g, "ا")
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/روکش|سند\s*بلاست|کد/g, "")
+    .replace(/[\s‌ـ\-_/]+/g, "");
+}
+
+/** Studio material photos sit on a large white field; zoom the sample into the 36px circle. */
+function materialSwatchFill(image: string): CSSProperties {
+  return {
+    backgroundImage: `url(${image})`,
+    backgroundSize: "250%",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  };
+}
+
+function swatchButtonClass(active: boolean) {
+  return cn(
+    "relative box-border size-9 shrink-0 overflow-hidden rounded-full border p-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
+    active ? "border-2 border-forest ring-2 ring-inset ring-forest/20" : "border-forest/15 hover:border-forest/45",
   );
+}
+
+function matchSwatch(swatches: MaterialSwatch[], value: string) {
+  const normalized = normalizeSwatchKey(value);
+  if (!normalized) return undefined;
+  return swatches.find((item) => {
+    const keys = [item.slug, item.name, item.color, item.code, ...(item.aliases || [])];
+    return keys.some((key) => key && (key === value || normalizeSwatchKey(key) === normalized));
+  });
 }
 
 export default function CommerceProductDetail({
@@ -60,15 +84,26 @@ export default function CommerceProductDetail({
   const swatches = useMemo(() => materials.filter((item) => item.sample !== false), [materials]);
   const assignedSwatches = useMemo(() => {
     const fromProduct = (product.finishes || [])
-      .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "", color: "", hex: "", image: "", excerpt: "", href: `/materials/wood/${slug}` })
+      .map((slug) => matchSwatch(swatches, slug) || { slug, name: slug, family: "wood", color: slug, hex: "", image: "", excerpt: "", href: `/materials/wood/${slug}` })
       .filter((item, index, list) => list.findIndex((entry) => entry.slug === item.slug) === index);
     if (fromProduct.length) return fromProduct;
     const materialOptions = attributes.find(isWoodDisplay)?.options || [];
-    const attributeValue = materialOptions.find((option) => option.default)?.label || materialOptions[0]?.label || "";
-    const matched = attributeValue ? matchSwatch(swatches, attributeValue) : undefined;
-    if (matched) return [matched];
-    if (attributeValue) return [{ slug: attributeValue, name: attributeValue, family: "", color: "", hex: "", image: "", excerpt: "", href: "" }];
-    return [];
+    return materialOptions
+      .map((option) => {
+        const matched = matchSwatch(swatches, option.label) || matchSwatch(swatches, option.id);
+        if (matched) return matched;
+        return {
+          slug: option.id || option.label,
+          name: option.label,
+          family: "wood",
+          color: option.label,
+          hex: "",
+          image: "",
+          excerpt: "",
+          href: "",
+        };
+      })
+      .filter((item, index, list) => list.findIndex((entry) => entry.slug === item.slug || entry.name === item.name) === index);
   }, [attributes, product.finishes, swatches]);
   const materialAttribute = attributes.find(isWoodDisplay);
   const headboardMaterialAttribute = attributes.find((attribute) => isHeadboardMaterialAttribute(attribute.label) || attribute.role === "linked");
@@ -277,12 +312,9 @@ export default function CommerceProductDetail({
                               title={option.label}
                               aria-label={`انتخاب ${label} ${option.label}`}
                               aria-pressed={active}
-                              className={cn(
-                                "group relative h-9 w-9 overflow-hidden rounded-full border bg-[#e8e2d9] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
-                                active ? "scale-110 border-forest ring-2 ring-forest/20" : "border-forest/15 hover:border-forest/45",
-                              )}
+                              className={swatchButtonClass(active)}
                             >
-                              {swatch?.image ? <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${swatch.image})` }} /> : <span className="absolute inset-0" style={{ backgroundColor: swatch?.hex || "#c9b8a3" }} />}
+                              {swatch?.image ? <span className="absolute inset-0" style={materialSwatchFill(swatch.image)} /> : <span className="absolute inset-0" style={{ backgroundColor: swatch?.hex || "#c9b8a3" }} />}
                               <span className="sr-only">{option.label}</span>
                             </button>
                           );
@@ -340,13 +372,10 @@ export default function CommerceProductDetail({
                             title={item.name}
                             aria-label={`انتخاب متریال ${item.name}`}
                             aria-pressed={isSelected}
-                            className={cn(
-                              "group relative h-9 w-9 overflow-hidden rounded-full border bg-[#e8e2d9] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
-                              isSelected ? "scale-110 border-forest ring-2 ring-forest/20" : "border-forest/15 hover:border-forest/45",
-                            )}
+                            className={swatchButtonClass(isSelected)}
                           >
                             {item.image ? (
-                              <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.image})` }} />
+                              <span className="absolute inset-0" style={materialSwatchFill(item.image)} />
                             ) : (
                               <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
                             )}
@@ -354,12 +383,17 @@ export default function CommerceProductDetail({
                           </button>
                         );
                       })}
-                      <span className="mr-1 text-xs text-forest/70">{visibleSwatches.find((item) => item.slug === selectedMaterial)?.name}</span>
-                      {visibleSwatches.find((item) => item.slug === selectedMaterial)?.href ? (
-                        <Link href={visibleSwatches.find((item) => item.slug === selectedMaterial)!.href} className="text-xs text-brick underline-offset-4 hover:underline">
-                          جزئیات
-                        </Link>
-                      ) : null}
+                      {(() => {
+                        const selectedSwatch = visibleSwatches.find((item) => item.slug === selectedMaterial);
+                        if (!selectedSwatch) return null;
+                        return selectedSwatch.href ? (
+                          <Link href={selectedSwatch.href} className="mr-1 text-xs text-brick underline-offset-4 hover:underline">
+                            {selectedSwatch.name}
+                          </Link>
+                        ) : (
+                          <span className="mr-1 text-xs text-forest/70">{selectedSwatch.name}</span>
+                        );
+                      })()}
                     </div>
                   </fieldset>
                 ) : null}
