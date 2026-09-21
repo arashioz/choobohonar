@@ -126,14 +126,22 @@ export const productFamilies: ProductFamily[] = [
     ],
   },
   {
-    slug: "lighting",
-    label: "روشنایی",
+    slug: "lampshade",
+    label: "آباژور",
     types: [
       { slug: "floor-lampshade", label: "آباژور ایستاده" },
       { slug: "table-lampshade", label: "آباژور رومیزی" },
-      { slug: "pendant", label: "آویز" },
-      { slug: "chandelier", label: "لوستر" },
     ],
+  },
+  {
+    slug: "pendant",
+    label: "آویز",
+    types: [{ slug: "pendant", label: "آویز" }],
+  },
+  {
+    slug: "chandelier",
+    label: "لوستر",
+    types: [{ slug: "chandelier", label: "لوستر" }],
   },
   {
     slug: "decor",
@@ -175,6 +183,12 @@ function registerTypeAlias(alias: string, canonicalSlug: string) {
   typeBySlug.set(alias, type);
 }
 
+function registerFamilyAlias(alias: string, familySlug: string) {
+  const family = productFamilies.find((item) => item.slug === familySlug);
+  if (!alias || !family || typeToFamily.has(alias)) return;
+  typeToFamily.set(alias, family);
+}
+
 for (const family of productFamilies) {
   for (const type of family.types) {
     typeToFamily.set(type.slug, family);
@@ -189,6 +203,17 @@ typeBySlug.set("diningchair", typeBySlug.get("diningchairs")!);
 registerTypeAlias("میز-تلویزیون", "tv-stand");
 registerTypeAlias("tvtable", "tv-stand");
 registerTypeAlias("tv_stand", "tv-stand");
+registerTypeAlias("آباژور-ایستاده", "floor-lampshade");
+registerTypeAlias("آباژور ایستاده", "floor-lampshade");
+registerTypeAlias("floor-lamp", "floor-lampshade");
+registerTypeAlias("آباژور-رومیزی", "table-lampshade");
+registerTypeAlias("آباژور رومیزی", "table-lampshade");
+registerTypeAlias("table-lamp", "table-lampshade");
+registerTypeAlias("آویز روشنایی", "pendant");
+registerTypeAlias("اویز-روشنایی", "pendant");
+registerTypeAlias("اویز", "pendant");
+registerFamilyAlias("آباژور", "lampshade");
+registerFamilyAlias("lampshade", "lampshade");
 
 export function isMetaCategorySlug(slug: string) {
   return ROOM_OR_META_SLUGS.has(slug);

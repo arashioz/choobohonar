@@ -109,10 +109,11 @@ export const commerceCategories: CommerceCategory[] = [
     image: "https://choobohonar.com/wp-content/uploads/2026/07/آباژور-گالن-1.jpg",
     room: "lighting",
     children: [
-      { slug: "floor-lampshade", label: "آباژور ایستاده" },
-      { slug: "table-lampshade", label: "آباژور رومیزی" },
+      { slug: "lampshade", label: "آباژور" },
       { slug: "pendant", label: "آویز" },
       { slug: "chandelier", label: "لوستر" },
+      { slug: "floor-lampshade", label: "آباژور ایستاده" },
+      { slug: "table-lampshade", label: "آباژور رومیزی" },
     ],
   },
   {

@@ -66,9 +66,9 @@ export const productCategories: ProductCategoryItem[] = [
   { id: "runner", label: "رانر", room: "decor" },
   { id: "napkin", label: "دستمال سفره", room: "decor" },
   // روشنایی
-  { id: "floor-lamp", label: "آباژور ایستاده", room: "lighting" },
-  { id: "table-lamp", label: "آباژور رومیزی", room: "lighting" },
+  { id: "lampshade", label: "آباژور", room: "lighting" },
   { id: "pendant", label: "آویز", room: "lighting" },
+  { id: "chandelier", label: "لوستر", room: "lighting" },
 ];
 
 export const roomLabels = Object.fromEntries(productRooms.map((r) => [r.id, r.label])) as Record<
