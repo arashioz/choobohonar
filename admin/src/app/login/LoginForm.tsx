@@ -5,11 +5,17 @@ import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const validAdminDestination = /^\/admin(?:\/(?:articles|brandbook|collections|content|customers|leads|manage|pages|seo|settings|shop)(?:\/|$))?$/;
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedNext = searchParams.get("next");
-  const nextPath = requestedNext?.startsWith("/admin") ? requestedNext : "/admin";
+  // Do not send an authenticated administrator back to a mistyped or obsolete
+  // URL such as `/admin/lgoin`; that would turn a successful login into a 404.
+  const nextPath = requestedNext && validAdminDestination.test(requestedNext)
+    ? requestedNext
+    : "/admin";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
