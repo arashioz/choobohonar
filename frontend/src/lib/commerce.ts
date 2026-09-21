@@ -81,15 +81,20 @@ export type PurchaseAttribute = {
   options: { id: string; label: string; default: boolean; price: number }[];
 };
 
-function sortOptionsByPrice<T extends { price: number }>(options: T[]) {
-  return [...options].sort((left, right) => right.price - left.price);
-}
-
 function sortOptionsForDisplay(attribute: PurchaseAttribute) {
-  if (isSizeAttribute(attribute.label) || isLengthAttribute(attribute.label)) {
-    return [...attribute.options].sort((left, right) => optionMagnitude(right.label) - optionMagnitude(left.label));
-  }
-  return sortOptionsByPrice(attribute.options);
+  const options = [...attribute.options];
+  const magnitudes = options.map((option) => optionMagnitude(option.label));
+  const hasMagnitudeScale = magnitudes.filter((value) => value > 0).length >= 2;
+  const hasPriceScale = new Set(options.map((option) => option.price).filter((price) => price > 0)).size >= 2;
+
+  return options.sort((left, right) => {
+    const leftMagnitude = optionMagnitude(left.label);
+    const rightMagnitude = optionMagnitude(right.label);
+    if (hasMagnitudeScale && leftMagnitude !== rightMagnitude) return rightMagnitude - leftMagnitude;
+    if (hasPriceScale && left.price !== right.price) return right.price - left.price;
+    if (leftMagnitude !== rightMagnitude) return rightMagnitude - leftMagnitude;
+    return right.price - left.price;
+  });
 }
 
 const SEAT_WORDS: Record<string, number> = {

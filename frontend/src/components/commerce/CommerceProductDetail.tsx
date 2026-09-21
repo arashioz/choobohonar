@@ -251,7 +251,7 @@ export default function CommerceProductDetail({
                           <span className="text-xs text-forest/45">{selectedOption.label}</span>
                         ) : null}
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap justify-start gap-2" dir="rtl">
                         {attribute.options.map((option) => {
                           const compatible = isOptionCompatibleWithSelection(
                             product,
