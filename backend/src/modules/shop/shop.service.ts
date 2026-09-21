@@ -30,6 +30,7 @@ import {
   CreateShopProductDto,
   UpdateShopProductDto,
 } from './dto/shop-product.dto';
+import { syncProductWoodMaterials } from '../cms/product-materials.sync';
 
 type CatalogSeedRow = {
   externalCode?: string;
@@ -196,6 +197,7 @@ export class ShopService implements OnModuleInit {
     await this.seedCollectionsFromCatalog();
     await this.migrateShopProductModels();
     await this.seedCampaignBannerSamples();
+    await this.syncProductWoodMaterials();
   }
 
   async list(query: {
@@ -302,10 +304,14 @@ export class ShopService implements OnModuleInit {
         const image =
           (Array.isArray(entry.images) ? entry.images[0] : '') ||
           String(data.image || data.applicationImage || '');
+        const aliases = Array.isArray(data.aliases)
+          ? data.aliases.map((item) => String(item).trim()).filter(Boolean)
+          : [];
         return {
           slug: entry.slug,
           name: entry.title,
           family,
+          code: String(data.code || ''),
           // The materials workspace stores the visible colour as colorHex;
           // retain the older keys too so existing records keep working.
           color: String(data.color || data.colorHex || ''),
@@ -315,10 +321,24 @@ export class ShopService implements OnModuleInit {
           href: family
             ? `/materials/${family}/${entry.slug}`
             : `/materials/${entry.slug}`,
+          aliases,
           sample: Boolean(data.sample) || !families.has(entry.slug),
+          source: String(data.source || ''),
         };
       })
-      .filter((item) => item.slug);
+      .filter((item) => item.slug && !families.has(item.slug));
+  }
+
+  private async syncProductWoodMaterials() {
+    const products = await this.productModel
+      .find({})
+      .select('attributes')
+      .lean()
+      .exec();
+    const result = await syncProductWoodMaterials(this.collectionModel, products);
+    console.log(
+      `[shop] synced ${result.count} product wood materials from catalog attributes`,
+    );
   }
 
   private async normalizeFinishSlugs(values: string[]) {
@@ -1225,12 +1245,13 @@ export class ShopService implements OnModuleInit {
       }
     }
 
-    const materialValues = materials.map((item) => item.name.trim()).filter(Boolean);
-    for (const name of ['چوب', 'پارچه', 'پارچه کوسن']) {
-      const values = valuesByAttribute.get(name) || new Set<string>();
-      materialValues.forEach((value) => values.add(value));
-      valuesByAttribute.set(name, values);
-    }
+    const woodLibrary = materials
+      .filter((item) => item.family === 'wood' && item.source === 'product-wood')
+      .map((item) => item.name.trim())
+      .filter(Boolean);
+    const woodValues = valuesByAttribute.get('چوب') || new Set<string>();
+    woodLibrary.forEach((value) => woodValues.add(value));
+    valuesByAttribute.set('چوب', woodValues);
 
     return {
       attributes: [...valuesByAttribute.entries()]
