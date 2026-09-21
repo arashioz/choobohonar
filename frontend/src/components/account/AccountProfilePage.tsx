@@ -34,7 +34,6 @@ type Order = {
 };
 
 type ProfilePayload = { customer: Customer; orders: Order[] };
-type Mode = "login" | "register";
 type CommerceTab = "online" | "proforma";
 
 const statusLabel: Record<string, string> = {
@@ -62,7 +61,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export default function AccountProfilePage() {
   const [profile, setProfile] = useState<ProfilePayload | null>(null);
-  const [mode, setMode] = useState<Mode>("login");
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [commerceTab, setCommerceTab] = useState<CommerceTab>("online");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,13 +123,21 @@ export default function AccountProfilePage() {
     setError("");
     setMessage("");
     try {
-      const path = mode === "login" ? "/login" : "/register";
-      const body = mode === "login"
-        ? { phone: credentials.phone, password: credentials.password }
-        : credentials;
-      await request<{ customer: Customer }>(path, { method: "POST", body: JSON.stringify(body) });
-      await loadProfile();
-      setMessage(mode === "login" ? "خوش آمدید." : "حساب کاربری شما ساخته شد.");
+      if (!otpRequested) {
+        await request<{ ok: true }>("/otp/request", {
+          method: "POST",
+          body: JSON.stringify({ phone: credentials.phone }),
+        });
+        setOtpRequested(true);
+        setMessage("کد ورود برای شماره شما ارسال شد.");
+      } else {
+        await request<{ customer: Customer }>("/otp/verify", {
+          method: "POST",
+          body: JSON.stringify({ phone: credentials.phone, code: otpCode }),
+        });
+        await loadProfile();
+        setMessage("خوش آمدید.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "ورود انجام نشد");
     } finally {
@@ -167,6 +175,8 @@ export default function AccountProfilePage() {
     setMessage("از حساب کاربری خارج شدید.");
     setError("");
     setCredentials({ name: "", phone: "", email: "", city: "", password: "" });
+    setOtpRequested(false);
+    setOtpCode("");
     await request<{ ok: true }>("/logout", { method: "POST" }).catch(() => undefined);
     clearTasteState();
   }
@@ -337,23 +347,17 @@ export default function AccountProfilePage() {
         ) : (
           <div className="mt-12 grid gap-14 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
             <form onSubmit={submitAuthentication} className="max-w-xl">
-              <div className="flex border-b border-forest/10">
-                <button type="button" onClick={() => setMode("login")} className={cn("flex-1 pb-4 text-sm", mode === "login" ? "border-b-2 border-forest text-forest" : "text-forest/40")}>ورود</button>
-                <button type="button" onClick={() => setMode("register")} className={cn("flex-1 pb-4 text-sm", mode === "register" ? "border-b-2 border-forest text-forest" : "text-forest/40")}>ساخت حساب</button>
+              <div className="border-b border-forest/10 pb-4">
+                <p className="text-sm text-forest">ورود یا ساخت حساب با پیامک</p>
+                <p className="mt-2 text-xs leading-6 text-forest/45">شماره موبایل شما شناسه حساب است. برای ورود، یک کد یک‌بارمصرف ارسال می‌کنیم.</p>
               </div>
               <div className="mt-10 grid gap-7">
-                {mode === "register" ? (
-                  <>
-                    <ProfileField label="نام و نام خانوادگی" value={credentials.name} onChange={(value) => setCredentials((current) => ({ ...current, name: value }))} />
-                    <ProfileField label="ایمیل — اختیاری" value={credentials.email} onChange={(value) => setCredentials((current) => ({ ...current, email: value }))} dir="ltr" />
-                    <ProfileField label="شهر — اختیاری" value={credentials.city} onChange={(value) => setCredentials((current) => ({ ...current, city: value }))} />
-                  </>
-                ) : null}
-                <ProfileField label="شماره موبایل" value={credentials.phone} onChange={(value) => setCredentials((current) => ({ ...current, phone: value }))} dir="ltr" />
-                <ProfileField label="رمز عبور" value={credentials.password} onChange={(value) => setCredentials((current) => ({ ...current, password: value }))} type="password" dir="ltr" />
+                <ProfileField label="شماره موبایل" value={credentials.phone} onChange={(value) => setCredentials((current) => ({ ...current, phone: value }))} disabled={otpRequested} dir="ltr" />
+                {otpRequested ? <ProfileField label="کد ۶ رقمی پیامک‌شده" value={otpCode} onChange={setOtpCode} dir="ltr" /> : null}
                 <button disabled={saving} className="inline-flex min-h-14 items-center justify-center rounded-full bg-forest px-8 text-sm font-medium text-paper transition-colors hover:bg-brick disabled:opacity-50">
-                  {saving ? "در حال انجام…" : mode === "login" ? "ورود به حساب" : "ساخت حساب کاربری"}
+                  {saving ? "در حال انجام…" : otpRequested ? "تأیید و ورود به حساب" : "ارسال کد ورود"}
                 </button>
+                {otpRequested ? <button type="button" onClick={() => { setOtpRequested(false); setOtpCode(""); setMessage(""); }} className="text-sm text-forest/50 underline decoration-forest/20 underline-offset-4 hover:text-forest">تغییر شماره موبایل</button> : null}
                 {isLocal ? (
                   <button type="button" disabled={saving} onClick={() => void localTestLogin()} className="text-sm text-forest/50 underline decoration-forest/20 underline-offset-4 hover:text-forest">
                     ورود آزمایشی bezivafaei

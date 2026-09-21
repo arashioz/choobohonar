@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { randomBytes, randomInt, scryptSync, timingSafeEqual } from 'crypto';
 import { Model } from 'mongoose';
 import {
   Customer,
@@ -13,7 +13,15 @@ import {
   CustomerStatus,
   CustomerTier,
 } from './schemas/customer.schema';
-import { ShopOrder, ShopOrderDocument } from '../shop/schemas/shop-order.schema';
+import {
+  CustomerLoginCode,
+  CustomerLoginCodeDocument,
+} from './schemas/customer-login-code.schema';
+import {
+  ShopOrder,
+  ShopOrderDocument,
+} from '../shop/schemas/shop-order.schema';
+import { ParsgreenSmsService } from './parsgreen-sms.service';
 
 const statuses: CustomerStatus[] = ['lead', 'active', 'inactive'];
 const tiers: CustomerTier[] = ['vip', 'silver', 'gold'];
@@ -31,8 +39,11 @@ export const LOCAL_TEST_ACCOUNT = {
 export class CustomersService implements OnModuleInit {
   constructor(
     @InjectModel(Customer.name) private readonly model: Model<CustomerDocument>,
+    @InjectModel(CustomerLoginCode.name)
+    private readonly loginCodeModel: Model<CustomerLoginCodeDocument>,
     @InjectModel(ShopOrder.name)
     private readonly orderModel: Model<ShopOrderDocument>,
+    private readonly parsgreenSms: ParsgreenSmsService,
   ) {}
 
   async onModuleInit() {
@@ -77,7 +88,9 @@ export class CustomersService implements OnModuleInit {
   async registerAccount(input: Record<string, unknown>) {
     const name = String(input.name || '').trim();
     const phone = this.normalizePhone(String(input.phone || ''));
-    const email = String(input.email || '').trim().toLowerCase();
+    const email = String(input.email || '')
+      .trim()
+      .toLowerCase();
     const city = String(input.city || '').trim();
     const password = String(input.password || '');
     if (name.length < 2 || phone.length < 10)
@@ -90,7 +103,9 @@ export class CustomersService implements OnModuleInit {
       .select('+passwordHash')
       .exec();
     if (existing?.passwordHash)
-      throw new BadRequestException('برای این شماره حساب کاربری وجود دارد؛ وارد شوید');
+      throw new BadRequestException(
+        'برای این شماره حساب کاربری وجود دارد؛ وارد شوید',
+      );
 
     const passwordHash = this.hashPassword(password);
     const customer = existing
@@ -127,8 +142,104 @@ export class CustomersService implements OnModuleInit {
       .findOne({ phone: { $regex: this.phonePattern(phone) } })
       .select('+passwordHash')
       .exec();
-    if (!customer?.passwordHash || !this.verifyPassword(password, customer.passwordHash))
+    if (
+      !customer?.passwordHash ||
+      !this.verifyPassword(password, customer.passwordHash)
+    )
       throw new BadRequestException('شماره موبایل یا رمز عبور نادرست است');
+    return this.publicCustomer(customer);
+  }
+
+  async requestLoginCode(phoneValue: string) {
+    const phone = this.normalizePhone(phoneValue);
+    if (!/^09\d{9}$/.test(phone))
+      throw new BadRequestException('شماره موبایل معتبر وارد کنید');
+
+    const now = new Date();
+    const existing = await this.loginCodeModel.findOne({ phone }).exec();
+    if (existing && now.getTime() - existing.lastSentAt.getTime() < 60_000) {
+      throw new BadRequestException(
+        'لطفاً یک دقیقه دیگر برای دریافت کد تلاش کنید',
+      );
+    }
+    const windowStartedAt =
+      existing?.windowStartedAt?.getTime() || now.getTime();
+    if (
+      existing &&
+      now.getTime() - windowStartedAt < 60 * 60 * 1000 &&
+      existing.sendCount >= 5
+    ) {
+      throw new BadRequestException(
+        'تعداد درخواست کد بیش از حد مجاز است؛ یک ساعت دیگر تلاش کنید',
+      );
+    }
+
+    const code = String(randomInt(100_000, 1_000_000));
+    await this.parsgreenSms.sendLoginCode(phone, code);
+
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000);
+    if (existing) {
+      const isNewWindow = now.getTime() - windowStartedAt >= 60 * 60 * 1000;
+      existing.codeHash = this.hashLoginCode(code);
+      existing.expiresAt = expiresAt;
+      existing.attempts = 0;
+      existing.lastSentAt = now;
+      existing.sendCount = isNewWindow ? 1 : existing.sendCount + 1;
+      if (isNewWindow) existing.windowStartedAt = now;
+      await existing.save();
+    } else {
+      await this.loginCodeModel.create({
+        phone,
+        codeHash: this.hashLoginCode(code),
+        expiresAt,
+        attempts: 0,
+        sendCount: 1,
+        windowStartedAt: now,
+        lastSentAt: now,
+      });
+    }
+    return { ok: true, expiresIn: 300 };
+  }
+
+  async verifyLoginCode(phoneValue: string, code: string) {
+    const phone = this.normalizePhone(phoneValue);
+    if (!/^09\d{9}$/.test(phone) || !/^\d{6}$/.test(code))
+      throw new BadRequestException('شماره موبایل یا کد ورود معتبر نیست');
+    const request = await this.loginCodeModel
+      .findOne({ phone })
+      .select('+codeHash')
+      .exec();
+    if (!request || request.expiresAt.getTime() < Date.now())
+      throw new BadRequestException(
+        'کد ورود منقضی شده است؛ دوباره درخواست کنید',
+      );
+    if (request.attempts >= 5)
+      throw new BadRequestException(
+        'تعداد تلاش بیش از حد مجاز است؛ دوباره کد بگیرید',
+      );
+    if (!this.matchesLoginCode(code, request.codeHash)) {
+      request.attempts += 1;
+      await request.save();
+      throw new BadRequestException('کد ورود نادرست است');
+    }
+    await this.loginCodeModel.deleteOne({ _id: request._id }).exec();
+
+    let customer = await this.model
+      .findOne({ phone: { $regex: this.phonePattern(phone) } })
+      .exec();
+    if (customer) {
+      if (customer.status !== 'active') {
+        customer.status = 'active';
+        await customer.save();
+      }
+    } else {
+      customer = await this.model.create({
+        name: 'کاربر چوب و هنر',
+        phone,
+        status: 'active',
+        source: 'website-otp',
+      });
+    }
     return this.publicCustomer(customer);
   }
 
@@ -139,7 +250,9 @@ export class CustomersService implements OnModuleInit {
     const orders = await this.orderModel
       .find({ 'customer.phone': { $regex: phonePattern } })
       .sort({ createdAt: -1 })
-      .select('orderNumber status kind items amounts payment createdAt proformaId invoiceId')
+      .select(
+        'orderNumber status kind items amounts payment createdAt proformaId invoiceId',
+      )
       .lean()
       .exec();
     return { customer: this.publicCustomer(customer), orders };
@@ -152,7 +265,10 @@ export class CustomersService implements OnModuleInit {
       if (name.length < 2) throw new BadRequestException('نام معتبر وارد کنید');
       patch.name = name;
     }
-    if (input.email !== undefined) patch.email = String(input.email || '').trim().toLowerCase();
+    if (input.email !== undefined)
+      patch.email = String(input.email || '')
+        .trim()
+        .toLowerCase();
     if (input.city !== undefined) patch.city = String(input.city || '').trim();
     if (input.galleryTaste === null) patch.galleryTaste = null;
     else if (input.galleryTaste !== undefined)
@@ -245,7 +361,8 @@ export class CustomersService implements OnModuleInit {
     if (existing) {
       const patch: Record<string, unknown> = {};
       if (!existing.city && input.city) patch.city = input.city;
-      if (!existing.email && input.email) patch.email = String(input.email).trim().toLowerCase();
+      if (!existing.email && input.email)
+        patch.email = String(input.email).trim().toLowerCase();
       if (Object.keys(patch).length) {
         await this.model.updateOne({ _id: existing._id }, { $set: patch });
       }
@@ -254,7 +371,9 @@ export class CustomersService implements OnModuleInit {
     return this.model.create({
       name,
       phone,
-      ...(input.email ? { email: String(input.email).trim().toLowerCase() } : {}),
+      ...(input.email
+        ? { email: String(input.email).trim().toLowerCase() }
+        : {}),
       ...(input.city ? { city: input.city } : {}),
       status: 'lead',
       source: input.source || 'checkout',
@@ -419,6 +538,21 @@ export class CustomersService implements OnModuleInit {
     return `scrypt:${salt}:${hash}`;
   }
 
+  private hashLoginCode(code: string) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new BadRequestException('تنظیمات ورود کاربر کامل نیست');
+    return scryptSync(code, `customer-login:${secret}`, 64).toString('hex');
+  }
+
+  private matchesLoginCode(code: string, stored: string) {
+    const candidate = Buffer.from(this.hashLoginCode(code), 'hex');
+    const storedBuffer = Buffer.from(stored, 'hex');
+    return (
+      candidate.length === storedBuffer.length &&
+      timingSafeEqual(candidate, storedBuffer)
+    );
+  }
+
   private verifyPassword(password: string, stored: string) {
     const [scheme, salt, hash] = stored.split(':');
     if (scheme !== 'scrypt' || !salt || !hash) return false;
@@ -433,7 +567,10 @@ export class CustomersService implements OnModuleInit {
 
   private normalizeTaste(value: unknown) {
     if (value === null) return null;
-    const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+    const record =
+      value && typeof value === 'object'
+        ? (value as Record<string, unknown>)
+        : {};
     const allowed = {
       space: ['home', 'villa', 'hospitality', 'detail'],
       material: ['dark-wood', 'light-wood', 'fabric', 'metal'],
@@ -446,7 +583,9 @@ export class CustomersService implements OnModuleInit {
     const object = String(record.object || '');
     if (
       !allowed.space.includes(space as (typeof allowed.space)[number]) ||
-      !allowed.material.includes(material as (typeof allowed.material)[number]) ||
+      !allowed.material.includes(
+        material as (typeof allowed.material)[number],
+      ) ||
       !allowed.atmosphere.includes(
         atmosphere as (typeof allowed.atmosphere)[number],
       ) ||

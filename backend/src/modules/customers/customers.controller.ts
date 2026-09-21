@@ -73,7 +73,9 @@ export class PublicCustomersController {
     @Res() response: Response,
   ) {
     const customer = await this.customers.registerAccount(body);
-    return this.setSession(response, customer.id).status(201).json({ customer });
+    return this.setSession(response, customer.id)
+      .status(201)
+      .json({ customer });
   }
 
   @Post('account/login')
@@ -84,6 +86,23 @@ export class PublicCustomersController {
     const customer = await this.customers.authenticateAccount(
       body.phone || '',
       body.password || '',
+    );
+    return this.setSession(response, customer.id).json({ customer });
+  }
+
+  @Post('account/otp/request')
+  requestLoginCode(@Body() body: { phone?: string }) {
+    return this.customers.requestLoginCode(body.phone || '');
+  }
+
+  @Post('account/otp/verify')
+  async verifyLoginCode(
+    @Body() body: { phone?: string; code?: string },
+    @Res() response: Response,
+  ) {
+    const customer = await this.customers.verifyLoginCode(
+      body.phone || '',
+      body.code || '',
     );
     return this.setSession(response, customer.id).json({ customer });
   }
@@ -155,7 +174,8 @@ export class PublicCustomersController {
       .map((item) => item.trim().split('='))
       .find(([name]) => name === 'customer_session')?.[1];
     const secret = process.env.JWT_SECRET;
-    if (!token || !secret) throw new UnauthorizedException('ابتدا وارد حساب کاربری شوید');
+    if (!token || !secret)
+      throw new UnauthorizedException('ابتدا وارد حساب کاربری شوید');
     try {
       const payload = jwt.verify(token, secret);
       if (
