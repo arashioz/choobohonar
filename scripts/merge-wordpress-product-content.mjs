@@ -7,9 +7,13 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { createRequire } from "node:module";
 
 const root = process.cwd();
 const databasePath = join(root, "wordpress-files/chooboho_1150396_db (1).json");
+const csvPath = join(root, "wordpress-files/wc-product-export-15-9-2026-1789498910475.csv");
+const requireFromBackend = createRequire(join(root, "backend/package.json"));
+const XLSX = requireFromBackend("xlsx");
 const catalogPaths = [
   join(root, "backend/src/modules/shop/data/wordpress-csv-catalog.json"),
   join(root, "backend/src/modules/shop/data/wordpress-csv-catalog.local.json"),
@@ -56,6 +60,7 @@ const metadata = database.find((item) => item.type === "table" && item.name === 
 const productsByName = new Map();
 const postsById = new Map(posts.map((post) => [String(post.ID), post]));
 const metaByPost = new Map();
+const csvContentByName = new Map();
 
 for (const meta of metadata) {
   const postId = String(meta.post_id);
@@ -69,9 +74,36 @@ for (const post of posts.filter((post) => post.post_type === "product")) {
   productsByName.set(key, [...(productsByName.get(key) || []), post]);
 }
 
+const csvWorkbook = XLSX.readFile(csvPath, { raw: true });
+const csvRows = XLSX.utils.sheet_to_json(
+  csvWorkbook.Sheets[csvWorkbook.SheetNames[0]],
+  { defval: "" },
+);
+for (const row of csvRows) {
+  if (!["simple", "variable"].includes(text(row["نوع"]))) continue;
+  const name = normalized(row["نام"]);
+  if (!name) continue;
+  const meta = (key) => usable(row[`متا: ${key}`]);
+  const blockContents = [meta("desc_short_code"), meta("accordion_short_code")]
+    .map(blockId)
+    .map((id) => usable(postsById.get(id)?.post_content))
+    .filter(Boolean);
+  csvContentByName.set(name, {
+    name: text(row["نام"]),
+    shortDescription:
+      meta("archive_variable_description") ||
+      meta("variable_description") ||
+      text(row["توضیح کوتاه"]) ||
+      meta("_yoast_wpseo_metadesc"),
+    // Preserve the original WordPress HTML. Product rendering can choose its
+    // own safe presentation (accordion, table or rich-text) after import.
+    longDescription: blockContents.join("\n\n") || text(row["توضیحات"]),
+  });
+}
+
 function detailsFor(name) {
   const candidates = productsByName.get(normalized(name)) || [];
-  if (!candidates.length) return undefined;
+  const csvContent = csvContentByName.get(normalized(name));
   const ranked = candidates
     .map((post) => {
       const meta = metaByPost.get(String(post.ID)) || new Map();
@@ -89,7 +121,15 @@ function detailsFor(name) {
       b.shortDescription.length - a.shortDescription.length ||
       Number(b.post.post_status === "publish") - Number(a.post.post_status === "publish"),
     );
-  return ranked[0];
+  const databaseDetails = ranked[0];
+  if (!databaseDetails && !csvContent) return undefined;
+  return {
+    post: databaseDetails?.post || { post_title: csvContent?.name || name },
+    shortDescription:
+      csvContent?.shortDescription || databaseDetails?.shortDescription || "",
+    longDescription:
+      csvContent?.longDescription || databaseDetails?.longDescription || "",
+  };
 }
 
 let matched = 0;
