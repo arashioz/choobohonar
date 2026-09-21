@@ -272,7 +272,9 @@ export class CustomersService implements OnModuleInit {
     if (input.city !== undefined) patch.city = String(input.city || '').trim();
     if (input.deliveryAddress === null) patch.deliveryAddress = null;
     else if (input.deliveryAddress !== undefined)
-      patch.deliveryAddress = this.normalizeDeliveryAddress(input.deliveryAddress);
+      patch.deliveryAddress = this.normalizeDeliveryAddress(
+        input.deliveryAddress,
+      );
     if (input.galleryTaste === null) patch.galleryTaste = null;
     else if (input.galleryTaste !== undefined)
       patch.galleryTaste = this.normalizeTaste(input.galleryTaste);

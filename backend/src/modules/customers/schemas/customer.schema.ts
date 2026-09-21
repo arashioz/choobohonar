@@ -36,7 +36,10 @@ export class Customer {
   @Prop({ type: [String], default: [] }) tags: string[];
   @Prop({ default: '' }) source: string;
   @Prop({ default: '' }) note: string;
-  @Prop({ type: Object, default: null }) galleryTaste: Record<string, string> | null;
+  @Prop({ type: Object, default: null }) galleryTaste: Record<
+    string,
+    string
+  > | null;
   @Prop({ type: [{ at: Date, text: String }], default: [] }) notes: {
     at: Date;
     text: string;
