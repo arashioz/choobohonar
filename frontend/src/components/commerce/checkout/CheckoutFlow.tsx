@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/commerce";
 import { cn, toFa } from "@/lib/utils";
 import { isUploadedMedia } from "@/lib/media";
 import { required, validateEmail, validatePhone } from "@/lib/form-utils";
-import { checkoutApi, customerAccountApi } from "@/lib/checkout-api";
+import { checkoutApi } from "@/lib/checkout-api";
 
 type Step = 1 | 2 | 3;
 type PaymentMethod = "coordination" | "online";
@@ -18,9 +18,6 @@ type CheckoutData = {
   fullName: string;
   phone: string;
   email: string;
-  createAccount: boolean;
-  password: string;
-  confirmPassword: string;
   province: string;
   city: string;
   postalCode: string;
@@ -34,9 +31,6 @@ const initialData: CheckoutData = {
   fullName: "",
   phone: "",
   email: "",
-  createAccount: false,
-  password: "",
-  confirmPassword: "",
   province: "",
   city: "",
   postalCode: "",
@@ -67,7 +61,36 @@ export default function CheckoutFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [completedOrder, setCompletedOrder] = useState<{ number: string; total: number; kind?: string } | null>(null);
+  const [accountState, setAccountState] = useState<"loading" | "signed-in" | "guest">("loading");
   const currency = items.find((item) => item.currencySymbol)?.currencySymbol || "تومان";
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/public/account/me", { credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("guest");
+        return response.json() as Promise<{ customer: { name?: string; phone?: string; email?: string; city?: string; deliveryAddress?: { province?: string; city?: string; address?: string; postalCode?: string; deliveryNote?: string } | null } }>;
+      })
+      .then(({ customer }) => {
+        if (!active) return;
+        setData((current) => ({
+          ...current,
+          fullName: customer.name || current.fullName,
+          phone: customer.phone || current.phone,
+          email: customer.email || current.email,
+          city: customer.deliveryAddress?.city || customer.city || current.city,
+          province: customer.deliveryAddress?.province || current.province,
+          address: customer.deliveryAddress?.address || current.address,
+          postalCode: customer.deliveryAddress?.postalCode || current.postalCode,
+          deliveryNote: customer.deliveryAddress?.deliveryNote || current.deliveryNote,
+        }));
+        setAccountState("signed-in");
+      })
+      .catch(() => active && setAccountState("guest"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const update = <Key extends keyof CheckoutData>(key: Key, value: CheckoutData[Key]) => {
     setData((current) => ({ ...current, [key]: value }));
@@ -84,8 +107,6 @@ export default function CheckoutFlow() {
     if (!required(data.fullName)) next.fullName = "نام و نام خانوادگی را وارد کنید.";
     if (!validatePhone(data.phone)) next.phone = "شماره موبایل معتبر وارد کنید.";
     if (data.email.trim() && !validateEmail(data.email)) next.email = "ایمیل معتبر وارد کنید.";
-    if (data.createAccount && data.password.length < 8) next.password = "رمز عبور باید حداقل ۸ کاراکتر باشد.";
-    if (data.createAccount && data.confirmPassword !== data.password) next.confirmPassword = "تکرار رمز عبور یکسان نیست.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -123,14 +144,28 @@ export default function CheckoutFlow() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      if (data.createAccount) {
-        await customerAccountApi.register({
-          name: data.fullName,
-          phone: data.phone,
-          email: data.email,
-          city: data.city,
-          password: data.password,
+      if (accountState === "signed-in") {
+        const profileResponse = await fetch("/api/public/account/me", {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.fullName,
+            email: data.email,
+            city: data.city,
+            deliveryAddress: {
+              province: data.province,
+              city: data.city,
+              address: data.address,
+              postalCode: data.postalCode,
+              deliveryNote: data.deliveryNote,
+            },
+          }),
         });
+        if (!profileResponse.ok) {
+          const payload = await profileResponse.json().catch(() => ({}));
+          throw new Error(payload.message || "ذخیره نشانی حساب کاربری انجام نشد");
+        }
       }
       const order = await checkoutApi.createOrder({
         items,
@@ -235,36 +270,20 @@ export default function CheckoutFlow() {
             {step === 1 ? (
               <div>
                 <SectionHeading index="01" title="اطلاعات تماس و حساب کاربری" description="اطلاعاتی که برای هماهنگی سفارش، زمان تحویل و پیگیری خرید استفاده می‌شود." />
+                {accountState === "signed-in" ? <p className="mt-6 border border-sage/40 bg-sage/20 px-4 py-3 text-sm text-forest">اطلاعات حساب و آخرین نشانی ذخیره‌شده شما بارگذاری شد. در صورت نیاز آن‌ها را ویرایش کنید؛ تغییرات همراه سفارش ذخیره می‌شوند.</p> : null}
+                {accountState === "guest" ? <p className="mt-6 border border-forest/10 bg-white/55 px-4 py-3 text-sm text-forest/60">می‌توانید بدون حساب سفارش ثبت کنید. برای استفاده از اطلاعات و نشانی ذخیره‌شده، ابتدا <Link href="/profile" className="text-brick underline underline-offset-4">وارد حساب کاربری</Link> شوید.</p> : null}
                 <div className="mt-10 grid gap-x-7 gap-y-8 md:grid-cols-2">
                   <Field label="نام و نام خانوادگی" error={errors.fullName} className="md:col-span-2">
                     <input value={data.fullName} onChange={(e) => update("fullName", e.target.value)} autoComplete="name" className={inputClass(errors.fullName)} placeholder="مثلاً سارا احمدی" />
                   </Field>
                   <Field label="شماره موبایل" error={errors.phone}>
-                    <input value={data.phone} onChange={(e) => update("phone", e.target.value)} inputMode="tel" autoComplete="tel" dir="ltr" className={inputClass(errors.phone)} placeholder="0912 000 0000" />
+                    <input value={data.phone} onChange={(e) => update("phone", e.target.value)} disabled={accountState === "signed-in"} inputMode="tel" autoComplete="tel" dir="ltr" className={inputClass(errors.phone)} placeholder="0912 000 0000" />
                   </Field>
                   <Field label="ایمیل — اختیاری" error={errors.email}>
                     <input value={data.email} onChange={(e) => update("email", e.target.value)} type="email" autoComplete="email" dir="ltr" className={inputClass(errors.email)} placeholder="name@example.com" />
                   </Field>
                 </div>
 
-                <label className="mt-10 flex cursor-pointer items-start gap-4 border-y border-forest/10 py-6">
-                  <input type="checkbox" checked={data.createAccount} onChange={(e) => update("createAccount", e.target.checked)} className="mt-1 h-4 w-4 accent-forest" />
-                  <span>
-                    <span className="block text-sm font-medium text-forest">ساخت حساب کاربری با همین اطلاعات</span>
-                    <span className="mt-1 block text-xs leading-6 text-forest/50">برای مشاهده سفارش‌ها، ذخیره نشانی و خرید سریع‌تر در دفعات بعد.</span>
-                  </span>
-                </label>
-
-                {data.createAccount ? (
-                  <div className="mt-7 grid gap-7 md:grid-cols-2">
-                    <Field label="رمز عبور حساب" error={errors.password}>
-                      <input value={data.password} onChange={(e) => update("password", e.target.value)} type="password" autoComplete="new-password" dir="ltr" className={inputClass(errors.password)} placeholder="حداقل ۸ کاراکتر" />
-                    </Field>
-                    <Field label="تکرار رمز عبور" error={errors.confirmPassword}>
-                      <input value={data.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} type="password" autoComplete="new-password" dir="ltr" className={inputClass(errors.confirmPassword)} placeholder="رمز عبور را دوباره وارد کنید" />
-                    </Field>
-                  </div>
-                ) : null}
               </div>
             ) : null}
 
@@ -303,7 +322,7 @@ export default function CheckoutFlow() {
                     <p>{data.fullName}</p>
                     <p dir="ltr" className="text-right">{data.phone}</p>
                     {data.email.trim() ? <p dir="ltr" className="break-all text-right">{data.email}</p> : null}
-                    {data.createAccount ? <p className="mt-2 text-brick">حساب کاربری ساخته می‌شود</p> : null}
+                    {accountState === "signed-in" ? <p className="mt-2 text-forest/45">از حساب کاربری شما</p> : null}
                   </ReviewBlock>
                   <ReviewBlock title="نشانی تحویل" onEdit={() => setStep(2)}>
                     <p>{data.province}، {data.city}</p>

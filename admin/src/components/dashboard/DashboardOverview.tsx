@@ -11,18 +11,18 @@ type Summary = Record<
 const empty = { total: 0, published: 0, draft: 0, items: [] };
 
 const shortcuts = [
-  { href: "/shop", title: "فروشگاه", note: "قیمت، سفارش، فاکتور", tone: "forest" },
-  { href: "/manage/products", title: "محصولات", note: "کاتالوگ و موجودی", tone: "cream" },
-  { href: "/customers", title: "مشتریان", note: "CRM و پرونده‌ها", tone: "sage" },
-  { href: "/leads", title: "درخواست‌ها", note: "فرم‌ها و بریف‌ها", tone: "peach" },
-  { href: "/manage/projects", title: "پروژه‌ها", note: "گالری و روایت اجرا", tone: "forest" },
-  { href: "/manage/materials", title: "متریال‌ها", note: "کتابخانه مواد", tone: "cream" },
-  { href: "/articles", title: "مقالات", note: "تحریریه و انتشار", tone: "sage" },
-  { href: "/pages", title: "صفحات سایت", note: "ناوبری و فرم‌ها", tone: "peach" },
-  { href: "/seo", title: "سئو", note: "ایندکس و کیورد", tone: "cream" },
-  { href: "/manage/stories", title: "ویدیوها", note: "روایت محصول", tone: "sage" },
-  { href: "/content", title: "چوب‌نویس", note: "دستیار محتوا", tone: "peach" },
-  { href: "/settings", title: "تنظیمات", note: "سرچ‌کنسول و سئو", tone: "forest" },
+  { href: "/admin/shop", title: "فروشگاه", note: "قیمت، سفارش، فاکتور", tone: "forest" },
+  { href: "/admin/manage/products", title: "محصولات", note: "کاتالوگ و موجودی", tone: "cream" },
+  { href: "/admin/customers", title: "مشتریان", note: "CRM و پرونده‌ها", tone: "sage" },
+  { href: "/admin/leads", title: "درخواست‌ها", note: "فرم‌ها و بریف‌ها", tone: "peach" },
+  { href: "/admin/manage/projects", title: "پروژه‌ها", note: "گالری و روایت اجرا", tone: "forest" },
+  { href: "/admin/manage/materials", title: "متریال‌ها", note: "کتابخانه مواد", tone: "cream" },
+  { href: "/admin/articles", title: "مقالات", note: "تحریریه و انتشار", tone: "sage" },
+  { href: "/admin/pages", title: "صفحات سایت", note: "ناوبری و فرم‌ها", tone: "peach" },
+  { href: "/admin/seo", title: "سئو", note: "ایندکس و کیورد", tone: "cream" },
+  { href: "/admin/manage/stories", title: "ویدیوها", note: "روایت محصول", tone: "sage" },
+  { href: "/admin/content", title: "چوب‌نویس", note: "دستیار محتوا", tone: "peach" },
+  { href: "/admin/settings", title: "تنظیمات", note: "سرچ‌کنسول و سئو", tone: "forest" },
 ] as const;
 
 const tones = {
@@ -100,10 +100,10 @@ export default function DashboardOverview() {
             <p className="mt-2 text-xs text-forest/45">دسترسی سریع به کارهای روزمره پنل.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link href="/articles/new" className="rounded-xl border border-forest/12 bg-white px-4 py-3 text-xs text-forest/60">
+            <Link href="/admin/articles/new" className="rounded-xl border border-forest/12 bg-white px-4 py-3 text-xs text-forest/60">
               مقاله جدید
             </Link>
-            <Link href="/manage/products/new" className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
+            <Link href="/admin/manage/products/new" className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper">
               <span className="ml-2 text-peach">+</span>محصول جدید
             </Link>
           </div>
@@ -142,7 +142,7 @@ export default function DashboardOverview() {
           <section className="rounded-2xl border border-forest/10 bg-white/75 p-5 sm:p-6 lg:col-span-8">
             <div className="flex items-center justify-between border-b border-forest/[0.07] pb-4">
               <h2 className="text-sm font-medium text-forest">آخرین تغییرات</h2>
-              <Link href="/manage" className="text-[10px] font-medium text-brick">
+              <Link href="/admin/manage" className="text-[10px] font-medium text-brick">
                 مدیریت آثار ←
               </Link>
             </div>
@@ -172,7 +172,7 @@ export default function DashboardOverview() {
 
           <aside className="space-y-3 lg:col-span-4">
             <Link
-              href="/shop"
+              href="/admin/shop"
               className="block rounded-2xl bg-forest p-5 text-paper transition-colors hover:bg-forest-700"
             >
               <p className="text-[10px] tracking-[0.14em] text-peach" dir="ltr">SHOP</p>
@@ -180,7 +180,7 @@ export default function DashboardOverview() {
               <p className="mt-2 text-[11px] leading-5 text-paper/50">ورود مستقیم به فروشگاه عملیاتی.</p>
             </Link>
             <Link
-              href="/brandbook"
+              href="/admin/brandbook"
               className="block rounded-2xl border border-forest/10 bg-white/75 p-5 text-forest hover:bg-white"
             >
               <h2 className="text-sm font-medium">برندبوک دیجیتال</h2>
@@ -223,9 +223,9 @@ function kindLabel(kind: CmsEntry["kind"]) {
 }
 
 function entryHref(item: CmsEntry) {
-  if (item.kind === "article") return `/articles/${item._id}`;
+  if (item.kind === "article") return `/admin/articles/${item._id}`;
   const path = (
     { product: "products", material: "materials", project: "projects", collection: "collections", story: "stories" } as const
   )[item.kind as "product" | "material" | "project" | "collection" | "story"];
-  return path ? `/manage/${path}/${item._id}` : "/";
+  return path ? `/admin/manage/${path}/${item._id}` : "/admin";
 }

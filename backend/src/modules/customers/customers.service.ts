@@ -270,6 +270,9 @@ export class CustomersService implements OnModuleInit {
         .trim()
         .toLowerCase();
     if (input.city !== undefined) patch.city = String(input.city || '').trim();
+    if (input.deliveryAddress === null) patch.deliveryAddress = null;
+    else if (input.deliveryAddress !== undefined)
+      patch.deliveryAddress = this.normalizeDeliveryAddress(input.deliveryAddress);
     if (input.galleryTaste === null) patch.galleryTaste = null;
     else if (input.galleryTaste !== undefined)
       patch.galleryTaste = this.normalizeTaste(input.galleryTaste);
@@ -604,12 +607,37 @@ export class CustomersService implements OnModuleInit {
     };
   }
 
+  private normalizeDeliveryAddress(value: unknown) {
+    const record =
+      value && typeof value === 'object'
+        ? (value as Record<string, unknown>)
+        : null;
+    if (!record) throw new BadRequestException('نشانی تحویل معتبر نیست');
+    const province = String(record.province || '').trim();
+    const city = String(record.city || '').trim();
+    const address = String(record.address || '').trim();
+    const postalCode = String(record.postalCode || '').trim();
+    const deliveryNote = String(record.deliveryNote || '').trim();
+    if (!province || !city || address.length < 10)
+      throw new BadRequestException('نشانی تحویل کامل نیست');
+    if (postalCode && !/^[0-9۰-۹]{10}$/.test(postalCode.replace(/\s/g, '')))
+      throw new BadRequestException('کد پستی باید ۱۰ رقم باشد');
+    return {
+      province,
+      city,
+      address,
+      ...(postalCode ? { postalCode } : {}),
+      ...(deliveryNote ? { deliveryNote } : {}),
+    };
+  }
+
   private publicCustomer(customer: {
     _id?: unknown;
     name?: unknown;
     phone?: unknown;
     email?: unknown;
     city?: unknown;
+    deliveryAddress?: unknown;
     createdAt?: unknown;
     galleryTaste?: unknown;
   }) {
@@ -619,6 +647,7 @@ export class CustomersService implements OnModuleInit {
       phone: String(customer.phone || ''),
       email: String(customer.email || ''),
       city: String(customer.city || ''),
+      deliveryAddress: customer.deliveryAddress || null,
       createdAt: customer.createdAt,
       galleryTaste: customer.galleryTaste || null,
     };

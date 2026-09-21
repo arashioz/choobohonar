@@ -12,6 +12,13 @@ export class Customer {
   @Prop({ trim: true, lowercase: true }) email?: string;
   @Prop({ select: false, default: '' }) passwordHash: string;
   @Prop({ default: '' }) city: string;
+  @Prop({ type: Object, default: null }) deliveryAddress: {
+    province: string;
+    city: string;
+    address: string;
+    postalCode?: string;
+    deliveryNote?: string;
+  } | null;
   @Prop({ enum: ['lead', 'active', 'inactive'], default: 'lead', index: true })
   status: CustomerStatus;
   @Prop({
