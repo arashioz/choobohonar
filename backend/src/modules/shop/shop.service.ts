@@ -15,6 +15,7 @@ import {
   ProductRoom,
 } from './schemas/shop-product.schema';
 import { ShopCategory, ShopCategoryDocument } from './schemas/shop-category.schema';
+import { presentShopProduct } from './variant-playbook';
 import {
   ShopCampaignBanner,
   ShopCampaignBannerDocument,
@@ -262,7 +263,7 @@ export class ShopService implements OnModuleInit {
       : found;
 
     return {
-      items,
+      items: items.map((item) => presentShopProduct(item)),
       total,
       page,
       limit,
@@ -277,9 +278,9 @@ export class ShopService implements OnModuleInit {
   }
 
   async getBySlug(slug: string) {
-    const product = await this.productModel.findOne({ slug }).exec();
+    const product = await this.productModel.findOne({ slug }).lean().exec();
     if (!product) throw new NotFoundException('محصول پیدا نشد');
-    return product;
+    return presentShopProduct(product);
   }
 
   async listMaterialSwatches() {

@@ -1,48 +1,46 @@
 import type { ShopProduct } from "@/data/products";
 import { toFa } from "@/lib/utils";
+import {
+  classifyAttribute,
+  isHeadboardMaterialAttribute,
+  isHeadboardTypeAttribute,
+  isLengthAttribute,
+  isMechanismAttribute,
+  isSeatAttribute,
+  pricedVariantAttributeNames,
+  purchaseAttributeLabel,
+  type AttributeRole,
+  type AttributeUi,
+} from "@/lib/variant-playbook";
+
+export {
+  isHeadboardMaterialAttribute,
+  isHeadboardTypeAttribute,
+  isLengthAttribute,
+  isMechanismAttribute,
+  isSeatAttribute,
+  purchaseAttributeLabel,
+};
 
 const CLASSIFICATION_ATTRIBUTE =
   /^(دسته|دسته بندی|دسته‌بندی|category|type|نوع|نوع کالا|گروه|گروه کالا|کالکشن|collection)$/i;
 const PRODUCT_TYPE_ATTRIBUTE =
   /^(کاناپه|مبل|ساعت|آباژور|میز|غذاخوری|میز غذاخوری|میز ناهارخوری|تخت|سرویس خواب|فرش|گلیم|لوستر|آینه|بوفه|کنسول|صندلی)$/i;
-const PURCHASE_ATTRIBUTE =
-  /سایز|اندازه|طول|عرض|ارتفاع|عمق|ابعاد|رنگ|پرداخت|فینیش|چوب|رویه|پارچه|size|length|width|height|depth|color|finish|material/i;
-const CONFIGURATION_ATTRIBUTE =
-  /در\s*ها|کشو|کمرکش|سایر قسمت|فریم|سرتخت|مغزی|گوی|ساختار|طرح|پتینه/i;
 
-export function isLengthAttribute(name: string) {
-  return /^(طول|length)$/i.test(name.trim());
-}
-
-const SEAT_VALUE = /^(یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|یازده|دوازده|\d+)\s*(نفره|seat|seater)$/i;
-const MECHANISM_VALUE = /مکانیزم/;
-
-export function isSeatAttribute(name: string, values: string[] = []) {
-  const label = name.trim();
-  if (/^(ظرفیت|نفره|seats?|seater)$/i.test(label)) return true;
-  return values.some((value) => SEAT_VALUE.test(value.trim()));
-}
-
-export function isMechanismAttribute(name: string, values: string[] = []) {
-  const label = name.trim();
-  if (values.some((value) => MECHANISM_VALUE.test(value.trim()))) return true;
-  return /^(مکانیزم|canape)$/i.test(label);
-}
-
-export function purchaseAttributeLabel(name: string, values: string[] = []) {
-  if (isSeatAttribute(name, values)) return "ظرفیت";
-  if (isMechanismAttribute(name, values)) return "مکانیزم";
-  return name.trim();
-}
-
-export function isPurchaseAttribute(name: string, values: string[] = []) {
-  const label = name.trim();
-  if (!label || isLengthAttribute(label)) return false;
-  if (isSeatAttribute(label, values) || isMechanismAttribute(label, values)) return true;
-  if (CLASSIFICATION_ATTRIBUTE.test(label) || PRODUCT_TYPE_ATTRIBUTE.test(label)) return false;
-  if (CONFIGURATION_ATTRIBUTE.test(label)) return true;
-  if (values.length > 1) return true;
-  return PURCHASE_ATTRIBUTE.test(label);
+export function isPurchaseAttribute(
+  name: string,
+  values: string[] = [],
+  product?: Pick<ShopProduct, "category" | "room" | "name">,
+  onPricedVariant = false,
+) {
+  return (
+    classifyAttribute(name, values, {
+      category: product?.category,
+      room: product?.room,
+      name: product?.name,
+      onPricedVariant,
+    }).role === "purchase"
+  );
 }
 
 export function isCollectionAttribute(name: string, taxonomy?: string | null) {
@@ -60,16 +58,47 @@ function variantPrice(variant: ProductVariant) {
   return Number.isFinite(price) && price > 0 ? price : 0;
 }
 
+function pricedVariants(product: ShopProduct) {
+  const priced = enabledVariants(product).filter((variant) => variantPrice(variant) > 0);
+  return priced.length ? priced : enabledVariants(product);
+}
+
+function optionValuesEqual(left?: string, right?: string) {
+  if (!left || !right) return false;
+  const a = normalizeToken(left);
+  const b = normalizeToken(right);
+  return Boolean(a) && a === b;
+}
+
+function normalizeToken(value: string) {
+  return latinDigits(value)
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function variantHasOption(variant: ProductVariant, attributeName: string, optionLabel: string) {
+  return variant.options.some(
+    (option) => optionValuesEqual(option.name, attributeName) && optionValuesEqual(option.value, optionLabel),
+  );
+}
+
+function isPrimaryPurchaseAttribute(attribute: PurchaseAttribute) {
+  return attribute.role === "purchase";
+}
+
 export function getHighestPricedVariant(product: ShopProduct) {
-  return enabledVariants(product).reduce<ProductVariant | undefined>((highest, variant) => {
+  return pricedVariants(product).reduce<ProductVariant | undefined>((highest, variant) => {
     if (!highest || variantPrice(variant) > variantPrice(highest)) return variant;
     return highest;
   }, undefined);
 }
 
 export function getOptionPrice(product: ShopProduct, attributeName: string, optionLabel: string) {
-  const prices = enabledVariants(product)
-    .filter((variant) => variant.options.some((option) => option.name === attributeName && option.value === optionLabel))
+  const prices = pricedVariants(product)
+    .filter((variant) => variantHasOption(variant, attributeName, optionLabel))
     .map(variantPrice)
     .filter((price) => price > 0);
   return prices.length ? Math.max(...prices) : 0;
@@ -78,6 +107,8 @@ export function getOptionPrice(product: ShopProduct, attributeName: string, opti
 export type PurchaseAttribute = {
   id: string;
   label: string;
+  role: AttributeRole;
+  ui: AttributeUi;
   options: { id: string; label: string; default: boolean; price: number }[];
 };
 
@@ -144,16 +175,56 @@ function pairOptionsByMagnitude(from: PurchaseAttribute, to: PurchaseAttribute) 
   return pairs;
 }
 
+function isWoodHeadboardType(label: string) {
+  return /چوب|wood/i.test(label);
+}
+
+function isFabricHeadboardType(label: string) {
+  return /پارچه|fabric/i.test(label);
+}
+
+function pairHeadboardMaterialOption(typeLabel: string | undefined, material: PurchaseAttribute) {
+  if (!typeLabel) return undefined;
+  const woodMaterial = (option: PurchaseAttribute["options"][number]) => /گردو|walnut|^چوب$|wood/i.test(option.label);
+  const fabricMaterial = (option: PurchaseAttribute["options"][number]) => /کاپری|capri|پارچه|fabric/i.test(option.label);
+  if (isWoodHeadboardType(typeLabel)) return material.options.find(woodMaterial) || material.options.find((option) => !fabricMaterial(option));
+  if (isFabricHeadboardType(typeLabel)) return material.options.find(fabricMaterial) || material.options.find((option) => !woodMaterial(option));
+  return undefined;
+}
+
+export function headboardMaterialLabel(value: string) {
+  if (/گردو|walnut|^چوب$|wood/i.test(value)) return "رنگ";
+  return "پارچه";
+}
+
+function applyLinkedHeadboard(
+  attributes: PurchaseAttribute[],
+  selected: Record<string, string>,
+  changedId?: string,
+) {
+  const type = attributes.find((attribute) => isHeadboardTypeAttribute(attribute.label, attribute.options.map((option) => option.label)));
+  const material = attributes.find((attribute) => isHeadboardMaterialAttribute(attribute.label));
+  if (!type || !material) return selected;
+  if (changedId && changedId !== type.id && changedId !== material.id) return selected;
+
+  const next = { ...selected };
+  const typeLabel = type.options.find((option) => option.id === next[type.id])?.label;
+  const paired = pairHeadboardMaterialOption(typeLabel, material);
+  if (paired) next[material.id] = paired.id;
+  return next;
+}
+
 function applyLinkedDimensions(
   attributes: PurchaseAttribute[],
   selected: Record<string, string>,
   changedId?: string,
 ) {
+  const linked = applyLinkedHeadboard(attributes, selected, changedId);
   const size = attributes.find((attribute) => isSizeAttribute(attribute.label));
   const length = attributes.find((attribute) => isLengthAttribute(attribute.label));
-  if (!size || !length) return selected;
+  if (!size || !length) return linked;
 
-  const next = { ...selected };
+  const next = { ...linked };
   if (!changedId || changedId === size.id) {
     const paired = pairOptionsByMagnitude(size, length).get(next[size.id]);
     if (paired) next[length.id] = paired;
@@ -186,30 +257,63 @@ export function getCollectionName(product: ShopProduct): string | null {
   return attribute?.terms[0]?.name ?? null;
 }
 
+function optionHasPricedVariant(product: ShopProduct, attributeName: string, optionLabel: string) {
+  return pricedVariants(product).some(
+    (variant) => variantHasOption(variant, attributeName, optionLabel) && variantPrice(variant) > 0,
+  );
+}
+
+function productHint(product: ShopProduct) {
+  return { category: product.category, room: product.room, name: product.name };
+}
+
+function classifyProductAttribute(product: ShopProduct, name: string, values: string[], onPricedVariant: boolean) {
+  return classifyAttribute(name, values, { ...productHint(product), onPricedVariant });
+}
+
 export function getProductAttributeOptions(product: ShopProduct): PurchaseAttribute[] {
-  const attributes = product.attributes
-    .filter((attribute) => attribute.terms.length > 0 && isPurchaseAttribute(attribute.name, attribute.terms.map((term) => term.name)))
-    .map((attribute) => ({
+  const pricedNames = pricedVariantAttributeNames(product.variants);
+  const attributes: PurchaseAttribute[] = [];
+
+  for (const attribute of product.attributes) {
+    const values = attribute.terms.map((term) => term.name);
+    if (!values.length) continue;
+    const classified = classifyProductAttribute(
+      product,
+      attribute.name,
+      values,
+      pricedNames.has(normalizeToken(attribute.name)),
+    );
+    if (classified.role === "ignore") continue;
+    attributes.push({
       id: attribute.taxonomy || String(attribute.id),
       label: attribute.name,
+      role: classified.role,
+      ui: classified.ui,
       options: attribute.terms.map((term) => ({
         id: term.slug,
         label: term.name,
         default: term.default,
         price: getOptionPrice(product, attribute.name, term.name),
       })),
-    }));
+    });
+  }
 
-  for (const variant of enabledVariants(product)) {
+  for (const variant of pricedVariants(product)) {
     for (const option of variant.options) {
       const siblingValues = variant.options.filter((entry) => entry.name === option.name).map((entry) => entry.value);
-      if (!isPurchaseAttribute(option.name, siblingValues) || !option.value) continue;
+      if (!option.value) continue;
+      const classified = classifyProductAttribute(product, option.name, siblingValues, true);
+      if (classified.role === "ignore") continue;
       let attribute = attributes.find((item) => item.label === option.name);
       if (!attribute) {
-        attribute = { id: option.name, label: option.name, options: [] };
+        attribute = { id: option.name, label: option.name, role: "purchase", ui: "pills", options: [] };
         attributes.push(attribute);
+      } else {
+        attribute.role = "purchase";
+        attribute.ui = "pills";
       }
-      if (!attribute.options.some((item) => item.label === option.value || item.id === option.value)) {
+      if (!attribute.options.some((item) => optionValuesEqual(item.label, option.value) || optionValuesEqual(item.id, option.value))) {
         attribute.options.push({
           id: option.value,
           label: option.value,
@@ -223,8 +327,15 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
   return attributes
     .map((attribute) => ({
       ...attribute,
-      options: sortOptionsForDisplay(attribute),
+      options: sortOptionsForDisplay({
+        ...attribute,
+        options: attribute.options.filter((option) => {
+          if (attribute.role !== "purchase") return true;
+          return optionHasPricedVariant(product, attribute.label, option.label);
+        }),
+      }),
     }))
+    .filter((attribute) => attribute.options.length > 0)
     .sort((left, right) => purchaseAttributePriority(left) - purchaseAttributePriority(right));
 }
 
@@ -233,7 +344,11 @@ function purchaseAttributePriority(attribute: PurchaseAttribute) {
   if (isSeatAttribute(attribute.label, values)) return 0;
   if (isMechanismAttribute(attribute.label, values)) return 1;
   if (isSizeAttribute(attribute.label)) return 2;
-  return 3;
+  if (isHeadboardTypeAttribute(attribute.label, values)) return 3;
+  if (isHeadboardMaterialAttribute(attribute.label)) return 4;
+  if (attribute.role === "purchase") return 5;
+  if (attribute.role === "linked") return 6;
+  return 7;
 }
 
 export function isOptionCompatibleWithSelection(
@@ -244,21 +359,15 @@ export function isOptionCompatibleWithSelection(
   optionId: string,
 ) {
   const attribute = attributes.find((item) => item.id === attributeId);
-  if (!attribute) return true;
+  if (!attribute || attribute.role !== "purchase") return true;
   const variants = enabledVariants(product);
   if (!variants.length) return true;
   const appearsOnVariants = variants.some((variant) =>
-    variant.options.some((option) => option.name === attribute.label),
+    variant.options.some((option) => optionValuesEqual(option.name, attribute.label)),
   );
   if (!appearsOnVariants) return true;
   const next = { ...selected, [attributeId]: optionId };
-  return variants.some((variant) =>
-    variant.options.every((option) => {
-      const match = attributes.find((item) => item.label === option.name);
-      if (!match) return true;
-      return match.options.find((item) => item.id === next[match.id])?.label === option.value;
-    }),
-  );
+  return Boolean(variantMatchingSelection(product, attributes, next));
 }
 
 export function getCraftAttributes(product: ShopProduct) {
@@ -278,9 +387,9 @@ export function getCraftAttributes(product: ShopProduct) {
 export function selectionFromVariant(attributes: PurchaseAttribute[], variant?: ProductVariant) {
   const selected: Record<string, string> = {};
   for (const attribute of attributes) {
-    const match = variant?.options.find((option) => option.name === attribute.label);
+    const match = variant?.options.find((option) => optionValuesEqual(option.name, attribute.label));
     selected[attribute.id] =
-      attribute.options.find((option) => option.label === match?.value)?.id
+      attribute.options.find((option) => optionValuesEqual(option.label, match?.value))?.id
       || "";
   }
   for (const attribute of attributes) {
@@ -289,18 +398,69 @@ export function selectionFromVariant(attributes: PurchaseAttribute[], variant?: 
   return applyLinkedDimensions(attributes, selected);
 }
 
+function selectedLabelFor(attribute: PurchaseAttribute | undefined, selected: Record<string, string>) {
+  if (!attribute) return undefined;
+  return attribute.options.find((item) => item.id === selected[attribute.id])?.label;
+}
+
+function variantMatchScore(
+  variant: ProductVariant,
+  attributes: PurchaseAttribute[],
+  selected: Record<string, string>,
+) {
+  const options = variant.options.filter((option) => option.value?.trim());
+  if (!options.length) return 0;
+
+  let score = 0;
+  for (const option of options) {
+    const attribute = attributes.find((item) => optionValuesEqual(item.label, option.name));
+    if (!attribute) continue;
+    const current = selectedLabelFor(attribute, selected);
+    if (!current) continue;
+    if (optionValuesEqual(current, option.value)) {
+      score += isPrimaryPurchaseAttribute(attribute) ? 10 : 1;
+      continue;
+    }
+    if (isPrimaryPurchaseAttribute(attribute)) return null;
+  }
+  return score;
+}
+
 export function variantMatchingSelection(
   product: ShopProduct,
   attributes: PurchaseAttribute[],
   selected: Record<string, string>,
 ) {
-  return enabledVariants(product).find((variant) =>
-    variant.options.every((option) => {
-      const attribute = attributes.find((item) => item.label === option.name);
-      if (!attribute) return true;
-      return attribute.options.find((item) => item.id === selected[attribute.id])?.label === option.value;
+  const ranked = pricedVariants(product)
+    .filter((variant) => variant.options.some((option) => option.value?.trim()) || pricedVariants(product).every((item) => !item.options.some((option) => option.value?.trim())))
+    .map((variant) => ({ variant, score: variantMatchScore(variant, attributes, selected) }))
+    .filter((entry): entry is { variant: ProductVariant; score: number } => entry.score !== null)
+    .sort((left, right) => right.score - left.score || variantPrice(right.variant) - variantPrice(left.variant));
+
+  const bestScore = ranked[0]?.score ?? -1;
+  const top = ranked.filter((entry) => entry.score === bestScore);
+  if (top.length <= 1) return top[0]?.variant;
+
+  const primary = attributes.filter(isPrimaryPurchaseAttribute);
+  const primaryMatch = top.find((entry) =>
+    primary.every((attribute) => {
+      const current = selectedLabelFor(attribute, selected);
+      if (!current) return true;
+      const onVariant = entry.variant.options.some((option) => optionValuesEqual(option.name, attribute.label));
+      if (!onVariant) return true;
+      return variantHasOption(entry.variant, attribute.label, current);
     }),
   );
+  return primaryMatch?.variant || top[0]?.variant;
+}
+
+export function formatSelectedCatalogPrice(
+  product: Pick<ShopProduct, "prices" | "variants">,
+  variant?: ProductVariant,
+) {
+  const amount = variant ? variantPrice(variant) : 0;
+  if (amount) return formatMoney(amount, product.prices?.currencySymbol || "تومان");
+  return formatCatalogPrice(product);
 }
 
 export function selectionForAttributeOption(
@@ -313,20 +473,23 @@ export function selectionForAttributeOption(
   const attribute = attributes.find((item) => item.id === attributeId);
   const option = attribute?.options.find((item) => item.id === optionId);
   if (!attribute || !option) return { ...selected, [attributeId]: optionId };
+  if (attribute.role !== "purchase") {
+    return applyLinkedDimensions(attributes, { ...selected, [attributeId]: optionId }, attributeId);
+  }
 
-  const candidates = enabledVariants(product).filter((variant) =>
-    variant.options.some((entry) => entry.name === attribute.label && entry.value === option.label),
+  const candidates = pricedVariants(product).filter((variant) =>
+    variantHasOption(variant, attribute.label, option.label),
   );
   if (!candidates.length) {
     return applyLinkedDimensions(attributes, { ...selected, [attributeId]: optionId }, attributeId);
   }
 
-  const others = attributes.filter((item) => item.id !== attributeId);
+  const others = attributes.filter((item) => item.id !== attributeId && item.role === "purchase");
   const ranked = [...candidates].sort((left, right) => {
     const score = (variant: ProductVariant) =>
       others.reduce((total, item) => {
         const currentLabel = item.options.find((entry) => entry.id === selected[item.id])?.label;
-        const matches = variant.options.some((entry) => entry.name === item.label && entry.value === currentLabel);
+        const matches = variantHasOption(variant, item.label, currentLabel || "");
         return total + (matches ? 1 : 0);
       }, 0);
     return score(right) - score(left) || variantPrice(right) - variantPrice(left);
@@ -345,4 +508,58 @@ export function formatProductCount(value: number): string {
 
 export function formatMoney(value: number, currencySymbol = "تومان"): string {
   return `${new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 }).format(value)} ${currencySymbol}`;
+}
+
+export type VariantPriceIssue = {
+  slug: string;
+  name: string;
+  category: string;
+  kind: "unmatched-selection" | "price-stuck";
+  detail: string;
+};
+
+export function debugVariantPriceFlow(product: ShopProduct): VariantPriceIssue[] {
+  const issues: VariantPriceIssue[] = [];
+  const attributes = getProductAttributeOptions(product).filter((attribute) => attribute.role === "purchase");
+  const priced = pricedVariants(product).filter((variant) => variantPrice(variant) > 0);
+  const allAttributes = getProductAttributeOptions(product);
+  let selected = selectionFromVariant(allAttributes, getHighestPricedVariant(product));
+
+  for (const attribute of attributes) {
+    const seenPrices = new Set<number>();
+    for (const option of attribute.options) {
+      selected = selectionForAttributeOption(product, allAttributes, selected, attribute.id, option.id);
+      const matched = variantMatchingSelection(product, allAttributes, selected);
+      const amount = matched ? variantPrice(matched) : 0;
+      if (!amount) {
+        issues.push({
+          slug: product.slug,
+          name: product.name,
+          category: product.category,
+          kind: "unmatched-selection",
+          detail: `${attribute.label}=${option.label}`,
+        });
+        continue;
+      }
+      seenPrices.add(amount);
+    }
+
+    const variantPrices = new Set(
+      priced
+        .filter((variant) => variant.options.some((option) => optionValuesEqual(option.name, attribute.label)))
+        .map(variantPrice)
+        .filter((price) => price > 0),
+    );
+    if (isPrimaryPurchaseAttribute(attribute) && variantPrices.size >= 2 && seenPrices.size < 2) {
+      issues.push({
+        slug: product.slug,
+        name: product.name,
+        category: product.category,
+        kind: "price-stuck",
+        detail: attribute.label,
+      });
+    }
+  }
+
+  return issues;
 }
