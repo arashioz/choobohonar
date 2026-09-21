@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductRichDescription from "@/components/products/ProductRichDescription";
 import type { ShopProduct } from "@/data/products";
-import { formatCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, purchaseAttributeLabel, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection } from "@/lib/commerce";
+import { formatCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, isOptionCompatibleWithSelection, purchaseAttributeLabel, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
@@ -49,7 +49,7 @@ export default function CommerceProductDetail({
   const { addProduct, addItem } = useCart();
   const gallery = product.gallery.length ? product.gallery : [product.image];
   const [activeImage, setActiveImage] = useState(gallery[0]);
-  const attributes = useMemo(() => getProductAttributeOptions(product).slice(0, 5), [product]);
+  const attributes = useMemo(() => getProductAttributeOptions(product), [product]);
   const craftAttributes = useMemo(() => getCraftAttributes(product), [product]);
   const swatches = useMemo(() => materials.filter((item) => item.sample !== false), [materials]);
   const assignedSwatches = useMemo(() => {
@@ -239,38 +239,52 @@ export default function CommerceProductDetail({
                     </div>
                   </fieldset>
                 ) : null}
-                {otherAttributes.map((attribute) => (
-                  <fieldset key={attribute.id}>
-                    <div className="flex items-center justify-between gap-4">
-                      <legend className="text-sm font-medium text-forest">
-                        {purchaseAttributeLabel(attribute.label, attribute.options.map((option) => option.label))}
-                      </legend>
-                      <span className="text-xs text-forest/45">
-                        {attribute.options.find((option) => option.id === selected[attribute.id])?.label}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {attribute.options.map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => {
-                            setSelected((current) => selectionForAttributeOption(product, attributes, current, attribute.id, option.id));
-                            setAdded(false);
-                          }}
-                          className={cn(
-                            "rounded-full border px-4 py-2 text-xs transition-colors",
-                            selected[attribute.id] === option.id
-                              ? "border-forest bg-forest text-paper"
-                              : "border-forest/15 text-forest/65 hover:border-forest/40 hover:text-forest",
-                          )}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                ))}
+                {otherAttributes.map((attribute) => {
+                  const optionLabels = attribute.options.map((option) => option.label);
+                  const label = purchaseAttributeLabel(attribute.label, optionLabels);
+                  const selectedOption = attribute.options.find((option) => option.id === selected[attribute.id]);
+                  return (
+                    <fieldset key={attribute.id}>
+                      <div className="flex items-center gap-3">
+                        <legend className="text-sm font-medium text-forest">{label}</legend>
+                        {selectedOption ? (
+                          <span className="text-xs text-forest/45">{selectedOption.label}</span>
+                        ) : null}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {attribute.options.map((option) => {
+                          const compatible = isOptionCompatibleWithSelection(
+                            product,
+                            attributes,
+                            selected,
+                            attribute.id,
+                            option.id,
+                          );
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => {
+                                setSelected((current) => selectionForAttributeOption(product, attributes, current, attribute.id, option.id));
+                                setAdded(false);
+                              }}
+                              className={cn(
+                                "rounded-full border px-4 py-2 text-xs transition-colors",
+                                selected[attribute.id] === option.id
+                                  ? "border-forest bg-forest text-paper"
+                                  : compatible
+                                    ? "border-forest/15 text-forest/65 hover:border-forest/40 hover:text-forest"
+                                    : "border-forest/10 text-forest/35 hover:border-forest/30 hover:text-forest/60",
+                              )}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  );
+                })}
               </div>
 
               <div className="mt-9 grid gap-3 sm:grid-cols-[1fr_auto] lg:grid-cols-1 xl:grid-cols-[1fr_auto]">

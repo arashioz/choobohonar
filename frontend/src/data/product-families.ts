@@ -167,15 +167,28 @@ export const productFamilies: ProductFamily[] = [
 const typeToFamily = new Map<string, ProductFamily>();
 const typeBySlug = new Map<string, ProductFamilyType>();
 
+function registerTypeAlias(alias: string, canonicalSlug: string) {
+  const family = typeToFamily.get(canonicalSlug);
+  const type = typeBySlug.get(canonicalSlug);
+  if (!alias || !family || !type || typeToFamily.has(alias)) return;
+  typeToFamily.set(alias, family);
+  typeBySlug.set(alias, type);
+}
+
 for (const family of productFamilies) {
   for (const type of family.types) {
     typeToFamily.set(type.slug, family);
     typeBySlug.set(type.slug, type);
+    registerTypeAlias(type.label, type.slug);
+    registerTypeAlias(type.label.replace(/\s+/g, ""), type.slug);
   }
 }
 
 typeToFamily.set("diningchair", typeToFamily.get("diningchairs")!);
 typeBySlug.set("diningchair", typeBySlug.get("diningchairs")!);
+registerTypeAlias("میز-تلویزیون", "tv-stand");
+registerTypeAlias("tvtable", "tv-stand");
+registerTypeAlias("tv_stand", "tv-stand");
 
 export function isMetaCategorySlug(slug: string) {
   return ROOM_OR_META_SLUGS.has(slug);
@@ -213,19 +226,46 @@ function inferFromName(product: ShopProduct) {
   return namedTypes.find(({ family }) => text.includes(family.label.toLocaleLowerCase("fa")));
 }
 
-export function getProductFamily(product: ShopProduct): ProductFamily | undefined {
+function typeFromTerm(term: { slug: string; name: string }) {
+  return typeBySlug.get(term.slug) || typeBySlug.get(term.name) || typeBySlug.get(term.name.replace(/\s+/g, ""));
+}
+
+function typesFromProduct(product: ShopProduct) {
+  const types: ProductFamilyType[] = [];
+  const seen = new Set<string>();
   for (const term of getProductTypeTerms(product)) {
-    const family = typeToFamily.get(term.slug);
+    const type = typeFromTerm(term);
+    if (!type || seen.has(type.slug)) continue;
+    seen.add(type.slug);
+    types.push(type);
+  }
+  return types;
+}
+
+function mostSpecificType(types: ProductFamilyType[]) {
+  if (!types.length) return undefined;
+  return [...types].sort((left, right) => {
+    const leftRoot = typeToFamily.get(left.slug)?.slug === left.slug ? 1 : 0;
+    const rightRoot = typeToFamily.get(right.slug)?.slug === right.slug ? 1 : 0;
+    return leftRoot - rightRoot || right.label.length - left.label.length;
+  })[0];
+}
+
+export function getProductFamily(product: ShopProduct): ProductFamily | undefined {
+  for (const type of typesFromProduct(product)) {
+    const family = typeToFamily.get(type.slug);
+    if (family) return family;
+  }
+  for (const term of getProductTypeTerms(product)) {
+    const family = typeToFamily.get(term.slug) || typeToFamily.get(term.name);
     if (family) return family;
   }
   return inferFromName(product)?.family;
 }
 
 export function getProductType(product: ShopProduct): ProductFamilyType | undefined {
-  for (const term of getProductTypeTerms(product)) {
-    const type = typeBySlug.get(term.slug);
-    if (type) return type;
-  }
+  const specific = mostSpecificType(typesFromProduct(product));
+  if (specific) return specific;
   const inferred = inferFromName(product)?.type;
   if (inferred) return inferred;
   const fallback = getProductTypeTerms(product)[0];

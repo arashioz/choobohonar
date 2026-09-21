@@ -117,6 +117,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
 
   const visible = filtered.slice(0, visibleCount);
   const activeFilterCount = Number(family !== "all") + Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
+  const filtersActive = family !== "all" || type !== "all" || collection !== "all" || Boolean(query.trim()) || stockOnly;
 
   const selectFamily = (next: string) => {
     scrollToProductsAfterSync.current = true;
@@ -265,6 +266,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
               <div className="grid gap-x-5 gap-y-14 sm:grid-cols-2 xl:grid-cols-3">
                 {visible.map((product, index) => {
                   const showCampaign =
+                    !filtersActive &&
                     Boolean(campaign?.title || campaign?.image) &&
                     (visible.length > 6 ? index === 6 : index === visible.length - 1);
                   return (

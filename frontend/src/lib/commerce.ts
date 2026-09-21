@@ -7,12 +7,15 @@ const PRODUCT_TYPE_ATTRIBUTE =
   /^(کاناپه|مبل|ساعت|آباژور|میز|غذاخوری|میز غذاخوری|میز ناهارخوری|تخت|سرویس خواب|فرش|گلیم|لوستر|آینه|بوفه|کنسول|صندلی)$/i;
 const PURCHASE_ATTRIBUTE =
   /سایز|اندازه|طول|عرض|ارتفاع|عمق|ابعاد|رنگ|پرداخت|فینیش|چوب|رویه|پارچه|size|length|width|height|depth|color|finish|material/i;
+const CONFIGURATION_ATTRIBUTE =
+  /در\s*ها|کشو|کمرکش|سایر قسمت|فریم|سرتخت|مغزی|گوی|ساختار|طرح|پتینه/i;
 
 export function isLengthAttribute(name: string) {
   return /^(طول|length)$/i.test(name.trim());
 }
 
 const SEAT_VALUE = /^(یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|یازده|دوازده|\d+)\s*(نفره|seat|seater)$/i;
+const MECHANISM_VALUE = /مکانیزم/;
 
 export function isSeatAttribute(name: string, values: string[] = []) {
   const label = name.trim();
@@ -20,15 +23,25 @@ export function isSeatAttribute(name: string, values: string[] = []) {
   return values.some((value) => SEAT_VALUE.test(value.trim()));
 }
 
+export function isMechanismAttribute(name: string, values: string[] = []) {
+  const label = name.trim();
+  if (values.some((value) => MECHANISM_VALUE.test(value.trim()))) return true;
+  return /^(مکانیزم|canape)$/i.test(label);
+}
+
 export function purchaseAttributeLabel(name: string, values: string[] = []) {
-  return isSeatAttribute(name, values) ? "ظرفیت" : name.trim();
+  if (isSeatAttribute(name, values)) return "ظرفیت";
+  if (isMechanismAttribute(name, values)) return "مکانیزم";
+  return name.trim();
 }
 
 export function isPurchaseAttribute(name: string, values: string[] = []) {
   const label = name.trim();
   if (!label || isLengthAttribute(label)) return false;
-  if (isSeatAttribute(label, values)) return true;
+  if (isSeatAttribute(label, values) || isMechanismAttribute(label, values)) return true;
   if (CLASSIFICATION_ATTRIBUTE.test(label) || PRODUCT_TYPE_ATTRIBUTE.test(label)) return false;
+  if (CONFIGURATION_ATTRIBUTE.test(label)) return true;
+  if (values.length > 1) return true;
   return PURCHASE_ATTRIBUTE.test(label);
 }
 
@@ -202,10 +215,45 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
     }
   }
 
-  return attributes.map((attribute) => ({
-    ...attribute,
-    options: sortOptionsForDisplay(attribute),
-  }));
+  return attributes
+    .map((attribute) => ({
+      ...attribute,
+      options: sortOptionsForDisplay(attribute),
+    }))
+    .sort((left, right) => purchaseAttributePriority(left) - purchaseAttributePriority(right));
+}
+
+function purchaseAttributePriority(attribute: PurchaseAttribute) {
+  const values = attribute.options.map((option) => option.label);
+  if (isSeatAttribute(attribute.label, values)) return 0;
+  if (isMechanismAttribute(attribute.label, values)) return 1;
+  if (isSizeAttribute(attribute.label)) return 2;
+  return 3;
+}
+
+export function isOptionCompatibleWithSelection(
+  product: ShopProduct,
+  attributes: PurchaseAttribute[],
+  selected: Record<string, string>,
+  attributeId: string,
+  optionId: string,
+) {
+  const attribute = attributes.find((item) => item.id === attributeId);
+  if (!attribute) return true;
+  const variants = enabledVariants(product);
+  if (!variants.length) return true;
+  const appearsOnVariants = variants.some((variant) =>
+    variant.options.some((option) => option.name === attribute.label),
+  );
+  if (!appearsOnVariants) return true;
+  const next = { ...selected, [attributeId]: optionId };
+  return variants.some((variant) =>
+    variant.options.every((option) => {
+      const match = attributes.find((item) => item.label === option.name);
+      if (!match) return true;
+      return match.options.find((item) => item.id === next[match.id])?.label === option.value;
+    }),
+  );
 }
 
 export function getCraftAttributes(product: ShopProduct) {
