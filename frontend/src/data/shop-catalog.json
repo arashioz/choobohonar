@@ -11811,7 +11811,7 @@
       "value": "155400000",
       "regularValue": null,
       "saleValue": null,
-      "minValue": "155400000",
+      "minValue": "132300000",
       "maxValue": "155400000",
       "currencyCode": "IRT",
       "currencySymbol": "تومان",
@@ -11824,6 +11824,19 @@
     "hasOptions": true,
     "shopUrl": "https://choobohonar.com/?post_type=product&#038;p=5775",
     "variants": [
+      {
+        "id": "5779",
+        "sku": "۲۱۴۰۰۷۰۱۰۰",
+        "options": [
+          {
+            "name": "سایز",
+            "value": "168"
+          }
+        ],
+        "price": 132300000,
+        "stockQty": 1,
+        "enabled": true
+      },
       {
         "id": "5780",
         "sku": "۲۱۴۰۰۷۰۲۰۰",

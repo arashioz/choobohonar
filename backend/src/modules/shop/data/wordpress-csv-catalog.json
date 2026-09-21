@@ -5294,6 +5294,18 @@
     "inStock": true,
     "variants": [
       {
+        "sku": "2140070100",
+        "options": [
+          {
+            "name": "سایز",
+            "value": "168"
+          }
+        ],
+        "price": 132300000,
+        "stockQty": 0,
+        "enabled": true
+      },
+      {
         "sku": "2140070200",
         "options": [
           {
