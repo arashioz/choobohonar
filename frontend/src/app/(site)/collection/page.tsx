@@ -8,6 +8,9 @@ import Stagger from "@/components/motion/Stagger";
 import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import { toFa } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "کالکشن‌ها | خانه چوب و هنر",
   description: "مجموعه‌های محصول خانه چوب و هنر؛ از کالکشن سولو تا مجموعه‌های آینده برند.",

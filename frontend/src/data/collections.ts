@@ -1,5 +1,6 @@
 import { getAllCatalogProducts, type AnyProduct } from "@/data/products";
 import { getApiBase } from "@/lib/api-base";
+import { safelyDecodeSlug } from "@/lib/public-cms";
 
 export type ProductCollection = {
   slug: string;
@@ -73,7 +74,8 @@ const legacyCollectionSlugs: Record<string, string> = {
 };
 
 export function getCollection(slug: string): ProductCollection | undefined {
-  return collections.find((collection) => collection.slug === slug);
+  const decoded = safelyDecodeSlug(slug);
+  return collections.find((collection) => collection.slug === decoded || collection.slug === slug);
 }
 
 function matchesCollection(product: AnyProduct, collection: ProductCollection): boolean {
@@ -107,8 +109,14 @@ export async function fetchApiCollections(): Promise<ApiCollection[]> {
 
 export async function fetchApiCollection(slug: string): Promise<ApiCollection | null> {
   try {
-    const candidates = [slug, legacyCollectionSlugs[slug.toLowerCase()]].filter(Boolean);
-    for (const candidate of candidates) {
+    const decoded = safelyDecodeSlug(slug);
+    const candidates = [
+      decoded,
+      decoded.replace(/آ/g, "ا"),
+      legacyCollectionSlugs[decoded.toLowerCase()],
+      legacyCollectionSlugs[slug.toLowerCase()],
+    ].filter(Boolean);
+    for (const candidate of [...new Set(candidates)]) {
       const r = await fetch(`${getApiBase()}/public/collections/${encodeURIComponent(candidate)}`, { cache: "no-store" });
       if (r.ok) return await r.json();
     }

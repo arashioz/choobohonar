@@ -7,20 +7,33 @@ import {
   getCollection,
   getCollectionProducts,
   fetchApiCollection,
+  fetchApiCollections,
 } from "@/data/collections";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
+import { safelyDecodeSlug } from "@/lib/public-cms";
 
-export function generateStaticParams() {
-  return collections.map((collection) => ({ slug: collection.slug }));
+// Collections live in Mongo. A build-time-only route 404s every Persian slug
+// that nginx decoded differently from the static path Next prerendered.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const apiCollections = await fetchApiCollections();
+  return [...new Set([
+    ...collections.map((collection) => collection.slug),
+    ...apiCollections.map((collection) => collection.slug),
+  ])].map((slug) => ({ slug }));
 }
 
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: routeSlug } = await params;
+  const slug = safelyDecodeSlug(routeSlug);
   const apiCollection = await fetchApiCollection(slug);
   if (apiCollection) {
     return { title: `${apiCollection.name} | خانه چوب و هنر`, description: apiCollection.excerpt || apiCollection.description };
@@ -31,7 +44,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CollectionDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug: routeSlug } = await params;
+  const slug = safelyDecodeSlug(routeSlug);
   const apiCollection = await fetchApiCollection(slug);
 
   if (apiCollection) {

@@ -77,28 +77,35 @@ export class CollectionsService {
   }
 
   async getBySlug(slug: string): Promise<any> {
-    const item = await this.model
-      .findOne({ slug, status: { $ne: 'archived' } })
-      .lean()
-      .exec();
-    if (item) {
-      const products = await this.getProductsForCollection(item);
-      const image = this.resolveCover(
-        item as unknown as Record<string, unknown>,
-        products,
-      );
-      return { ...item, image, products };
+    for (const candidate of this.slugCandidates(slug)) {
+      const item = await this.model
+        .findOne({ slug: candidate, status: { $ne: 'archived' } })
+        .lean()
+        .exec();
+      if (item) {
+        const products = await this.getProductsForCollection(item);
+        const image = this.resolveCover(
+          item as unknown as Record<string, unknown>,
+          products,
+        );
+        return { ...item, image, products };
+      }
+
+      // Collections created from «مدیریت آثار» live in cms_entries, not in the
+      // standalone collections table. Expose them through the same storefront
+      // API so the admin and frontend never diverge.
+      const cmsItem = await this.cmsEntries
+        .findOne({
+          kind: 'collection',
+          slug: candidate,
+          status: { $ne: 'archived' },
+        })
+        .lean()
+        .exec();
+      if (cmsItem) return this.toPublicCmsCollection(cmsItem);
     }
 
-    // Collections created from «مدیریت آثار» live in cms_entries, not in the
-    // standalone collections table. Expose them through the same storefront
-    // API so the admin and frontend never diverge.
-    const cmsItem = await this.cmsEntries
-      .findOne({ kind: 'collection', slug, status: { $ne: 'archived' } })
-      .lean()
-      .exec();
-    if (!cmsItem) throw new NotFoundException('کالکشن پیدا نشد');
-    return this.toPublicCmsCollection(cmsItem);
+    throw new NotFoundException('کالکشن پیدا نشد');
   }
 
   async getProductsForCollection(
@@ -572,6 +579,31 @@ export class CollectionsService {
         : [];
     if (input.publishedAt !== undefined) data.publishedAt = input.publishedAt;
     return data;
+  }
+
+  private decodeSlug(value: string): string {
+    let current = String(value || '').trim();
+    for (let index = 0; index < 2; index += 1) {
+      try {
+        const next = decodeURIComponent(current);
+        if (next === current) break;
+        current = next;
+      } catch {
+        break;
+      }
+    }
+    return current;
+  }
+
+  private slugCandidates(value: string): string[] {
+    const decoded = this.decodeSlug(value);
+    return [
+      ...new Set(
+        [value, decoded, decoded.replace(/آ/g, 'ا'), this.normalizeSlug(decoded)].filter(
+          Boolean,
+        ),
+      ),
+    ];
   }
 
   private normalizeSlug(value: string): string {

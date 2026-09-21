@@ -3,6 +3,9 @@ const nextConfig = {
   distDir: process.env.DIST_DIR || ".next",
   output: "standalone",
   poweredByHeader: false,
+  // nginx already normalizes / encodes Persian paths. Let Next keep the
+  // inbound URI so /collection/چسترفیلد does not 404 after a proxy rewrite.
+  skipProxyUrlNormalize: true,
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   serverExternalPackages: ["gsap"],
   images: {
