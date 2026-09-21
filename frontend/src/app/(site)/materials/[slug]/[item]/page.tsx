@@ -6,25 +6,25 @@ import Container from "@/components/layout/Container";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
 import { DEFAULT_MATERIALS_HREF, getMaterial } from "@/data/materials";
-import {
-  getMaterialCommerceItem,
-  getMaterialCommerceItems,
-  materialCommerceItems,
-} from "@/data/material-products";
+import { fetchMaterialCatalog, fetchMaterialCatalogItem } from "@/lib/public-materials";
+import { safelyDecodeSlug } from "@/lib/public-cms";
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { toFa } from "@/lib/utils";
 
-export const dynamicParams = false;
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return materialCommerceItems.map((item) => ({ slug: item.categoryId, item: item.slug }));
+  return [];
 }
 
 type PageProps = { params: Promise<{ slug: string; item: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug, item: itemSlug } = await params;
-  const item = getMaterialCommerceItem(slug, itemSlug);
+  const { slug: routeFamily, item: routeItem } = await params;
+  const slug = safelyDecodeSlug(routeFamily);
+  const itemSlug = safelyDecodeSlug(routeItem);
+  const item = await fetchMaterialCatalogItem(slug, itemSlug);
   const material = getMaterial(slug);
   if (!item || !material) return { title: "نمونه متریال یافت نشد | خانه چوب و هنر" };
   return {
@@ -40,15 +40,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function MaterialProductPage({ params }: PageProps) {
-  const { slug, item: itemSlug } = await params;
-  const item = getMaterialCommerceItem(slug, itemSlug);
+  const { slug: routeFamily, item: routeItem } = await params;
+  const slug = safelyDecodeSlug(routeFamily);
+  const itemSlug = safelyDecodeSlug(routeItem);
+  const item = await fetchMaterialCatalogItem(slug, itemSlug);
   const material = getMaterial(slug);
   if (!item || !material) notFound();
-  const relatedMaterials = getMaterialCommerceItems(material.id).filter((entry) => entry.slug !== item.slug).slice(0, 3);
+  const relatedMaterials = (await fetchMaterialCatalog(material.id)).filter((entry) => entry.slug !== item.slug).slice(0, 3);
   const storefront = await fetchStorefrontProducts();
   const relatedProducts = storefront
-    .filter((product) => product.image && product.room !== "bedding")
-    .slice(item.categoryId === "fabric" ? 4 : 0, item.categoryId === "fabric" ? 7 : 3);
+    .filter((product) => {
+      const wood = product.attributes?.find((attribute) => /چوب|wood/i.test(attribute.name));
+      return wood?.terms?.some((term) => term.name === item.name);
+    })
+    .filter((product) => product.image)
+    .slice(0, 3);
 
   const actionLabel =
     item.commerceMode === "direct"

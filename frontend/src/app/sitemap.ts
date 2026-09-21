@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
 import { collections, fetchApiCollections } from "@/data/collections";
-import { materialCommerceItems } from "@/data/material-products";
 import { commerceCategories } from "@/data/commerce";
 import { getAllCatalogProducts } from "@/data/products";
 import { projects } from "@/data/projects";
 import { posts } from "@/data/posts";
-import { fetchPublicMaterials } from "@/lib/public-materials";
+import { fetchMaterialCatalog, fetchPublicMaterials } from "@/lib/public-materials";
 
 const BASE = "https://choobohonar.com";
 
@@ -61,13 +60,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const publicMaterials = await fetchPublicMaterials();
+  const catalogMaterials = await fetchMaterialCatalog();
   const materialRoutes: MetadataRoute.Sitemap = publicMaterials.map((m) => ({
     url: `${BASE}/materials/${m.id}`,
     changeFrequency: "monthly",
     priority: 0.6,
   }));
 
-  const materialItemRoutes: MetadataRoute.Sitemap = materialCommerceItems.map((item) => ({
+  const materialItemRoutes: MetadataRoute.Sitemap = catalogMaterials.map((item) => ({
     url: `${BASE}/materials/${item.categoryId}/${item.slug}`,
     changeFrequency: "monthly",
     priority: 0.6,

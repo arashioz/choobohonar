@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
+import MaterialCategoryCatalog from "@/components/materials/MaterialCategoryCatalog";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
-import { getMaterialCommerceItems } from "@/data/material-products";
 import { isUploadedMedia } from "@/lib/media";
-import { fetchPublicMaterialFamilies } from "@/lib/public-materials";
+import { fetchMaterialCatalog, fetchPublicMaterialFamilies } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -16,7 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default async function MaterialsPage() {
-  const visibleMaterials = await fetchPublicMaterialFamilies();
+  const [visibleMaterials, woodItems] = await Promise.all([
+    fetchPublicMaterialFamilies(),
+    fetchMaterialCatalog("wood"),
+  ]);
   return (
     <>
       <section className="relative flex min-h-[92svh] items-end overflow-hidden bg-[#73563d] text-paper">
@@ -74,7 +77,7 @@ export default async function MaterialsPage() {
 
           <Stagger className="mt-16 grid gap-px bg-forest/10 md:grid-cols-2 lg:mt-24" selector="[data-material-card]">
             {visibleMaterials.map((material, index) => {
-              const items = getMaterialCommerceItems(material.id);
+              const items = material.id === "wood" ? woodItems : [];
               const first = items[0];
               return (
                 <Link
@@ -131,6 +134,8 @@ export default async function MaterialsPage() {
           </Stagger>
         </Container>
       </section>
+
+      {woodItems.length ? <MaterialCategoryCatalog items={woodItems} categoryLabel="چوب" /> : null}
 
       <section className="bg-forest py-20 text-paper md:py-28">
         <Container>

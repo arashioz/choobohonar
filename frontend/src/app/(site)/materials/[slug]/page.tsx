@@ -6,10 +6,9 @@ import Container from "@/components/layout/Container";
 import MaterialCategoryCatalog from "@/components/materials/MaterialCategoryCatalog";
 import ClipReveal from "@/components/motion/ClipReveal";
 import FadeUp from "@/components/motion/FadeUp";
-import { getMaterialCommerceItems } from "@/data/material-products";
 import { DEFAULT_MATERIALS_HREF } from "@/data/materials";
 import { isUploadedMedia } from "@/lib/media";
-import { fetchPublicMaterial } from "@/lib/public-materials";
+import { fetchMaterialCatalog, fetchPublicMaterial } from "@/lib/public-materials";
 import { toFa } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +29,7 @@ export default async function MaterialCategoryPage({ params }: PageProps) {
   const { slug } = await params;
   const material = await fetchPublicMaterial(slug);
   if (!material) notFound();
-  const items = getMaterialCommerceItems(material.id);
+  const items = await fetchMaterialCatalog(material.id);
   const heroImage = items[0]?.applicationImage || material.image;
   const details = [
     { label: "نوع", values: material.materialTypes },

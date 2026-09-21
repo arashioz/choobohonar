@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import FadeUp from "@/components/motion/FadeUp";
 import type { MaterialCommerceItem, MaterialCommerceMode } from "@/data/material-products";
+import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
 
 const modeLabels: Record<MaterialCommerceMode | "all", string> = {
@@ -85,6 +86,7 @@ export default function MaterialCategoryCatalog({
                         alt={`کاربرد ${item.name}`}
                         fill
                         sizes="(max-width: 640px) 100vw, 33vw"
+                        unoptimized={isUploadedMedia(item.applicationImage) || item.applicationImage.startsWith("/images/materials/")}
                         className="media-hover object-cover"
                       />
                       <span className="absolute right-4 top-4 rounded-full bg-paper/90 px-3 py-1.5 text-[10px] tracking-[0.14em] text-forest backdrop-blur-md">

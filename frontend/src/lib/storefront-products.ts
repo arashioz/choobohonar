@@ -144,12 +144,15 @@ export type MaterialSwatch = {
   slug: string;
   name: string;
   family: string;
+  code?: string;
   color: string;
   hex: string;
   image: string;
   excerpt: string;
   href: string;
+  aliases?: string[];
   sample?: boolean;
+  source?: string;
 };
 
 export async function fetchMaterialSwatches(): Promise<MaterialSwatch[]> {
