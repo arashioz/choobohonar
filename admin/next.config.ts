@@ -2,6 +2,16 @@ import type { NextConfig } from "next";
 
 const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined;
 
+// Next 15.5 buffers standalone uploads through an internal proxy. The key is
+// valid at runtime, but ExperimentalConfig in 15.5.20 does not declare it yet.
+const experimental: NonNullable<NextConfig["experimental"]> & {
+  proxyClientMaxBodySize: string;
+} = {
+  serverActions: { bodySizeLimit: "500mb" },
+  middlewareClientMaxBodySize: "500mb",
+  proxyClientMaxBodySize: "500mb",
+};
+
 const nextConfig: NextConfig = {
   output: "standalone",
   // Keep the standalone server inside this app directory. The repository also
@@ -14,11 +24,7 @@ const nextConfig: NextConfig = {
   // API clients must not be redirected from POST /api/... to /api/.../;
   // redirects can turn the request into a route that does not exist.
   trailingSlash: false,
-  experimental: {
-    serverActions: { bodySizeLimit: "500mb" },
-    middlewareClientMaxBodySize: "500mb",
-    proxyClientMaxBodySize: "500mb",
-  },
+  experimental,
   images: {
 
     // Image optimization does not automatically inherit assetPrefix. Keep it
