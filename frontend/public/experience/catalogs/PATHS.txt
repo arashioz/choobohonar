@@ -1,0 +1,16 @@
+این فایل‌ها باید روی استوریج با همین مسیر عمومی در دسترس باشند.
+مبدأ مسیر، ریشهٔ فایل‌های استاتیک فرانت است (معادل frontend/public).
+
+/experience/catalogs/accessory-cover.jpg
+/experience/catalogs/accessory.pdf
+/experience/catalogs/light-cover.jpg
+/experience/catalogs/light.pdf
+/experience/catalogs/clock-cover.jpg
+/experience/catalogs/clock.pdf
+/experience/catalogs/rug-cover.jpg
+/experience/catalogs/rug.pdf
+/experience/catalogs/textile-cover.jpg
+/experience/catalogs/textile.pdf
+/experience/catalogs/mattress-cover.jpg
+/experience/catalogs/mattress.pdf
+/experience/banners/plp-03.jpg

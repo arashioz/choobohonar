@@ -8,7 +8,6 @@ import {
   revealElement,
   isElementHidden,
   scrollTriggerConfig,
-  shouldSkipScrollMotion,
 } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 import { motionTokens } from "@/lib/motion-tokens";
@@ -37,7 +36,7 @@ export default function ClipReveal({
     const content = contentRef.current;
     if (!root || !content) return;
 
-    if (shouldSkipScrollMotion() || prefersReducedMotion()) {
+    if (prefersReducedMotion()) {
       revealElement(content);
       return;
     }

@@ -23,17 +23,16 @@ export default function InterludeSection() {
     const mark = root.querySelector<HTMLElement>("[data-interlude-mark]");
     const eyebrow = root.querySelector<HTMLElement>("[data-interlude-eyebrow]");
     const words = root.querySelectorAll<HTMLElement>("[data-interlude-word]");
-    const accent = root.querySelector<HTMLElement>("[data-interlude-accent]");
 
     if (prefersReducedMotion()) {
-      [lineTop, lineBottom, mark, eyebrow, accent, ...words].forEach((el) => {
+      [lineTop, lineBottom, mark, eyebrow, ...words].forEach((el) => {
         if (el) revealElement(el);
       });
       return;
     }
 
     registerGsap();
-    const animated = [lineTop, lineBottom, mark, eyebrow, accent, ...Array.from(words)].filter(
+    const animated = [lineTop, lineBottom, mark, eyebrow, ...Array.from(words)].filter(
       (el): el is HTMLElement => Boolean(el)
     );
     let failsafeId = 0;
@@ -56,7 +55,6 @@ export default function InterludeSection() {
       gsap.set(mark, { scale: 0, opacity: 0 });
       gsap.set(eyebrow, { opacity: 0, y: 12 });
       gsap.set(words, { opacity: 0, y: 22 });
-      gsap.set(accent, { opacity: 0, scaleX: 0, transformOrigin: "right center" });
 
       const tl = gsap.timeline({
         defaults: { ease: "power3.out" },
@@ -75,8 +73,7 @@ export default function InterludeSection() {
           words,
           { opacity: 1, y: 0, duration: 0.7, stagger: 0.045, ease: "power3.out" },
           0.38
-        )
-        .to(accent, { opacity: 1, scaleX: 1, duration: 0.55, ease: "power2.inOut" }, "-=0.35");
+        );
     }, root);
 
     return () => {
@@ -127,11 +124,6 @@ export default function InterludeSection() {
                   {word}{" "}
                 </span>
               ))}
-              <span
-                data-interlude-accent
-                aria-hidden
-                className="absolute inset-x-0 -bottom-1 h-px origin-right bg-brick/45"
-              />
             </span>
             {tail.split(" ").map((word, i) => (
               <span key={`t-${i}`} data-interlude-word className="inline-block whitespace-pre">

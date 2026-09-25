@@ -28,7 +28,8 @@ export default function Header() {
     pathname.startsWith("/products/category/") ||
     pathname === "/materials" ||
     pathname.startsWith("/materials/") ||
-    pathname === "/stores";
+    pathname === "/stores" ||
+    pathname === "/Experience";
 
   useEffect(() => {
     fetchPublicCmsPage<{ navItems?: NavItem[]; homeSectionLinks?: typeof fallbackHomeSectionLinks; brand?: typeof fallbackBrand }>("nav")

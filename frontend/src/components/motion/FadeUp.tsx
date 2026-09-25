@@ -9,7 +9,6 @@ import {
   refreshScrollTriggers,
   scrollTriggerConfig,
   isElementHidden,
-  shouldSkipScrollMotion,
 } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +36,7 @@ export default function FadeUp({
     const el = ref.current;
     if (!el) return;
 
-    if (shouldSkipScrollMotion() || prefersReducedMotion()) {
+    if (prefersReducedMotion()) {
       revealElement(el);
       return;
     }

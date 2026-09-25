@@ -10,7 +10,6 @@ import {
   refreshScrollTriggers,
   enableLenisScroll,
   disableLenisScroll,
-  shouldSkipScrollMotion,
 } from "@/lib/gsap";
 import { registerLenisInstance, scrollToHash, scrollToTarget, scrollToTop } from "@/lib/lenis-control";
 
@@ -92,7 +91,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     registerGsap();
-    const skipMotion = shouldSkipScrollMotion();
+    const skipMotion = prefersReducedMotion();
     const hasHash = Boolean(window.location.hash);
     if (!hasHash) scrollToTop();
     let userMoved = false;

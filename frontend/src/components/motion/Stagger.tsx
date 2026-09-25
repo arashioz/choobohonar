@@ -8,7 +8,6 @@ import {
   revealElement,
   refreshScrollTriggers,
   scrollTriggerConfig,
-  shouldSkipScrollMotion,
 } from "@/lib/gsap";
 
 type StaggerProps = {
@@ -38,7 +37,7 @@ export default function Stagger({
     const items = Array.from(el.querySelectorAll<HTMLElement>(selector));
     if (!items.length) return;
 
-    if (shouldSkipScrollMotion() || prefersReducedMotion()) {
+    if (prefersReducedMotion()) {
       items.forEach(revealElement);
       return;
     }

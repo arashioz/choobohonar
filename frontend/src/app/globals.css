@@ -238,6 +238,22 @@ input[type="search"]::-webkit-search-cancel-button {
   animation-name: seasonal-marquee-reverse;
 }
 
+.experience-marquee,
+.experience-marquee-reverse {
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.experience-marquee {
+  animation-name: seasonal-marquee;
+}
+
+.experience-marquee-reverse {
+  animation-name: seasonal-marquee-reverse;
+}
+
 @keyframes seasonal-marquee {
   from {
     transform: translate3d(0, 0, 0);
