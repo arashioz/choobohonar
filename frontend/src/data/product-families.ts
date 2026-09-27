@@ -144,16 +144,27 @@ export const productFamilies: ProductFamily[] = [
     types: [{ slug: "chandelier", label: "لوستر" }],
   },
   {
-    slug: "decor",
-    label: "دکور",
+    slug: "vase",
+    label: "گلدان",
+    types: [{ slug: "vase", label: "گلدان" }],
+  },
+  {
+    slug: "candle",
+    label: "شمع",
     types: [
-      { slug: "vase", label: "گلدان" },
-      { slug: "candlestick", label: "شمعدان" },
       { slug: "candle", label: "شمع" },
+      { slug: "candlestick", label: "شمعدان" },
+    ],
+  },
+  {
+    slug: "decorative",
+    label: "دکوراتیو",
+    types: [
+      { slug: "decorative", label: "دکوراتیو" },
+      { slug: "mirror", label: "آینه" },
       { slug: "clock", label: "ساعت" },
       { slug: "panel", label: "تابلو دکوراتیو" },
       { slug: "cushion", label: "کوسن" },
-      { slug: "decorative", label: "دکوراتیو" },
     ],
   },
   {
@@ -212,6 +223,7 @@ registerTypeAlias("table-lamp", "table-lampshade");
 registerTypeAlias("آویز روشنایی", "pendant");
 registerTypeAlias("اویز-روشنایی", "pendant");
 registerTypeAlias("اویز", "pendant");
+registerTypeAlias("شمع دکوراتیو", "candle");
 registerFamilyAlias("آباژور", "lampshade");
 registerFamilyAlias("lampshade", "lampshade");
 
@@ -233,6 +245,10 @@ function haystack(product: ShopProduct) {
 }
 
 const typeAliases: Record<string, string[]> = {
+  candle: ["شمع دکوراتیو"],
+  candlestick: ["شمعدان"],
+  vase: ["گلدان"],
+  decorative: ["دکوراتیو"],
   coffeetable: ["جلومبلی", "جلو مبلی", "میز جلومبلی"],
   sidetable: ["کنارمبلی", "کنار مبلی", "میز کنارمبلی"],
   "tv-stand": ["میزتلویزیون", "میز تلویزیون"],
@@ -243,11 +259,16 @@ const typeAliases: Record<string, string[]> = {
 
 function inferFromName(product: ShopProduct) {
   const text = haystack(product);
-  const byType = namedTypes.find(({ type }) => {
-    const labels = [type.label, ...(typeAliases[type.slug] ?? [])].map((label) => label.toLocaleLowerCase("fa"));
-    return labels.some((label) => text.includes(label));
-  });
-  if (byType) return byType;
+  let best: { family: ProductFamily; type: ProductFamilyType; length: number } | undefined;
+  for (const entry of namedTypes) {
+    const labels = [entry.type.label, ...(typeAliases[entry.type.slug] ?? [])];
+    for (const label of labels) {
+      const normalized = label.toLocaleLowerCase("fa");
+      if (!normalized || !text.includes(normalized)) continue;
+      if (!best || normalized.length > best.length) best = { ...entry, length: normalized.length };
+    }
+  }
+  if (best) return { family: best.family, type: best.type };
   return namedTypes.find(({ family }) => text.includes(family.label.toLocaleLowerCase("fa")));
 }
 
