@@ -11,30 +11,6 @@ type WoodAsset = {
   file: string;
 };
 
-type ProductLike = {
-  attributes?: { name?: string; values?: string[] }[];
-};
-
-const FALLBACK_HEX: Record<string, string> = {
-  'مشکی موج نما براق': '#1A1A1A',
-  'گردویی تولیپ': '#4A2C22',
-  خودرنگ: '#C8A77A',
-  'گردویی تیره': '#3D241C',
-  طلایی: '#C4A35A',
-  'سندبلاست طوسی': '#8A8580',
-  مشکی: '#1C1C1C',
-};
-
-const FALLBACK_SLUGS: Record<string, string> = {
-  'مشکی موج نما براق': 'glossy-black-grain',
-  'گردویی تولیپ': 'tulip-walnut',
-  خودرنگ: 'self-color',
-  'گردویی تیره': 'dark-walnut',
-  طلایی: 'gold',
-  'سندبلاست طوسی': 'sandblast-gray',
-  مشکی: 'black',
-};
-
 export function normalizeMaterialName(value: string) {
   return value
     .trim()
@@ -52,18 +28,6 @@ export function isProductWoodAttribute(name: string) {
   );
 }
 
-export function materialSlugFromTitle(title: string) {
-  return (
-    title
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\p{L}\p{N}-]+/gu, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') || `wood-${Date.now()}`
-  );
-}
-
 function loadWoodAssets(): WoodAsset[] {
   const filePath = join(
     process.cwd(),
@@ -72,71 +36,192 @@ function loadWoodAssets(): WoodAsset[] {
   return JSON.parse(readFileSync(filePath, 'utf8')) as WoodAsset[];
 }
 
-function matchAsset(title: string, assets: WoodAsset[]) {
-  const normalized = normalizeMaterialName(title);
-  return assets.find((asset) =>
-    asset.names.some((name) => normalizeMaterialName(name) === normalized),
+const MATERIAL_REMOVALS_SLUG = 'material-removals';
+
+type MaterialRemovalList = { slugs: string[]; names: string[] };
+
+function removalKeys(entry: {
+  slug?: string;
+  title?: string;
+  data?: unknown;
+}): MaterialRemovalList {
+  const data =
+    entry.data && typeof entry.data === 'object'
+      ? (entry.data as Record<string, unknown>)
+      : {};
+  const previousSlugs = Array.isArray(data.previousSlugs)
+    ? data.previousSlugs.map((item) => String(item))
+    : [];
+  const aliases = Array.isArray(data.aliases)
+    ? data.aliases.map((item) => String(item))
+    : [];
+  return {
+    slugs: [...new Set([entry.slug || '', ...previousSlugs].map((item) => item.trim()).filter(Boolean))],
+    names: [...new Set([entry.title || '', ...aliases].map((item) => normalizeMaterialName(item)).filter(Boolean))],
+  };
+}
+
+export async function loadMaterialRemovals(
+  entryModel: Model<CmsEntryDocument>,
+): Promise<MaterialRemovalList> {
+  const page = await entryModel
+    .findOne({ kind: 'page', slug: MATERIAL_REMOVALS_SLUG })
+    .select({ data: 1 })
+    .lean()
+    .exec();
+  const data =
+    page?.data && typeof page.data === 'object'
+      ? (page.data as Record<string, unknown>)
+      : {};
+  const slugs = Array.isArray(data.slugs)
+    ? data.slugs.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const names = Array.isArray(data.names)
+    ? data.names.map((item) => normalizeMaterialName(String(item))).filter(Boolean)
+    : [];
+  return {
+    slugs: [...new Set(slugs)],
+    names: [...new Set(names)],
+  };
+}
+
+export function isRemovedMaterial(
+  removed: MaterialRemovalList,
+  title: string,
+  slug: string,
+) {
+  return (
+    removed.slugs.includes(slug) ||
+    removed.names.includes(normalizeMaterialName(title))
   );
 }
 
-export function collectProductWoodNames(products: ProductLike[]) {
-  const names = new Set<string>();
-  for (const product of products) {
-    for (const attribute of product.attributes || []) {
-      if (!isProductWoodAttribute(String(attribute.name || ''))) continue;
-      for (const value of attribute.values || []) {
-        const name = String(value || '').trim();
-        if (name) names.add(name);
-      }
-    }
-  }
-  return [...names].sort((a, b) => a.localeCompare(b, 'fa'));
+/** Remember an admin delete so catalog sync and sample seed cannot recreate it. */
+export async function rememberRemovedMaterial(
+  entryModel: Model<CmsEntryDocument>,
+  entry: { slug?: string; title?: string; data?: unknown },
+) {
+  const keys = removalKeys(entry);
+  if (!keys.slugs.length && !keys.names.length) return;
+  const current = await loadMaterialRemovals(entryModel);
+  await entryModel.updateOne(
+    { kind: 'page', slug: MATERIAL_REMOVALS_SLUG },
+    {
+      $set: {
+        kind: 'page',
+        title: 'حذف‌های متریال',
+        slug: MATERIAL_REMOVALS_SLUG,
+        status: 'draft',
+        data: {
+          slugs: [...new Set([...current.slugs, ...keys.slugs])],
+          names: [...new Set([...current.names, ...keys.names])],
+        },
+      },
+    },
+    { upsert: true },
+  );
 }
 
-export async function syncProductWoodMaterials(
+async function deleteRemovedMaterials(
   entryModel: Model<CmsEntryDocument>,
-  products: ProductLike[],
+  removed: MaterialRemovalList,
 ) {
-  const assets = loadWoodAssets();
-  const titles = collectProductWoodNames(products);
-  const existing = await entryModel
+  if (!removed.slugs.length && !removed.names.length) return;
+  const rows = await entryModel
     .find({ kind: 'material' })
+    .select({ slug: 1, title: 1, data: 1 })
     .lean()
     .exec();
-
-  const findExisting = (title: string, slug: string) => {
-    const normalized = normalizeMaterialName(title);
-    return existing.find((entry) => {
+  const ids = rows
+    .filter((row) => {
       const data =
-        entry.data && typeof entry.data === 'object'
-          ? (entry.data as Record<string, unknown>)
+        row.data && typeof row.data === 'object'
+          ? (row.data as Record<string, unknown>)
           : {};
       const aliases = Array.isArray(data.aliases)
         ? data.aliases.map((item) => String(item))
         : [];
       return (
-        entry.slug === slug ||
-        normalizeMaterialName(entry.title) === normalized ||
-        aliases.some((alias) => normalizeMaterialName(alias) === normalized)
+        removed.slugs.includes(row.slug) ||
+        removed.names.includes(normalizeMaterialName(row.title)) ||
+        aliases.some((alias) => removed.names.includes(normalizeMaterialName(alias)))
       );
-    });
-  };
+    })
+    .map((row) => row._id);
+  if (ids.length) await entryModel.deleteMany({ _id: { $in: ids } });
+}
+
+function sampleMaterialSlugs() {
+  const filePath = join(process.cwd(), 'src/modules/cms/data/material-samples.json');
+  const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<{ slug?: string }>;
+  return rows.map((row) => String(row.slug || '').trim()).filter(Boolean);
+}
+
+/** Drop archived demo samples that are not real product finishes, and keep them from returning. */
+export async function retireArchivedSampleMaterials(
+  entryModel: Model<CmsEntryDocument>,
+) {
+  const slugs = sampleMaterialSlugs();
+  if (!slugs.length) return;
+  const rows = await entryModel
+    .find({ kind: 'material', slug: { $in: slugs }, status: 'archived' })
+    .lean()
+    .exec();
+  for (const row of rows) {
+    const data =
+      row.data && typeof row.data === 'object'
+        ? (row.data as Record<string, unknown>)
+        : {};
+    if (data.source === 'product-wood') continue;
+    await rememberRemovedMaterial(entryModel, row);
+    await entryModel.deleteOne({ _id: row._id });
+  }
+}
+
+export async function syncProductWoodMaterials(
+  entryModel: Model<CmsEntryDocument>,
+  _products: { attributes?: { name?: string; values?: string[] }[] }[],
+) {
+  const assets = loadWoodAssets();
+  const removed = await loadMaterialRemovals(entryModel);
+  await deleteRemovedMaterials(entryModel, removed);
+  const existing = await entryModel
+    .find({ kind: 'material' })
+    .lean()
+    .exec();
 
   const keepIds: string[] = [];
-  for (const title of titles) {
-    const asset = matchAsset(title, assets);
-    const slug =
-      asset?.slug ||
-      asset?.code.toLowerCase() ||
-      FALLBACK_SLUGS[title] ||
-      materialSlugFromTitle(title);
+  const findExisting = (title: string, slug: string) => {
+    const normalized = normalizeMaterialName(title);
+    const available = existing.filter((entry) => !keepIds.includes(String(entry._id)));
+    return (
+      available.find((entry) => entry.slug === slug) ||
+      available.find((entry) => normalizeMaterialName(entry.title) === normalized) ||
+      available.find((entry) => {
+        const data =
+          entry.data && typeof entry.data === 'object'
+            ? (entry.data as Record<string, unknown>)
+            : {};
+        const aliases = Array.isArray(data.aliases)
+          ? data.aliases.map((item) => String(item))
+          : [];
+        return aliases.some((alias) => normalizeMaterialName(alias) === normalized);
+      })
+    );
+  };
+  const titles: string[] = [];
+  for (const asset of assets) {
+    const title = asset.names[0]?.trim();
+    const slug = (asset.slug || asset.code.toLowerCase()).trim();
+    if (!title || !slug) continue;
+    if (isRemovedMaterial(removed, title, slug)) continue;
+    titles.push(title);
     const current = findExisting(title, slug);
-    const image = asset ? `/images/materials/${asset.code.toLowerCase()}.jpg` : '';
-    const hex = asset?.hex || FALLBACK_HEX[title] || '#8B6B52';
-    const aliases = [...new Set([title, ...(asset?.names || [])])];
+    const hex = asset.hex || '#8B6B52';
+    const aliases = [...new Set(asset.names.map((name) => name.trim()).filter(Boolean))];
     const nextData = {
       ...(current?.data && typeof current.data === 'object' ? current.data : {}),
-      code: asset?.code || String((current?.data as { code?: string } | undefined)?.code || ''),
+      code: asset.code,
       family: 'wood',
       categoryId: 'wood',
       materialType: 'چوب',
@@ -145,13 +230,13 @@ export async function syncProductWoodMaterials(
       colors: [title],
       colorHex: hex,
       hex,
-      image,
+      image: '',
       applicationImage: '',
       coverImage: '',
       aliases,
       sample: true,
       source: 'product-wood',
-      eyebrow: asset?.code ? `چوب / ${asset.code}` : 'پرداخت چوب',
+      eyebrow: `چوب / ${asset.code}`,
     };
 
     if (current) {
@@ -168,13 +253,14 @@ export async function syncProductWoodMaterials(
       }
       const keptImage = String(currentData.image || '').trim();
       const keptApplication = String(currentData.applicationImage || '').trim();
+      const keptCover = String(currentData.coverImage || '').trim();
       const patch: Record<string, unknown> = {
         slug,
         status: 'published',
-        title: current.title || title,
+        title,
         'data.previousSlugs': previousSlugs,
         excerpt: current.excerpt || `پرداخت چوب ${title}`,
-        'data.code': nextData.code,
+        'data.code': asset.code,
         'data.family': 'wood',
         'data.categoryId': 'wood',
         'data.materialType': 'چوب',
@@ -182,14 +268,14 @@ export async function syncProductWoodMaterials(
         'data.color': title,
         'data.colorHex': hex,
         'data.hex': hex,
-        'data.image': keptImage || image,
+        'data.image': keptImage,
         'data.applicationImage': keptApplication,
+        'data.coverImage': keptCover,
         'data.aliases': aliases,
         'data.sample': true,
         'data.source': 'product-wood',
         'data.eyebrow': nextData.eyebrow,
       };
-      if (!current.images?.length && image) patch.images = [image];
       await entryModel.updateOne({ _id: current._id }, { $set: patch });
     } else {
       const created = await entryModel.create({
@@ -198,8 +284,8 @@ export async function syncProductWoodMaterials(
         slug,
         status: 'published',
         excerpt: `پرداخت چوب ${title}`,
-        description: `پرداخت ${title} از متریال‌های استفاده‌شده روی محصولات خانه چوب و هنر.`,
-        images: image ? [image] : [],
+        description: `پرداخت ${title} از متریال‌های خانه چوب و هنر. تصویر از پنل مدیریت بارگذاری می‌شود.`,
+        images: [],
         data: nextData,
         tags: ['wood', 'چوب'],
         publishedAt: new Date(),
@@ -209,17 +295,17 @@ export async function syncProductWoodMaterials(
     }
   }
 
+  const familySlugs = new Set(['wood', 'fabric', 'veneer', 'metal']);
   for (const entry of existing) {
-    if (['wood', 'fabric', 'veneer', 'metal'].includes(entry.slug)) {
-      keepIds.push(String(entry._id));
-    }
+    if (familySlugs.has(entry.slug)) keepIds.push(String(entry._id));
   }
 
-  if (keepIds.length) {
-    await entryModel.updateMany(
-      { kind: 'material', _id: { $nin: keepIds } },
-      { $set: { status: 'archived' } },
-    );
+  const leftovers = existing.filter(
+    (entry) => !keepIds.includes(String(entry._id)) && !familySlugs.has(entry.slug),
+  );
+  for (const entry of leftovers) {
+    await rememberRemovedMaterial(entryModel, entry);
+    await entryModel.deleteOne({ _id: entry._id });
   }
 
   return { titles, count: titles.length };

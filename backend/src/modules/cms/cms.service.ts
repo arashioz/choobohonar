@@ -14,8 +14,22 @@ import {
   CmsEntryKind,
   CmsEntryStatus,
 } from './schemas/cms-entry.schema';
+import {
+  isRemovedMaterial,
+  loadMaterialRemovals,
+  rememberRemovedMaterial,
+  retireArchivedSampleMaterials,
+} from './product-materials.sync';
 
 type EntryInput = Partial<CmsEntry> & { title?: string; slug?: string };
+
+function articlePlainText(content: unknown) {
+  if (!Array.isArray(content)) return String(content || '');
+  return content
+    .map((block: { text?: string }) => block?.text || '')
+    .filter(Boolean)
+    .join('\n\n');
+}
 
 const validKinds: CmsEntryKind[] = [
   'product',
@@ -140,6 +154,7 @@ export class CmsService implements OnModuleInit {
     await this.seedEditorialArticles();
     await this.seedLegacyContent('project', 'legacy-projects.json');
     await this.seedLegacyContent('material', 'legacy-materials.json');
+    await retireArchivedSampleMaterials(this.entryModel);
     await this.seedMaterialSamples();
     await this.seedLegacyContent('collection', 'legacy-collections.json');
     await this.seedPageData(
@@ -306,6 +321,7 @@ export class CmsService implements OnModuleInit {
       .lean()
       .exec();
     if (!entry) throw new NotFoundException('CMS entry not found');
+    if (kind === 'material') await rememberRemovedMaterial(this.entryModel, entry);
     return { ok: true };
   }
 
@@ -317,6 +333,21 @@ export class CmsService implements OnModuleInit {
       .sort({ publishedAt: -1 })
       .lean()
       .exec();
+  }
+
+  /** Every article slug, including drafts, so the storefront can hide static copies of unpublished CMS rows. */
+  async articleSlugIndex() {
+    const rows = await this.entryModel
+      .find({ kind: 'article' })
+      .select({ slug: 1, status: 1 })
+      .lean()
+      .exec();
+    return {
+      slugs: rows.map((row) => row.slug),
+      published: rows
+        .filter((row) => row.status === 'published')
+        .map((row) => row.slug),
+    };
   }
 
   async taxonomy(kindValue: string) {
@@ -352,9 +383,8 @@ export class CmsService implements OnModuleInit {
       const rows = JSON.parse(readFileSync(filePath, 'utf8')) as Array<
         Record<string, any>
       >;
-      const operations = rows
-        .filter((row) => row.slug && row.title)
-        .map((row) => ({
+      const editorial = rows.filter((row) => row.slug && row.title);
+      const operations = editorial.map((row) => ({
           updateOne: {
             filter: { kind: 'article', slug: row.slug },
             update: {
@@ -364,12 +394,7 @@ export class CmsService implements OnModuleInit {
                 slug: row.slug,
                 status: 'published',
                 excerpt: row.excerpt || '',
-                content: Array.isArray(row.content)
-                  ? row.content
-                      .map((block: { text?: string }) => block.text || '')
-                      .filter(Boolean)
-                      .join('\n\n')
-                  : String(row.content || ''),
+                content: articlePlainText(row.content),
                 images: row.coverImage ? [row.coverImage] : [],
                 seo: {
                   title: row.title,
@@ -379,6 +404,11 @@ export class CmsService implements OnModuleInit {
                   author: row.author || 'تحریریه خانه چوب و هنر',
                   category: row.category || 'مقالات آموزشی',
                   readingTime: row.readingTime || '',
+                  displayDate: row.date || '',
+                  blocks: Array.isArray(row.content) ? row.content : [],
+                  outline: Array.isArray(row.outline) ? row.outline : [],
+                  faq: Array.isArray(row.faq) ? row.faq : [],
+                  ...(row.podcast ? { podcast: row.podcast } : {}),
                 },
                 tags: row.tags || [],
                 publishedAt: new Date(),
@@ -389,6 +419,40 @@ export class CmsService implements OnModuleInit {
         }));
       if (operations.length)
         await this.entryModel.bulkWrite(operations as never);
+      const backfill: object[] = [];
+      for (const row of editorial) {
+        const blocks = Array.isArray(row.content) ? row.content : [];
+        backfill.push({
+          updateOne: {
+            filter: {
+              kind: 'article',
+              slug: row.slug,
+              'data.blocks.0': { $exists: false },
+            },
+            update: {
+              $set: {
+                'data.blocks': blocks,
+                'data.outline': Array.isArray(row.outline) ? row.outline : [],
+                'data.faq': Array.isArray(row.faq) ? row.faq : [],
+                ...(row.podcast ? { 'data.podcast': row.podcast } : {}),
+              },
+            },
+          },
+        });
+        if (row.date) {
+          backfill.push({
+            updateOne: {
+              filter: {
+                kind: 'article',
+                slug: row.slug,
+                'data.displayDate': { $exists: false },
+              },
+              update: { $set: { 'data.displayDate': row.date } },
+            },
+          });
+        }
+      }
+      if (backfill.length) await this.entryModel.bulkWrite(backfill as never);
     } catch (error) {
       console.warn(
         '[cms] editorial seed skipped:',
@@ -476,8 +540,10 @@ export class CmsService implements OnModuleInit {
         image?: string;
         excerpt?: string;
       }>;
+      const removed = await loadMaterialRemovals(this.entryModel);
       const operations = rows
         .filter((row) => row.slug && row.title)
+        .filter((row) => !isRemovedMaterial(removed, row.title, row.slug))
         .map((row) => ({
           updateOne: {
             filter: { kind: 'material', slug: row.slug },
