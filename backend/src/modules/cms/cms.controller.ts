@@ -76,8 +76,14 @@ export class CmsAdminController {
 export class CmsPublicController {
   constructor(private readonly cmsService: CmsService) {}
 
+  @Get('article/slugs')
+  articleSlugs() {
+    return this.cmsService.articleSlugIndex();
+  }
+
   @Get(':kind')
-  list(@Param('kind') kind: string) {
+  list(@Param('kind') kind: string, @Query('view') view?: string) {
+    if (kind === 'article' && view === 'slugs') return this.cmsService.articleSlugIndex();
     return this.cmsService.publicList(kind);
   }
 
@@ -93,8 +99,14 @@ export class CmsPublicController {
 export class CmsStorefrontController {
   constructor(private readonly cmsService: CmsService) {}
 
+  @Get('article/slugs')
+  articleSlugs() {
+    return this.cmsService.articleSlugIndex();
+  }
+
   @Get(':kind')
-  list(@Param('kind') kind: string) {
+  list(@Param('kind') kind: string, @Query('view') view?: string) {
+    if (kind === 'article' && view === 'slugs') return this.cmsService.articleSlugIndex();
     return this.cmsService.publicList(kind);
   }
 

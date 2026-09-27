@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Post } from "@/data/posts/types";
 import FadeUp from "@/components/motion/FadeUp";
+import { shouldUnoptimizeImage } from "@/lib/media";
 
 export default function PostBody({ post }: { post: Post }) {
   return (
@@ -40,6 +41,7 @@ export default function PostBody({ post }: { post: Post }) {
                       src={block.src}
                       alt={block.caption ?? post.title}
                       fill
+                      unoptimized={shouldUnoptimizeImage(block.src)}
                       sizes="(max-width: 768px) 100vw, 768px"
                       className="object-cover"
                     />
@@ -70,7 +72,7 @@ export default function PostBody({ post }: { post: Post }) {
               );
             default:
               return (
-                <FadeUp key={i} as="p" className="text-lg leading-relaxed text-forest/75">
+                <FadeUp key={i} as="p" className="whitespace-pre-line text-lg leading-relaxed text-forest/75">
                   {block.text}
                 </FadeUp>
               );

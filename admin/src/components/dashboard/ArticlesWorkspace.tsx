@@ -16,7 +16,7 @@ export default function ArticlesWorkspace() {
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
-    const params = new URLSearchParams(); if (query.trim()) params.set("q", query.trim()); if (status !== "all") params.set("status", status);
+    const params = new URLSearchParams({ limit: "250" }); if (query.trim()) params.set("q", query.trim()); if (status !== "all") params.set("status", status);
     try {
       const result = await cmsRequest<{ items: CmsEntry[] }>(`article?${params}`);
       setItems(cmsListItems(result));
@@ -38,7 +38,7 @@ export default function ArticlesWorkspace() {
   async function publish(item: CmsEntry) { try { await cmsRequest(`article/${item._id}/publish`, { method: "POST" }); await load(); } catch (err) { setError(err instanceof Error ? err.message : "انتشار انجام نشد"); } }
 
   return <main className="min-h-screen bg-[#f6f3ee]"><div className="mx-auto max-w-[1380px] px-5 py-7 sm:px-8 md:py-9 lg:px-10">
-    <header className="flex flex-col gap-5 border-b border-forest/10 pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-medium tracking-[0.18em] text-brick" dir="ltr">EDITORIAL CMS</p><h1 className="mt-2 text-2xl font-medium tracking-tightest text-forest sm:text-3xl">مقالات</h1><p className="mt-2 text-xs leading-6 text-forest/45">ایجاد، تکمیل، بازبینی و انتشار مقاله‌های مجله چوب و هنر.</p></div><div className="flex items-center gap-2"><Link href="/admin/content" className="rounded-xl border border-forest/12 bg-white px-4 py-3 text-xs text-forest/60 hover:border-forest/25">کمک گرفتن از چوب‌نویس</Link><Link href="/admin/articles/new" className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper"><span className="ml-2 text-peach">+</span>مقاله جدید</Link></div></header>
+    <header className="flex flex-col gap-5 border-b border-forest/10 pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-medium tracking-[0.18em] text-brick" dir="ltr">EDITORIAL CMS</p><h1 className="mt-2 text-2xl font-medium tracking-tightest text-forest sm:text-3xl">مقالات</h1><p className="mt-2 text-xs leading-6 text-forest/45">فقط مقاله‌های منتشرشده در مجله سایت دیده می‌شوند. تغییر عنوان، متن یا تصویر کاور بعد از به‌روزرسانی، همان صفحه را عوض می‌کند.</p></div><div className="flex items-center gap-2"><Link href="/admin/content" className="rounded-xl border border-forest/12 bg-white px-4 py-3 text-xs text-forest/60 hover:border-forest/25">کمک گرفتن از چوب‌نویس</Link><Link href="/admin/articles/new" className="rounded-xl bg-forest px-4 py-3 text-xs font-medium text-paper"><span className="ml-2 text-peach">+</span>مقاله جدید</Link></div></header>
 
     <section className="mt-6 grid gap-3 sm:grid-cols-3"><Stat value={stats.published} label="مقاله منتشرشده"/><Stat value={stats.draft} label="پیش‌نویس در حال تکمیل" tone="brick"/><Stat value={stats.words} label="کلمه در این نما"/></section>
 

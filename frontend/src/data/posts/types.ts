@@ -22,7 +22,7 @@ export type Post = {
   slug: string;
   title: string;
   excerpt: string;
-  category: MagazineCategory;
+  category: string;
   author: string;
   date: string;
   readingTime: string;

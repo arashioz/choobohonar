@@ -126,7 +126,7 @@ export default function SeoSettings() {
 
               <fieldset className="pt-2">
                 <legend className="text-sm font-medium text-forest/70">منبع نمایش مقالات مجله</legend>
-                <p className="mt-1 text-[11px] leading-6 text-forest/40">انتخاب کنید کدام مقالات در صفحه مجله و بخش مجله سایت نمایش داده شوند.</p>
+                <p className="mt-1 text-[11px] leading-6 text-forest/40">مقاله‌های منتشرشده در CMS روی مجله سایت دیده می‌شوند. در حالت «هر دو»، فقط مقاله‌ای اضافه می‌شود که هرگز در CMS ذخیره نشده باشد. تغییر عنوان، متن یا تصویر پس از انتشار، همان نسخه سایت را عوض می‌کند. پیش‌نویس و بایگانی روی سایت نمی‌آیند.</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   {([['both', 'هر دو'], ['static', 'مقالات فعلی سایت'], ['cms', 'مقالات CMS']] as const).map(([value, label]) => (
                     <label key={value} className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-3 text-xs transition-colors ${form.magazineSource === value ? 'border-forest bg-forest/5 text-forest' : 'border-forest/10 text-forest/60 hover:border-forest/30'}`}>

@@ -1,18 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Post } from "@/data/posts/types";
+import { shouldUnoptimizeImage } from "@/lib/media";
 
 export default function PostCard({ post }: { post: Post }) {
   return (
     <Link href={`/magazine/${post.slug}`} className="group block focus-visible:outline-none">
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-forest/5">
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="media-hover object-cover"
-        />
+        {post.coverImage ? (
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            unoptimized={shouldUnoptimizeImage(post.coverImage)}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="media-hover object-cover"
+          />
+        ) : null}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-forest/65">
         <span className="text-brick">{post.category}</span>

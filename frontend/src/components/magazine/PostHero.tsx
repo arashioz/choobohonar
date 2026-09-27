@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Post } from "@/data/posts/types";
 import FadeUp from "@/components/motion/FadeUp";
+import { shouldUnoptimizeImage } from "@/lib/media";
 
 export default function PostHero({ post }: { post: Post }) {
   return (
@@ -24,14 +25,17 @@ export default function PostHero({ post }: { post: Post }) {
       </FadeUp>
 
       <FadeUp delay={0.12} className="relative mt-10 aspect-[16/9] w-full overflow-hidden bg-forest/5 md:mt-14">
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 80vw"
-          className="object-cover"
-        />
+        {post.coverImage ? (
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            priority
+            unoptimized={shouldUnoptimizeImage(post.coverImage)}
+            sizes="(max-width: 1024px) 100vw, 80vw"
+            className="object-cover"
+          />
+        ) : null}
       </FadeUp>
     </div>
   );

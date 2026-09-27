@@ -12,3 +12,17 @@ export function isUploadedMedia(source: string | undefined | null): boolean {
   }
 }
 
+const OPTIMIZED_HOSTS = new Set(["choobohonar.com", "www.choobohonar.com", "picsum.photos"]);
+
+/** Next's optimizer only allows configured remote hosts and cannot read /uploads. */
+export function shouldUnoptimizeImage(source: string | undefined | null): boolean {
+  if (!source) return true;
+  if (isUploadedMedia(source)) return true;
+  if (source.startsWith("/")) return false;
+  try {
+    return !OPTIMIZED_HOSTS.has(new URL(source).hostname);
+  } catch {
+    return true;
+  }
+}
+

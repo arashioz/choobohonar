@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type ResourcePath } from "@/lib/cms";
@@ -16,6 +16,17 @@ const copy: Record<CmsKind, { title: string; singular: string }> = {
 };
 
 const blankEntry: Omit<CmsEntryInput, "title"> & { title: string } = { title: "", slug: "", status: "draft", excerpt: "", description: "", content: "", images: [], seo: {}, data: {}, tags: [] };
+
+const ARTICLE_CATEGORIES = ["راهنمای انتخاب مبلمان", "نگهداری مبلمان", "معرفی متریال", "مقالات آموزشی", "سبک‌های طراحی داخلی", "مقالات تخصصی"];
+
+function magazineUrl(slug: string) {
+  const path = `/magazine/${encodeURIComponent(slug)}`;
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return `${window.location.protocol}//${host}:3000${path}`;
+  }
+  return path;
+}
 
 function slugify(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\p{L}\p{N}-]+/gu, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -37,10 +48,12 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [relations, setRelations] = useState<{ materials: CmsEntry[]; collections: CmsEntry[] }>({ materials: [], collections: [] });
   const [articleTaxonomy, setArticleTaxonomy] = useState<{ categories: string[]; tags: string[] }>({ categories: [], tags: [] });
+  const loadedContent = useRef<string | null>(null);
 
   useEffect(() => {
     if (!entryId) return;
     cmsRequest<CmsEntry>(`${kind}/${entryId}`).then((data) => {
+      loadedContent.current = data.content || "";
       setEntry({ title: data.title, slug: data.slug, status: data.status, excerpt: data.excerpt || "", description: data.description || "", content: data.content || "", images: data.images || [], seo: data.seo || {}, data: data.data || {}, tags: data.tags || [] });
     }).catch((err) => setNotice({ tone: "error", text: err instanceof Error ? err.message : "اطلاعات دریافت نشد" })).finally(() => setLoading(false));
   }, [entryId, kind]);
@@ -61,6 +74,10 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
 
   const data = entry.data || {};
   const seo = entry.seo || {};
+  const articleCategories = useMemo(() => {
+    const current = String(data.category ?? "");
+    return [...new Set([...ARTICLE_CATEGORIES, ...articleTaxonomy.categories, current].filter(Boolean))];
+  }, [articleTaxonomy.categories, data.category]);
 
   function setField<K extends keyof typeof entry>(key: K, value: (typeof entry)[K]) { setEntry((current) => ({ ...current, [key]: value })); setDirty(true); }
   function setData(key: string, value: unknown) { setEntry((current) => ({ ...current, data: key === "__replace" ? (value as Record<string, unknown>) : { ...(current.data || {}), [key]: value } })); setDirty(true); }
@@ -75,18 +92,28 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
     if (!entry.title.trim()) { setNotice({ tone: "error", text: `نام ${labels.singular} الزامی است.` }); return; }
     setSaving(true); setNotice(null);
     try {
-      const body = { ...entry, slug: entry.slug || slugify(entry.title), status: mode === "publish" ? "published" : entry.status || "draft" };
+      const dataPayload = { ...(entry.data || {}) };
+      if (kind === "article" && loadedContent.current !== null && (entry.content || "") !== loadedContent.current) {
+        delete dataPayload.blocks;
+        delete dataPayload.outline;
+        delete dataPayload.faq;
+        delete dataPayload.podcast;
+      }
+      const body = { ...entry, data: dataPayload, slug: entry.slug || slugify(entry.title), status: mode === "publish" ? "published" : entry.status || "draft" };
       let saved: CmsEntry;
       if (currentId) saved = await cmsRequest<CmsEntry>(`${kind}/${currentId}`, { method: "PATCH", body: JSON.stringify(body) });
       else saved = await cmsRequest<CmsEntry>(kind, { method: "POST", body: JSON.stringify(body) });
       if (mode === "publish" && saved.status !== "published") saved = await cmsRequest<CmsEntry>(`${kind}/${saved._id}/publish`, { method: "POST" });
       setCurrentId(saved._id);
-      setEntry((current) => ({ ...current, slug: saved.slug, status: saved.status }));
+      loadedContent.current = typeof body.content === "string" ? body.content : "";
+      setEntry((current) => ({ ...current, data: dataPayload, slug: saved.slug, status: saved.status }));
       setDirty(false);
       setNotice({
         tone: "ok",
         text: mode === "publish"
-          ? "با موفقیت منتشر شد و اکنون در سایت نمایش داده می‌شود."
+          ? kind === "article"
+            ? "مقاله منتشر شد. عنوان، متن، دسته و تصویر کاور در مجله سایت به‌روز می‌شود."
+            : "با موفقیت منتشر شد و اکنون در سایت نمایش داده می‌شود."
           : kind === "project" && saved.status !== "published"
             ? "پروژه در دیتابیس ثبت شد، اما هنوز پیش‌نویس است؛ برای نمایش در /projects باید «انتشار» را بزنید."
             : "تغییرات ذخیره شد.",
@@ -142,7 +169,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
       <div className="sticky top-16 z-30 border-b border-forest/10 bg-[#f6f3ee]/95 backdrop-blur-xl md:top-0">
         <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-4 px-5 py-3 sm:px-8 lg:px-10">
           <div className="flex min-w-0 items-center gap-3"><Link href={basePath} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-forest/10 text-forest/45 hover:bg-white">→</Link><div className="min-w-0"><p className="truncate text-xs font-medium text-forest">{isNew ? `افزودن ${labels.singular}` : entry.title || `ویرایش ${labels.singular}`}</p><div className="mt-1 flex items-center gap-2 text-[9px] text-forest/35"><span className={cn("h-1.5 w-1.5 rounded-full", entry.status === "published" ? "bg-[#54a879]" : entry.status === "archived" ? "bg-forest/30" : "bg-brick")}/><span>{entry.status === "published" ? "منتشرشده" : entry.status === "archived" ? "بایگانی" : "پیش‌نویس"}</span>{dirty && <><span>·</span><span>تغییرات ذخیره‌نشده</span></>}</div></div></div>
-          <div className="flex items-center gap-2"><button type="button" onClick={() => save("draft")} disabled={saving || uploading} className="rounded-xl border border-forest/12 bg-white px-3.5 py-2.5 text-[11px] font-medium text-forest/65 hover:border-forest/25 disabled:cursor-not-allowed disabled:opacity-50">ذخیره پیش‌نویس</button><button type="button" onClick={() => save("publish")} disabled={saving || uploading} className="rounded-xl bg-forest px-3.5 py-2.5 text-[11px] font-medium text-paper hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50">{uploading ? `آپلود ${uploadProgress}٪` : saving ? "در حال ذخیره…" : entry.status === "published" ? "به‌روزرسانی" : "انتشار"}</button></div>
+          <div className="flex items-center gap-2">{kind === "article" && entry.status === "published" && entry.slug ? <a href={magazineUrl(entry.slug)} target="_blank" rel="noreferrer" className="rounded-xl border border-forest/12 bg-white px-3.5 py-2.5 text-[11px] font-medium text-forest/65 hover:border-forest/25">مشاهده در سایت</a> : null}<button type="button" onClick={() => save("draft")} disabled={saving || uploading} className="rounded-xl border border-forest/12 bg-white px-3.5 py-2.5 text-[11px] font-medium text-forest/65 hover:border-forest/25 disabled:cursor-not-allowed disabled:opacity-50">ذخیره پیش‌نویس</button><button type="button" onClick={() => save("publish")} disabled={saving || uploading} className="rounded-xl bg-forest px-3.5 py-2.5 text-[11px] font-medium text-paper hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50">{uploading ? `آپلود ${uploadProgress}٪` : saving ? "در حال ذخیره…" : entry.status === "published" ? "به‌روزرسانی" : "انتشار"}</button></div>
         </div>
       </div>
 
@@ -167,7 +194,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             <Field label="اسلاگ URL" hint="آدرس یکتا؛ بهتر است کوتاه و انگلیسی باشد."><div className="flex overflow-hidden rounded-xl border border-forest/10 bg-white" dir="ltr"><span className="border-r border-forest/10 bg-forest/[0.03] px-3 py-3 text-xs text-forest/30">/</span><input value={entry.slug || ""} onChange={(e) => { setSlugTouched(true); setField("slug", slugify(e.target.value)); }} className="min-w-0 flex-1 bg-transparent px-3 py-3 text-xs text-forest outline-none" placeholder="unique-slug" /></div></Field>
             <Field label="خلاصه کوتاه" hint="در کارت‌ها و نتایج جست‌وجو نمایش داده می‌شود."><textarea value={entry.excerpt || ""} onChange={(e) => setField("excerpt", e.target.value)} className={`${inputClass} min-h-24 resize-y`} placeholder="خلاصه‌ای روشن و کوتاه…" /></Field>
             {kind !== "article" && <Field label="توضیحات کامل"><textarea value={entry.description || ""} onChange={(e) => setField("description", e.target.value)} className={`${inputClass} min-h-40 resize-y`} placeholder="داستان، ویژگی‌ها و توضیحات کامل…" /></Field>}
-            {kind === "article" && <Field label="متن مقاله" hint="نسخه فعلی ویرایشگر متنی است؛ ساختار بلوکی در فاز بعد قابل افزودن است."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
+            {kind === "article" && <Field label="متن مقاله" hint="بعد از انتشار، همین متن در مجله دیده می‌شود. پاراگراف‌ها را با یک خط خالی جدا کنید. برای تیتر، ابتدای خط ## بگذارید."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
           </Panel>
 
           <SpecificFields kind={kind} title={entry.title} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} onBusy={setUploading} />
@@ -178,9 +205,9 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
         </div>
 
         <aside className="space-y-5 lg:col-span-4">
-          <Panel title={kind === "story" ? "ویدیوی عمودی" : "گالری رسانه"} description={kind === "story" ? "یک MP4 عمودی ۹:۱۶ آپلود کنید. فایل پس از ذخیره و انتشار، مستقیم در بخش پایین صفحه محصولات پخش می‌شود." : kind === "material" ? "گالری اضافه. کاور صفحه، عکس محصول و عکس متریال را در فرم کنار مشخص کنید؛ همان‌ها روی سایت نمایش داده می‌شوند." : "چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."}><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : kind === "story" ? "انتخاب ویدیوی عمودی" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">{kind === "story" ? "MP4 / WebM · حداکثر ۵۰۰ مگابایت" : "انتخاب هم‌زمان · حداکثر ۵۰۰ مگابایت برای هر فایل"}</span><input type="file" accept={kind === "story" ? "video/mp4,video/webm" : "image/*,video/*"} multiple={kind !== "story"} onChange={upload} disabled={uploading} className="hidden" /></label>{uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه انتشار غیرفعال است.</p></div> : null}<MediaList images={kind === "story" ? [dataText("video")].filter(Boolean) : entry.images || []} onChange={(media) => kind === "story" ? setData("video", media[0] || "") : setField("images", media)} videoOnly={kind === "story"} /></Panel>
+          <Panel title={kind === "story" ? "ویدیوی عمودی" : "گالری رسانه"} description={kind === "story" ? "یک MP4 عمودی ۹:۱۶ آپلود کنید. فایل پس از ذخیره و انتشار، مستقیم در بخش پایین صفحه محصولات پخش می‌شود." : kind === "article" ? "تصویر اول کاور مجله است و روی کارت و بالای مقاله دیده می‌شود. تصویرهای بعدی داخل متن می‌آیند. پس از انتشار، همان فایل‌ها روی سایت قرار می‌گیرند." : kind === "material" ? "گالری اضافه. کاور صفحه، عکس محصول و عکس متریال را در فرم کنار مشخص کنید؛ همان‌ها روی سایت نمایش داده می‌شوند." : "چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."}><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : kind === "story" ? "انتخاب ویدیوی عمودی" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">{kind === "story" ? "MP4 / WebM · حداکثر ۵۰۰ مگابایت" : "انتخاب هم‌زمان · حداکثر ۵۰۰ مگابایت برای هر فایل"}</span><input type="file" accept={kind === "story" ? "video/mp4,video/webm" : "image/*,video/*"} multiple={kind !== "story"} onChange={upload} disabled={uploading} className="hidden" /></label>{uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه انتشار غیرفعال است.</p></div> : null}<MediaList images={kind === "story" ? [dataText("video")].filter(Boolean) : entry.images || []} onChange={(media) => kind === "story" ? setData("video", media[0] || "") : setField("images", media)} videoOnly={kind === "story"} /></Panel>
 
-          {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه چوب و هنر" /></Field><Field label="دسته‌بندی"><select value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass}><option value="">انتخاب دسته‌بندی</option>{articleTaxonomy.categories.map((category) => <option key={category} value={category}>{category}</option>)}</select><span className="mt-1 block text-[9px] text-forest/35">دسته‌ها از مقالات ثبت‌شده در دیتابیس خوانده می‌شوند.</span></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} hint={articleTaxonomy.tags.length ? `برچسب‌های موجود: ${articleTaxonomy.tags.slice(0, 8).join("، ")}` : undefined} /></Panel>}
+          {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه خانه چوب و هنر" /></Field><Field label="دسته‌بندی" hint="می‌توانید یک دسته موجود را انتخاب کنید یا نام تازه بنویسید."><input list="article-categories" value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass} placeholder="مثلاً مقالات آموزشی" /><datalist id="article-categories">{articleCategories.map((category) => <option key={category} value={category} />)}</datalist></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><Field label="تاریخ نمایش" hint="اگر خالی باشد، تاریخ انتشار روی سایت نشان داده می‌شود."><input value={dataText("displayDate")} onChange={(e) => setData("displayDate", e.target.value)} className={inputClass} placeholder="۱۴۰۵/۰۵/۱۲" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} hint={articleTaxonomy.tags.length ? `برچسب‌های موجود: ${articleTaxonomy.tags.slice(0, 8).join("، ")}` : undefined} /></Panel>}
 
           {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
         </aside>

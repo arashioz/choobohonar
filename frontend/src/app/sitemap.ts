@@ -3,7 +3,7 @@ import { collections, fetchApiCollections } from "@/data/collections";
 import { commerceCategories } from "@/data/commerce";
 import { getAllCatalogProducts } from "@/data/products";
 import { projects } from "@/data/projects";
-import { posts } from "@/data/posts";
+import { loadMagazineCatalog } from "@/lib/magazine-catalog";
 import { fetchMaterialCatalog, fetchPublicMaterials } from "@/lib/public-materials";
 
 const BASE = "https://choobohonar.com";
@@ -81,7 +81,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const postRoutes: MetadataRoute.Sitemap = posts.map((po) => ({
+  const magazine = await loadMagazineCatalog();
+  const postRoutes: MetadataRoute.Sitemap = magazine.posts.map((po) => ({
     url: `${BASE}/magazine/${po.slug}`,
     changeFrequency: "yearly",
     priority: 0.6,

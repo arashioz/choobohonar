@@ -1,69 +1,49 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FEATURED_MAGAZINE_SLUGS, posts, CATEGORY_DESCRIPTIONS } from "@/data/posts";
+import { CATEGORY_DESCRIPTIONS } from "@/data/posts";
+import { posts } from "@/data/posts";
 import type { Post } from "@/data/posts";
 import { cn } from "@/lib/utils";
 import FadeUp from "@/components/motion/FadeUp";
 import PostCard from "@/components/magazine/PostCard";
-
-type CmsArticleRecord = {
-  slug?: unknown;
-  title?: unknown;
-  excerpt?: unknown;
-  publishedAt?: string | null;
-  images?: unknown[];
-  tags?: unknown;
-  data?: Record<string, unknown>;
-  seo?: { description?: unknown };
-};
-
-function featuredFirst(items: Post[]): Post[] {
-  const bySlug = new Map(items.map((post) => [post.slug, post]));
-  const pinned = FEATURED_MAGAZINE_SLUGS.map((slug) => bySlug.get(slug)).filter(Boolean) as Post[];
-  const pinnedSlugs = new Set(pinned.map((post) => post.slug));
-  return [...pinned, ...items.filter((post) => !pinnedSlugs.has(post.slug))];
-}
+import { assembleMagazinePosts, parseMagazineSource, type MagazineSource } from "@/lib/magazine-cms";
 
 export default function MagazineList() {
   const [active, setActive] = useState("همه");
-  const [cmsPosts, setCmsPosts] = useState<Post[]>([]);
-  const [source, setSource] = useState<"static" | "cms" | "both">("both");
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
-      fetch("/api/settings/public", { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
-      fetch("/api/public-cms/article", { cache: "no-store" }).then((response) => response.ok ? response.json() : []),
-    ]).then(([settings, items]: [unknown, unknown]) => {
-        if (settings && typeof settings === "object" && "magazineSource" in settings) {
-          const value = (settings as { magazineSource?: string }).magazineSource;
-          if (value === "static" || value === "cms" || value === "both") setSource(value);
-        }
-        if (!Array.isArray(items)) return;
-        setCmsPosts(items.map((rawItem) => {
-          const item = rawItem as CmsArticleRecord;
-          return {
-          slug: String(item.slug), title: String(item.title), excerpt: String(item.excerpt || ""),
-          category: String(item.data?.category || "مقالات آموزشی") as Post["category"], author: String(item.data?.author || "تحریریه چوب و هنر"),
-          date: item.publishedAt ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(item.publishedAt)) : "تازه منتشر شده",
-          readingTime: String(item.data?.readingTime || "چند دقیقه"), coverImage: String(item.images?.[0] || posts[0]?.coverImage || ""),
-          content: [], tags: Array.isArray(item.tags) ? item.tags.map(String) : [], metaDescription: typeof item.seo?.description === "string" ? item.seo.description : undefined,
-          };
-        }));
-      }).catch(() => undefined);
+      fetch("/api/settings/public", { cache: "no-store" }).then((response) => (response.ok ? response.json() : null)).catch(() => null),
+      fetch("/api/public-cms/article", { cache: "no-store" }).then((response) => (response.ok ? response.json() : null)).catch(() => null),
+      fetch("/api/public-cms/article?view=slugs", { cache: "no-store" }).then((response) => (response.ok ? response.json() : null)).catch(() => null),
+    ]).then(([settings, items, slugs]) => {
+      if (cancelled) return;
+      const source: MagazineSource = parseMagazineSource(
+        settings && typeof settings === "object" ? (settings as { magazineSource?: unknown }).magazineSource : undefined,
+      );
+      const knownSlugs = slugs && typeof slugs === "object" && Array.isArray((slugs as { slugs?: unknown }).slugs)
+        ? (slugs as { slugs: unknown[] }).slugs.map(String)
+        : null;
+      if (!Array.isArray(items)) {
+        setAllPosts(source === "cms" ? [] : posts);
+      } else {
+        setAllPosts(assembleMagazinePosts({ source, cmsItems: items, knownSlugs }));
+      }
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  const allPosts = useMemo(() => {
-    const serverSlugs = new Set(cmsPosts.map((post) => post.slug));
-    if (source === "cms") return featuredFirst(cmsPosts);
-    if (source === "static") return featuredFirst(posts);
-    return featuredFirst([...cmsPosts, ...posts.filter((post) => !serverSlugs.has(post.slug))]);
-  }, [cmsPosts, source]);
   const postCategories = useMemo(() => ["همه", ...Array.from(new Set(allPosts.map((post) => post.category)))], [allPosts]);
 
   const filtered = useMemo(() => {
     if (active !== "همه") return allPosts.filter((p) => p.category === active);
-    return allPosts.slice(0, FEATURED_MAGAZINE_SLUGS.length);
+    return allPosts;
   }, [active, allPosts]);
 
   const categoryDescription =
@@ -71,10 +51,10 @@ export default function MagazineList() {
 
   return (
     <div>
-      <FadeUp className="mt-14 flex flex-wrap gap-3 md:mt-20">
+      {ready ? <FadeUp className="mt-14 flex flex-wrap gap-3 md:mt-20">
         {postCategories.map((cat) => {
           const selected = cat === active;
-          const count = cat === "همه" ? FEATURED_MAGAZINE_SLUGS.length : allPosts.filter((p) => p.category === cat).length;
+          const count = cat === "همه" ? allPosts.length : allPosts.filter((p) => p.category === cat).length;
           return (
             <button
               key={cat}
@@ -94,26 +74,32 @@ export default function MagazineList() {
             </button>
           );
         })}
-      </FadeUp>
+      </FadeUp> : null}
 
-      {categoryDescription && (
-        <FadeUp className="mt-8 max-w-2xl text-base leading-relaxed text-forest/60">
-          {categoryDescription}
-        </FadeUp>
-      )}
-
-      {filtered.length === 0 ? (
-        <FadeUp className="mt-16 text-center text-forest/50">
-          در این دسته هنوز مقاله‌ای منتشر نشده است.
-        </FadeUp>
+      {!ready ? (
+        <p className="mt-16 text-center text-sm text-forest/45">در حال دریافت مقالات…</p>
       ) : (
-        <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 md:mt-14 lg:grid-cols-3">
-          {filtered.map((p, i) => (
-            <FadeUp key={p.slug} delay={i * 0.07}>
-              <PostCard post={p} />
+        <>
+          {categoryDescription && (
+            <FadeUp className="mt-8 max-w-2xl text-base leading-relaxed text-forest/60">
+              {categoryDescription}
             </FadeUp>
-          ))}
-        </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <FadeUp className="mt-16 text-center text-forest/50">
+              در این دسته هنوز مقاله‌ای منتشر نشده است.
+            </FadeUp>
+          ) : (
+            <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 md:mt-14 lg:grid-cols-3">
+              {filtered.map((p, i) => (
+                <FadeUp key={p.slug} delay={i * 0.07}>
+                  <PostCard post={p} />
+                </FadeUp>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
