@@ -7,14 +7,17 @@ import { cn } from "@/lib/utils";
 import { uploadMedia } from "@/lib/upload";
 import ProductMaterialsPicker from "@/components/shop/ProductMaterialsPicker";
 import {
+  catalogChoiceById,
+  catalogChoiceForProduct,
+  catalogGroups,
+} from "@/lib/catalog-taxonomy";
+import {
   ROOM_LABELS,
   shopApi,
   type ShopProduct,
   type ShopRoom,
   type ShopProductStatus,
 } from "@/lib/shop-api";
-
-const ROOMS = Object.keys(ROOM_LABELS) as ShopRoom[];
 
 type FormState = {
   slug: string;
@@ -95,13 +98,11 @@ export default function ShopProductForm({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
-  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [descriptionMode, setDescriptionMode] = useState<"preview" | "html">("preview");
   const [seriesOptions, setSeriesOptions] = useState<string[]>([]);
   const [attributeOptions, setAttributeOptions] = useState<{ name: string; values: string[] }[]>([]);
 
   useEffect(() => {
-    shopApi.categories().then((rows) => setCategoryOptions(Array.from(new Set(rows.map((row) => row.category).filter(Boolean))))).catch(() => undefined);
     shopApi.series().then((rows) => setSeriesOptions(Array.from(new Set(rows.map((row) => row.series).filter(Boolean))))).catch(() => undefined);
     shopApi.productOptions().then((result) => setAttributeOptions(result.attributes)).catch(() => undefined);
   }, []);
@@ -255,42 +256,11 @@ export default function ShopProductForm({
                 required
               />
             </Field>
-            <Field label="دسته" required>
-              <input list="shop-category-options"
-                className={fieldClass}
-                value={form.category}
-                onChange={(e) => set("category", e.target.value)}
-                required
-              />
-              <datalist id="shop-category-options">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist>
-              <span className="mt-1 block text-[9px] text-forest/35">دسته‌بندی‌ها از محصولات موجود در دیتابیس پیشنهاد می‌شوند.</span>
-            </Field>
-            <Field label="فضا / اتاق">
-              <select
-                className={fieldClass}
-                value={form.room}
-                onChange={(e) => set("room", e.target.value as ShopRoom)}
-              >
-                {ROOMS.map((r) => (
-                  <option key={r} value={r}>
-                    {ROOM_LABELS[r]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {form.room === "lighting" ? (
-              <Field label="نوع آباژور">
-                <select
-                  className={fieldClass}
-                  value={["آباژور ایستاده", "آباژور رومیزی"].includes(form.category) ? form.category : ""}
-                  onChange={(e) => e.target.value && set("category", e.target.value)}
-                >
-                  <option value="">برای محصولات غیرآباژور انتخاب نکنید</option>
-                  <option value="آباژور ایستاده">آباژور ایستاده</option>
-                  <option value="آباژور رومیزی">آباژور رومیزی</option>
-                </select>
-              </Field>
-            ) : null}
+            <CatalogPlacementFields
+              room={form.room}
+              category={form.category}
+              onChange={(room, category) => setForm((prev) => ({ ...prev, room, category }))}
+            />
             <Field label="وضعیت">
               <select
                 className={fieldClass}
@@ -511,6 +481,73 @@ function ProductDetailsEditor({ label, description, rows, onChange, left, right 
   const isHighlight = rows.some((row) => "title" in row) || label.includes("نقاط");
   const normalized = rows.length ? rows : [isHighlight ? { title: "", description: "" } : { label: "", value: "" }];
   return <section className="rounded-2xl border border-forest/10 bg-white/70 p-4"><div className="mb-4"><h2 className="text-sm font-medium text-forest">{label}</h2><p className="mt-1 text-[10px] text-forest/40">{description}</p></div><div className="space-y-2">{normalized.map((row, index) => <div key={index} className="grid grid-cols-[1fr_1.4fr_36px] gap-2"><input className={fieldClass} placeholder={left} value={isHighlight ? row.title || "" : row.label || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: e.target.value, description: item.description || "" } : { label: e.target.value, value: item.value || "" }) : item))} /><input className={fieldClass} placeholder={right} value={isHighlight ? row.description || "" : row.value || ""} onChange={(e) => onChange(normalized.map((item, i) => i === index ? (isHighlight ? { title: item.title || "", description: e.target.value } : { label: item.label || "", value: e.target.value }) : item))} /><button type="button" onClick={() => onChange(normalized.filter((_, i) => i !== index))} className="rounded-xl border border-forest/10 text-brick">×</button></div>)}</div><button type="button" onClick={() => onChange([...normalized, isHighlight ? { title: "", description: "" } : { label: "", value: "" }])} className="mt-3 text-[10px] font-medium text-brick">+ افزودن ردیف</button></section>;
+}
+
+function CatalogPlacementFields({
+  room,
+  category,
+  onChange,
+}: {
+  room: ShopRoom;
+  category: string;
+  onChange: (room: ShopRoom, category: string) => void;
+}) {
+  const placement = catalogChoiceForProduct({ room, category });
+  const groups = catalogGroups();
+  const sections = [...new Map(groups.map((group) => [group.section, group.sectionLabel])).entries()];
+  const groupKey = placement ? `${placement.section}:${placement.group}` : "";
+  const activeGroup = groups.find((group) => group.key === groupKey);
+  const hasSubtype = (activeGroup?.choices.length || 0) > 1;
+
+  return (
+    <>
+      <Field label="دسته" required>
+        <select
+          className={fieldClass}
+          value={groupKey}
+          required
+          onChange={(event) => {
+            const next = groups.find((group) => group.key === event.target.value);
+            if (!next) return;
+            onChange(next.choices[0].room, next.choices[0].category);
+          }}
+        >
+          {placement ? null : <option value="">{category || "بدون دسته"} — خارج از چیدمان</option>}
+          {sections.map(([section, label]) => (
+            <optgroup key={section} label={label}>
+              {groups.filter((group) => group.section === section).map((group) => (
+                <option key={group.key} value={group.key}>{group.group}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <span className="mt-1 block text-[9px] text-forest/35">
+          {placement?.note || `اتاق ذخیره‌شده: ${ROOM_LABELS[room]}. دسته همان چیدمان فروشگاه است.`}
+        </span>
+      </Field>
+      {hasSubtype ? (
+        <Field label="زیر‌دسته" required>
+          <select
+            className={fieldClass}
+            value={placement?.id || ""}
+            required
+            onChange={(event) => {
+              const choice = catalogChoiceById(event.target.value);
+              if (!choice) return;
+              onChange(choice.room, choice.category);
+            }}
+          >
+            {activeGroup?.choices.map((choice) => (
+              <option key={choice.id} value={choice.id}>{choice.label}</option>
+            ))}
+          </select>
+          <span className="mt-1 block text-[9px] text-forest/35">
+            {activeGroup?.group} {activeGroup?.choices.length} بخش دارد، مثل چیدمان سایت.
+          </span>
+        </Field>
+      ) : null}
+    </>
+  );
 }
 
 function VariantsEditor({ attributes, variants, optionCatalog, onAttributes, onVariants }: { attributes: { name: string; values: string[] }[]; variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; optionCatalog: { name: string; values: string[] }[]; onAttributes: (value: { name: string; values: string[] }[]) => void; onVariants: (value: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {

@@ -144,6 +144,11 @@ export const productFamilies: ProductFamily[] = [
     types: [{ slug: "chandelier", label: "لوستر" }],
   },
   {
+    slug: "wall-light",
+    label: "دیوارکوب",
+    types: [{ slug: "wall-light", label: "دیوارکوب" }],
+  },
+  {
     slug: "vase",
     label: "گلدان",
     types: [{ slug: "vase", label: "گلدان" }],
@@ -325,6 +330,312 @@ export function productMatchesFamily(product: ShopProduct, familySlug: string) {
 export function productMatchesType(product: ShopProduct, typeSlug: string) {
   const canonical = typeBySlug.get(typeSlug)?.slug ?? typeSlug;
   return getProductType(product)?.slug === canonical;
+}
+
+/** Decor landing chips, in the order of the category menu. */
+const decorCatalogFamilies: ProductFamily[] = [
+  { slug: "decor-clock", label: "ساعت", types: [{ slug: "decor-clock", label: "ساعت" }] },
+  { slug: "decor-throw", label: "شال مبل", types: [{ slug: "decor-throw", label: "شال مبل" }] },
+  { slug: "decor-cushion", label: "کوسن", types: [{ slug: "decor-cushion", label: "کوسن" }] },
+  { slug: "decor-panel", label: "تابلو دکوراتیو", types: [{ slug: "decor-panel", label: "تابلو دکوراتیو" }] },
+  { slug: "decor-mirror", label: "آینه", types: [{ slug: "decor-mirror", label: "آینه" }] },
+  { slug: "decor-candle", label: "شمع", types: [{ slug: "decor-candle", label: "شمع" }] },
+  { slug: "decor-object", label: "دکوراتیو", types: [{ slug: "decor-object", label: "دکوراتیو" }] },
+  { slug: "decor-dishes", label: "ظروف پذیرایی", types: [{ slug: "decor-dishes", label: "ظروف پذیرایی" }] },
+  { slug: "decor-vase", label: "گلدان", types: [{ slug: "decor-vase", label: "گلدان" }] },
+  { slug: "decor-candlestick", label: "شمعدان", types: [{ slug: "decor-candlestick", label: "شمعدان" }] },
+  { slug: "decor-incense", label: "جا عودی", types: [{ slug: "decor-incense", label: "جا عودی" }] },
+];
+
+const decorChipSlugByMenu: Record<string, string> = {
+  vase: "decor-vase",
+  dishes: "decor-dishes",
+  candle: "decor-candle",
+  candlestick: "decor-candlestick",
+  cushion: "decor-cushion",
+  decorative: "decor-object",
+  mirror: "decor-mirror",
+};
+
+function decorFamily(slug: string) {
+  return decorCatalogFamilies.find((family) => family.slug === slug);
+}
+
+/** Classify a decor product into the menu chip. Unmatched products stay in «همه محصولات». */
+const decorCategoryMap: Record<string, string> = {
+  "جا عودی": "decor-incense",
+  "شال مبل": "decor-throw",
+  ساعت: "decor-clock",
+  "تابلو دکوراتیو": "decor-panel",
+  آینه: "decor-mirror",
+  کوسن: "decor-cushion",
+  شمعدان: "decor-candlestick",
+  "شمع دکوراتیو": "decor-candle",
+  شمع: "decor-candle",
+  گلدان: "decor-vase",
+  ظروف: "decor-dishes",
+  "ظروف پذیرایی": "decor-dishes",
+  دکوراتیو: "decor-object",
+};
+
+export function getDecorCatalogFamily(product: ShopProduct): ProductFamily | undefined {
+  const category = (product.category || "").trim();
+  const mapped = decorCategoryMap[category];
+  if (mapped) return decorFamily(mapped);
+  if (category) return undefined;
+  const name = product.name || "";
+  const text = name;
+  if (/عود/.test(text)) return decorFamily("decor-incense");
+  if (category === "شال مبل" || name.startsWith("شال")) return decorFamily("decor-throw");
+  if (category === "ساعت" || name.startsWith("ساعت")) return decorFamily("decor-clock");
+  if (category.includes("تابلو") || name.includes("تابلو")) return decorFamily("decor-panel");
+  if (category === "آینه" || name.includes("آینه")) return decorFamily("decor-mirror");
+  if (category === "کوسن" || name.includes("کوسن")) return decorFamily("decor-cushion");
+  if (category === "شمعدان" || /شمعدان|جاشمعی/.test(text)) return decorFamily("decor-candlestick");
+  if (category.includes("شمع") || name.includes("شمع")) return decorFamily("decor-candle");
+  if (category === "گلدان" || name.includes("گلدان")) return decorFamily("decor-vase");
+  if (category.includes("ظروف")) return decorFamily("decor-dishes");
+  if (category === "دکوراتیو") return decorFamily("decor-object");
+  return undefined;
+}
+
+export function productMatchesDecorFamily(product: ShopProduct, familySlug: string) {
+  const slug = decorChipSlugByMenu[familySlug] ?? familySlug;
+  return getDecorCatalogFamily(product)?.slug === slug;
+}
+
+export function getDecorFamiliesInProducts(products: ShopProduct[]) {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const family = getDecorCatalogFamily(product);
+    if (!family) continue;
+    counts.set(family.slug, (counts.get(family.slug) ?? 0) + 1);
+  }
+  return decorCatalogFamilies
+    .map((family) => ({ family, count: counts.get(family.slug) ?? 0 }))
+    .filter((item) => item.count > 0);
+}
+
+type Classified = { family: ProductFamily; type: ProductFamilyType };
+
+const bedroomFamilies: ProductFamily[] = [
+  { slug: "bed", label: "تخت خواب", types: [{ slug: "bed", label: "تخت خواب" }] },
+  { slug: "nightstand", label: "پاتختی", types: [{ slug: "nightstand", label: "پاتختی" }] },
+  { slug: "drawer", label: "دراور", types: [{ slug: "drawer", label: "دراور" }] },
+  { slug: "loveseat", label: "لاوست", types: [{ slug: "loveseat", label: "لاوست" }] },
+  {
+    slug: "vanity",
+    label: "میز آرایش",
+    types: [
+      { slug: "vanity-drawer", label: "دراور میز آرایش" },
+      { slug: "vanity-chair", label: "صندلی میز آرایش" },
+      { slug: "vanity-mirror", label: "قاب آینه میز آرایش" },
+    ],
+  },
+];
+
+function bedroomFamily(slug: string) {
+  return bedroomFamilies.find((family) => family.slug === slug);
+}
+
+function bedroomType(slug: string) {
+  return bedroomFamilies.flatMap((family) => family.types).find((type) => type.slug === slug);
+}
+
+const bedroomCategoryMap: Record<string, [string, string]> = {
+  "تخت خواب": ["bed", "bed"],
+  تختخواب: ["bed", "bed"],
+  پاتختی: ["nightstand", "nightstand"],
+  دراور: ["drawer", "drawer"],
+  لاوست: ["loveseat", "loveseat"],
+  میزآرایش: ["vanity", "vanity-drawer"],
+  "میز آرایش": ["vanity", "vanity-drawer"],
+  "دراور میز آرایش": ["vanity", "vanity-drawer"],
+  "صندلی میزآرایش": ["vanity", "vanity-chair"],
+  "صندلی میز آرایش": ["vanity", "vanity-chair"],
+  آینه: ["vanity", "vanity-mirror"],
+  "قاب آینه میز آرایش": ["vanity", "vanity-mirror"],
+};
+
+export function classifyBedroomProduct(product: ShopProduct): Classified | undefined {
+  const raw = (product.category || "").trim();
+  const pack = (familySlug: string, typeSlug: string): Classified | undefined => {
+    const family = bedroomFamily(familySlug);
+    const type = bedroomType(typeSlug);
+    return family && type ? { family, type } : undefined;
+  };
+  const mapped = bedroomCategoryMap[raw] || bedroomCategoryMap[raw.replace(/\s+/g, "")];
+  if (mapped) return pack(mapped[0], mapped[1]);
+  if (raw) return undefined;
+  const name = product.name || "";
+  const compact = name.replace(/\s+/g, "");
+  if (compact.includes("دراورمیز")) return pack("vanity", "vanity-drawer");
+  if (compact.includes("صندلیمیز")) return pack("vanity", "vanity-chair");
+  if (name.includes("قاب آینه")) return pack("vanity", "vanity-mirror");
+  if (name.startsWith("دراور")) return pack("drawer", "drawer");
+  if (name.startsWith("تخت")) return pack("bed", "bed");
+  if (name.startsWith("پاتختی")) return pack("nightstand", "nightstand");
+  if (name.startsWith("لاوست")) return pack("loveseat", "loveseat");
+  return undefined;
+}
+
+export function productMatchesBedroomFamily(product: ShopProduct, familySlug: string) {
+  const hit = classifyBedroomProduct(product);
+  if (!hit) return false;
+  if (familySlug === "makeup-table" || familySlug === "vanity") return hit.family.slug === "vanity";
+  if (familySlug === "chair") return hit.type.slug === "vanity-chair";
+  if (familySlug === "mirror") return hit.type.slug === "vanity-mirror";
+  return hit.family.slug === familySlug;
+}
+
+export function productMatchesBedroomType(product: ShopProduct, typeSlug: string) {
+  return classifyBedroomProduct(product)?.type.slug === typeSlug;
+}
+
+export function getBedroomFamiliesInProducts(products: ShopProduct[]) {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const family = classifyBedroomProduct(product)?.family;
+    if (!family) continue;
+    counts.set(family.slug, (counts.get(family.slug) ?? 0) + 1);
+  }
+  return bedroomFamilies
+    .map((family) => ({ family, count: counts.get(family.slug) ?? 0 }))
+    .filter((item) => item.count > 0);
+}
+
+export function getBedroomTypesInProducts(products: ShopProduct[], familySlug?: string) {
+  const vanity = bedroomFamily("vanity");
+  const requested = familySlug === "makeup-table" ? "vanity" : familySlug;
+  if (!vanity || (requested && requested !== "vanity" && requested !== "all")) return [];
+  const scoped = products.filter((product) => classifyBedroomProduct(product)?.family.slug === "vanity");
+  return vanity.types
+    .map((type) => ({
+      type,
+      count: scoped.filter((product) => classifyBedroomProduct(product)?.type.slug === type.slug).length,
+    }))
+    .filter((item) => item.count > 0);
+}
+
+const beddingFamilies: ProductFamily[] = [
+  { slug: "mattress", label: "تشک", types: [{ slug: "mattress", label: "تشک" }] },
+  { slug: "bedspreads", label: "سرویس روتختی", types: [{ slug: "bedspreads", label: "سرویس روتختی" }] },
+  { slug: "linen-set", label: "سرویس ملحفه", types: [{ slug: "linen-set", label: "سرویس ملحفه" }] },
+  { slug: "blanket", label: "پتو", types: [{ slug: "blanket", label: "پتو" }] },
+  { slug: "pillow", label: "بالش", types: [{ slug: "pillow", label: "بالش" }] },
+  { slug: "quilt", label: "لحاف", types: [{ slug: "quilt", label: "لحاف" }] },
+  { slug: "mattress-protector", label: "محافظ تشک", types: [{ slug: "mattress-protector", label: "محافظ تشک" }] },
+];
+
+const beddingCategoryMap: Record<string, string> = {
+  "محافظ تشک": "mattress-protector",
+  تشک: "mattress",
+  "سرویس روتختی": "bedspreads",
+  "سرویس ملحفه": "linen-set",
+  پتو: "blanket",
+  بالش: "pillow",
+  لحاف: "quilt",
+};
+
+export function classifyBeddingProduct(product: ShopProduct): ProductFamily | undefined {
+  const category = (product.category || "").trim();
+  const mapped = beddingCategoryMap[category];
+  if (mapped) return beddingFamilies.find((family) => family.slug === mapped);
+  if (category) return undefined;
+  const name = product.name || "";
+  if (name.includes("محافظ تشک")) return beddingFamilies.find((family) => family.slug === "mattress-protector");
+  if (name.startsWith("تشک")) return beddingFamilies.find((family) => family.slug === "mattress");
+  if (name.includes("روتختی")) return beddingFamilies.find((family) => family.slug === "bedspreads");
+  if (name.includes("ملحفه")) return beddingFamilies.find((family) => family.slug === "linen-set");
+  if (name.startsWith("پتو")) return beddingFamilies.find((family) => family.slug === "blanket");
+  if (name.startsWith("بالش")) return beddingFamilies.find((family) => family.slug === "pillow");
+  if (name.includes("لحاف")) return beddingFamilies.find((family) => family.slug === "quilt");
+  return undefined;
+}
+
+export function productMatchesBeddingFamily(product: ShopProduct, familySlug: string) {
+  return classifyBeddingProduct(product)?.slug === familySlug;
+}
+
+export function getBeddingFamiliesInProducts(products: ShopProduct[]) {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const family = classifyBeddingProduct(product);
+    if (!family) continue;
+    counts.set(family.slug, (counts.get(family.slug) ?? 0) + 1);
+  }
+  return beddingFamilies
+    .map((family) => ({ family, count: counts.get(family.slug) ?? 0 }))
+    .filter((item) => item.count > 0);
+}
+
+const diningFamilies: ProductFamily[] = [
+  { slug: "dining-table", label: "میز غذاخوری", types: [{ slug: "dining-table", label: "میز غذاخوری" }] },
+  { slug: "dining-chair", label: "صندلی غذاخوری", types: [{ slug: "dining-chair", label: "صندلی غذاخوری" }] },
+  { slug: "bar-stool", label: "صندلی کانتر", types: [{ slug: "bar-stool", label: "صندلی کانتر" }] },
+  { slug: "dining-dishes", label: "ظروف", types: [{ slug: "dining-dishes", label: "ظروف" }] },
+  { slug: "dining-runner", label: "رانر", types: [{ slug: "dining-runner", label: "رانر" }] },
+  { slug: "dining-napkin", label: "دستمال سفره", types: [{ slug: "dining-napkin", label: "دستمال سفره" }] },
+];
+
+const diningSlugAliases: Record<string, string> = {
+  table: "dining-table",
+  "dining-table": "dining-table",
+  chair: "dining-chair",
+  diningchairs: "dining-chair",
+  "dining-chair": "dining-chair",
+  "bar-stools": "bar-stool",
+  "bar-stool": "bar-stool",
+  dishes: "dining-dishes",
+  "dining-dishes": "dining-dishes",
+  runner: "dining-runner",
+  napkin: "dining-napkin",
+};
+
+export function isDiningTableware(product: ShopProduct) {
+  const category = (product.category || "").trim();
+  return category === "ظروف" || category === "رانر" || category === "دستمال سفره";
+}
+
+const diningCategoryMap: Record<string, string> = {
+  "صندلی کانتر": "bar-stool",
+  "صندلی غذاخوری": "dining-chair",
+  "میز غذاخوری": "dining-table",
+  ظروف: "dining-dishes",
+  رانر: "dining-runner",
+  "دستمال سفره": "dining-napkin",
+};
+
+export function classifyDiningProduct(product: ShopProduct): ProductFamily | undefined {
+  const category = (product.category || "").trim();
+  const pick = (slug: string) => diningFamilies.find((family) => family.slug === slug);
+  const mapped = diningCategoryMap[category];
+  if (mapped) return pick(mapped);
+  if (category) return undefined;
+  const name = product.name || "";
+  if (name.includes("صندلی کانتر")) return pick("bar-stool");
+  if (name.includes("صندلی غذاخوری") || name.startsWith("صندلی")) return pick("dining-chair");
+  if (name.includes("میز غذاخوری")) return pick("dining-table");
+  if (name.startsWith("رانر")) return pick("dining-runner");
+  if (name.includes("دستمال")) return pick("dining-napkin");
+  return undefined;
+}
+
+export function productMatchesDiningFamily(product: ShopProduct, familySlug: string) {
+  const slug = diningSlugAliases[familySlug] ?? familySlug;
+  return classifyDiningProduct(product)?.slug === slug;
+}
+
+export function getDiningFamiliesInProducts(products: ShopProduct[]) {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const family = classifyDiningProduct(product);
+    if (!family) continue;
+    counts.set(family.slug, (counts.get(family.slug) ?? 0) + 1);
+  }
+  return diningFamilies
+    .map((family) => ({ family, count: counts.get(family.slug) ?? 0 }))
+    .filter((item) => item.count > 0);
 }
 
 export function getFamiliesInProducts(products: ShopProduct[]) {

@@ -1,6 +1,14 @@
 import type { ProductRoom, ShopProduct } from "@/data/products";
 import { shopProducts } from "@/data/products";
-import { productMatchesFamily, productMatchesType } from "@/data/product-families";
+import {
+  isDiningTableware,
+  productMatchesBeddingFamily,
+  productMatchesBedroomFamily,
+  productMatchesDecorFamily,
+  productMatchesDiningFamily,
+  productMatchesFamily,
+  productMatchesType,
+} from "@/data/product-families";
 
 export type CommerceSubcategory = {
   slug: string;
@@ -49,11 +57,9 @@ export const commerceCategories: CommerceCategory[] = [
     children: [
       { slug: "bed", label: "تخت خواب" },
       { slug: "nightstand", label: "پاتختی" },
-      { slug: "makeup-table", label: "میز آرایش" },
-      { slug: "chair", label: "صندلی" },
       { slug: "drawer", label: "دراور" },
-      { slug: "mirror", label: "آینه" },
       { slug: "loveseat", label: "لاوست" },
+      { slug: "makeup-table", label: "میز آرایش" },
     ],
   },
   {
@@ -65,11 +71,12 @@ export const commerceCategories: CommerceCategory[] = [
     image: "https://choobohonar.com/wp-content/uploads/2025/11/میز-غذاخوی-سولو-خانه-چوب-و-هنر-1.jpg",
     room: "dining",
     children: [
-      { slug: "table", label: "میز" },
-      { slug: "chair", label: "صندلی" },
       { slug: "dining-table", label: "میز غذاخوری" },
-      { slug: "diningchairs", label: "صندلی غذاخوری" },
-      { slug: "bar-stools", label: "صندلی کانتر" },
+      { slug: "dining-chair", label: "صندلی غذاخوری" },
+      { slug: "bar-stool", label: "صندلی کانتر" },
+      { slug: "dining-dishes", label: "ظروف" },
+      { slug: "dining-runner", label: "رانر" },
+      { slug: "dining-napkin", label: "دستمال سفره" },
     ],
   },
   {
@@ -81,11 +88,13 @@ export const commerceCategories: CommerceCategory[] = [
     image: "https://choobohonar.com/wp-content/uploads/2026/02/سرویس-روتختی-گلدن-رودز-53-خانه-چوب-و-هنر-1.jpg",
     room: "bedding",
     children: [
+      { slug: "mattress", label: "تشک" },
       { slug: "bedspreads", label: "سرویس روتختی" },
       { slug: "linen-set", label: "سرویس ملحفه" },
       { slug: "blanket", label: "پتو" },
       { slug: "pillow", label: "بالش" },
-      { slug: "mattress", label: "تشک" },
+      { slug: "quilt", label: "لحاف" },
+      { slug: "mattress-protector", label: "محافظ تشک" },
     ],
   },
   {
@@ -112,6 +121,7 @@ export const commerceCategories: CommerceCategory[] = [
       { slug: "lampshade", label: "آباژور" },
       { slug: "pendant", label: "آویز" },
       { slug: "chandelier", label: "لوستر" },
+      { slug: "wall-light", label: "دیوارکوب" },
       { slug: "floor-lampshade", label: "آباژور ایستاده" },
       { slug: "table-lampshade", label: "آباژور رومیزی" },
     ],
@@ -157,8 +167,31 @@ export function filterCommerceCategoryProducts(
   products: ShopProduct[],
   category: ResolvedCommerceCategory,
 ): ShopProduct[] {
+  const active = category.active;
+
+  if (category.root.slug === "diningroom") {
+    const pool = products.filter((product) => product.room === "dining" || isDiningTableware(product));
+    if (!active) return pool;
+    return pool.filter((product) => productMatchesDiningFamily(product, active.slug));
+  }
+
+  if (category.root.slug === "bedding") {
+    const pool = products.filter((product) => product.room === "bedding");
+    if (!active) return pool;
+    return pool.filter((product) => productMatchesBeddingFamily(product, active.slug));
+  }
+
+  if (category.root.slug === "bedroom") {
+    const pool = products.filter((product) => product.room === "bedroom");
+    if (!active) return pool;
+    return pool.filter((product) => productMatchesBedroomFamily(product, active.slug));
+  }
+
   if (category.active) {
     const roomMatch = (product: ShopProduct) => !category.root.room || product.room === category.root.room;
+    if (category.root.slug === "decor") {
+      return products.filter((product) => roomMatch(product) && productMatchesDecorFamily(product, category.active!.slug));
+    }
     const byType = products.filter((product) => roomMatch(product) && productMatchesType(product, category.active!.slug));
     if (byType.length) return byType;
     const byFamily = products.filter((product) => roomMatch(product) && productMatchesFamily(product, category.active!.slug));
@@ -166,9 +199,20 @@ export function filterCommerceCategoryProducts(
   }
 
   if (category.root.taxonomySlug) {
-    return products.filter((product) =>
-      product.categories.some((term) => term.slug === category.root.taxonomySlug),
-    );
+    const seen = new Set<string>();
+    const merged: ShopProduct[] = [];
+    const add = (product: ShopProduct) => {
+      if (seen.has(product.slug)) return;
+      seen.add(product.slug);
+      merged.push(product);
+    };
+    if (category.root.room) {
+      products.filter((product) => product.room === category.root.room).forEach(add);
+    }
+    products
+      .filter((product) => product.categories.some((term) => term.slug === category.root.taxonomySlug))
+      .forEach(add);
+    return merged;
   }
 
   return category.root.room

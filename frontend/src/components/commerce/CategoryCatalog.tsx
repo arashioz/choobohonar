@@ -8,8 +8,18 @@ import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
 import type { ShopProduct } from "@/data/products";
 import {
+  getBeddingFamiliesInProducts,
+  getBedroomFamiliesInProducts,
+  getBedroomTypesInProducts,
+  getDecorFamiliesInProducts,
+  getDiningFamiliesInProducts,
   getFamiliesInProducts,
   getTypesInProducts,
+  productMatchesBeddingFamily,
+  productMatchesBedroomFamily,
+  productMatchesBedroomType,
+  productMatchesDecorFamily,
+  productMatchesDiningFamily,
   productMatchesFamily,
   productMatchesType,
 } from "@/data/product-families";
@@ -41,13 +51,39 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   const [stockOnly, setStockOnly] = useState(searchParams.get("stock") === "1");
   const [sort, setSort] = useState<SortMode>((searchParams.get("sort") as SortMode) ?? "featured");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(18);
+  const facet =
+    categoryLabel === "دکور" ? "decor"
+    : categoryLabel === "اتاق خواب" || categoryLabel === "میز آرایش" ? "bedroom"
+    : categoryLabel === "کالای خواب" ? "bedding"
+    : categoryLabel === "غذاخوری" || categoryLabel === "میز غذاخوری" || categoryLabel === "صندلی غذاخوری" || categoryLabel === "صندلی کانتر" || categoryLabel === "ظروف" || categoryLabel === "رانر" || categoryLabel === "دستمال سفره" ? "dining"
+    : "default";
+  const pageSize = Math.max(products.length, 18);
+  const [visibleCount, setVisibleCount] = useState(pageSize);
   const catalogRef = useRef<HTMLElement>(null);
   const scrollToProductsAfterSync = useRef(false);
 
-  const familyOptions = useMemo(() => getFamiliesInProducts(products), [products]);
-  const typeOptions = useMemo(() => getTypesInProducts(products, family), [family, products]);
-  const showTypeFilter = family !== "all" && typeOptions.length > 1;
+  const familyOptions = useMemo(() => {
+    if (facet === "decor") return getDecorFamiliesInProducts(products);
+    if (facet === "bedroom") return getBedroomFamiliesInProducts(products);
+    if (facet === "bedding") return getBeddingFamiliesInProducts(products);
+    if (facet === "dining") return getDiningFamiliesInProducts(products);
+    return getFamiliesInProducts(products);
+  }, [facet, products]);
+  const matchesFamily = (product: ShopProduct, familySlug: string) => {
+    if (facet === "decor") return productMatchesDecorFamily(product, familySlug);
+    if (facet === "bedroom") return productMatchesBedroomFamily(product, familySlug);
+    if (facet === "bedding") return productMatchesBeddingFamily(product, familySlug);
+    if (facet === "dining") return productMatchesDiningFamily(product, familySlug);
+    return productMatchesFamily(product, familySlug);
+  };
+  const typeOptions = useMemo(() => {
+    if (facet === "bedroom") return getBedroomTypesInProducts(products, family);
+    if (facet === "decor" || facet === "bedding" || facet === "dining") return [];
+    return getTypesInProducts(products, family);
+  }, [facet, family, products]);
+  const showTypeFilter = facet === "bedroom"
+    ? family === "vanity" || family === "makeup-table" || (categoryLabel === "میز آرایش" && family === "all")
+    : facet === "default" && family !== "all" && typeOptions.length > 1;
 
   const collectionOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -65,8 +101,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         const haystack = `${product.name} ${product.category} ${product.shortDescription}`.toLocaleLowerCase("fa");
         if (!haystack.includes(normalizedQuery)) return false;
       }
-      if (family !== "all" && !productMatchesFamily(product, family)) return false;
-      if (type !== "all" && !productMatchesType(product, type)) return false;
+      if (family !== "all" && !matchesFamily(product, family)) return false;
+      const typeFilterActive = type !== "all" && (facet === "bedroom" || facet === "default");
+      if (typeFilterActive && !(facet === "bedroom" ? productMatchesBedroomType(product, type) : productMatchesType(product, type))) return false;
       if (collection !== "all" && getCollectionName(product) !== collection) return false;
       if (stockOnly && !product.isInStock) return false;
       return true;
@@ -77,10 +114,10 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
     if (sort === "price-asc") next.sort((a, b) => numericPrice(a) - numericPrice(b));
     if (sort === "price-desc") next.sort((a, b) => numericPrice(b) - numericPrice(a));
     return next;
-  }, [collection, family, products, query, sort, stockOnly, type]);
+  }, [collection, facet, family, products, query, sort, stockOnly, type]);
 
   useEffect(() => {
-    setVisibleCount(18);
+    setVisibleCount(pageSize);
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (family !== "all") params.set("family", family);
@@ -104,7 +141,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
       }
     }, 180);
     return () => window.clearTimeout(timeout);
-  }, [collection, family, pathname, query, router, searchParams, sort, stockOnly, type]);
+  }, [collection, family, pageSize, pathname, query, router, searchParams, sort, stockOnly, type]);
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -146,9 +183,9 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
 
       {showTypeFilter ? (
         <fieldset>
-          <legend className="text-sm font-medium text-forest">نوع محصول</legend>
+          <legend className="text-sm font-medium text-forest">نوع محصولات</legend>
           <ScrollableFilterList className="max-h-64">
-            <FilterRadio label="همه انواع" count={family === "all" ? products.length : products.filter((product) => productMatchesFamily(product, family)).length} active={type === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} />
+            <FilterRadio label="همه انواع" count={family === "all" ? products.length : products.filter((product) => matchesFamily(product, family)).length} active={type === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} />
             {typeOptions.map(({ type: option, count }) => (
               <FilterRadio key={option.slug} label={option.label} count={count} active={type === option.slug} onClick={() => { scrollToProductsAfterSync.current = true; setType(option.slug); }} />
             ))}

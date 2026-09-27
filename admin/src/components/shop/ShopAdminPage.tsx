@@ -20,6 +20,7 @@ import {
 } from "@/lib/shop-api";
 import CampaignBannersPanel from "@/components/shop/CampaignBannersPanel";
 import CategoryPageMediaPanel from "@/components/shop/CategoryPageMediaPanel";
+import { groupProductsByCatalog } from "@/lib/catalog-taxonomy";
 
 type Tab = "products" | "orders" | "proformas" | "invoices";
 
@@ -49,37 +50,7 @@ type ProductGroup = {
 };
 
 function groupByRoomAndCategory(products: ShopProduct[]): ProductGroup[] {
-  const roomMap = new Map<string, Map<string, ShopProduct[]>>();
-
-  for (const p of products) {
-    const room = p.room || "other";
-    const category = p.category?.trim() || "بدون دسته";
-    if (!roomMap.has(room)) roomMap.set(room, new Map());
-    const cats = roomMap.get(room)!;
-    if (!cats.has(category)) cats.set(category, []);
-    cats.get(category)!.push(p);
-  }
-
-  const orderedRooms = [
-    ...ROOM_ORDER.filter((r) => roomMap.has(r)),
-    ...[...roomMap.keys()].filter((r) => !(r in ROOM_LABELS)).sort(),
-  ];
-
-  return orderedRooms.map((room) => {
-    const cats = roomMap.get(room)!;
-    const categories = [...cats.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0], "fa"))
-      .map(([category, items]) => ({
-        category,
-        items: items.sort((a, b) => a.name.localeCompare(b.name, "fa")),
-      }));
-    return {
-      room,
-      roomLabel: ROOM_LABELS[room as ShopRoom] || room,
-      categories,
-      count: categories.reduce((n, c) => n + c.items.length, 0),
-    };
-  });
+  return groupProductsByCatalog(products);
 }
 
 export default function ShopAdminPage({ productsOnly = false }: { productsOnly?: boolean }) {
@@ -121,6 +92,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [deleteBusyId, setDeleteBusyId] = useState("");
   const [bannerOpen, setBannerOpen] = useState(false);
   const [pageMediaOpen, setPageMediaOpen] = useState(false);
+  const [categoryFilters, setCategoryFilters] = useState<Record<string, string>>({});
 
   function importPrices(file: File) {
     setImporting(true); setImportProgress(0); setError(""); setMessage("");
@@ -731,8 +703,38 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                         </span>
                       </button>
 
-                      {!collapsed
-                        ? group.categories.map((cat) => (
+                      {!collapsed ? (
+                        <>
+                          <div className="flex gap-2 overflow-x-auto border-b border-forest/8 px-4 py-3">
+                            <button
+                              type="button"
+                              onClick={() => setCategoryFilters((prev) => ({ ...prev, [group.room]: "" }))}
+                              className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] transition ${
+                                !categoryFilters[group.room] ? "bg-forest text-paper" : "border border-forest/15 text-forest/70 hover:border-forest"
+                              }`}
+                            >
+                              همه {group.count}
+                            </button>
+                            {group.categories.map((cat) => (
+                              <button
+                                key={cat.category}
+                                type="button"
+                                onClick={() => setCategoryFilters((prev) => ({
+                                  ...prev,
+                                  [group.room]: prev[group.room] === cat.category ? "" : cat.category,
+                                }))}
+                                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] transition ${
+                                  categoryFilters[group.room] === cat.category ? "bg-forest text-paper" : "border border-forest/15 text-forest/70 hover:border-forest"
+                                }`}
+                              >
+                                {cat.category} {cat.items.length}
+                              </button>
+                            ))}
+                          </div>
+                          {(categoryFilters[group.room]
+                            ? group.categories.filter((cat) => cat.category === categoryFilters[group.room])
+                            : group.categories
+                          ).map((cat) => (
                             <div key={cat.category}>
                               <div className="flex items-center justify-between border-b border-forest/8 bg-paper/70 px-4 py-2">
                                 <h4 className="text-xs font-medium text-forest/80">
@@ -844,8 +846,9 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                                 </tbody>
                               </table>
                             </div>
-                          ))
-                        : null}
+                          ))}
+                        </>
+                      ) : null}
                     </section>
                   );
                 })}

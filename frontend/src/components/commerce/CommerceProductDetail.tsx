@@ -136,7 +136,9 @@ export default function CommerceProductDetail({
     }
     return "";
   }, [attributes, product.materialImageMappings, selected]);
-  const priceValue = Number(selectedVariant?.price ?? product.prices?.value ?? 0);
+  const priceValue = selectedVariant
+    ? Number(selectedVariant.price || 0)
+    : Number(product.prices?.value ?? 0);
   const canAddToCart =
     product.isInStock &&
     product.isPurchasable &&

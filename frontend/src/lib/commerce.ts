@@ -257,10 +257,8 @@ export function getCollectionName(product: ShopProduct): string | null {
   return attribute?.terms[0]?.name ?? null;
 }
 
-function optionHasPricedVariant(product: ShopProduct, attributeName: string, optionLabel: string) {
-  return pricedVariants(product).some(
-    (variant) => variantHasOption(variant, attributeName, optionLabel) && variantPrice(variant) > 0,
-  );
+function optionHasEnabledVariant(product: ShopProduct, attributeName: string, optionLabel: string) {
+  return enabledVariants(product).some((variant) => variantHasOption(variant, attributeName, optionLabel));
 }
 
 function productHint(product: ShopProduct) {
@@ -299,7 +297,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
     });
   }
 
-  for (const variant of pricedVariants(product)) {
+  for (const variant of enabledVariants(product)) {
     for (const option of variant.options) {
       const siblingValues = variant.options.filter((entry) => entry.name === option.name).map((entry) => entry.value);
       if (!option.value) continue;
@@ -331,7 +329,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
         ...attribute,
         options: attribute.options.filter((option) => {
           if (attribute.role !== "purchase") return true;
-          return optionHasPricedVariant(product, attribute.label, option.label);
+          return optionHasEnabledVariant(product, attribute.label, option.label);
         }),
       }),
     }))
@@ -431,7 +429,7 @@ export function variantMatchingSelection(
   attributes: PurchaseAttribute[],
   selected: Record<string, string>,
 ) {
-  const ranked = pricedVariants(product)
+  const ranked = enabledVariants(product)
     .filter((variant) => variant.options.some((option) => option.value?.trim()) || pricedVariants(product).every((item) => !item.options.some((option) => option.value?.trim())))
     .map((variant) => ({ variant, score: variantMatchScore(variant, attributes, selected) }))
     .filter((entry): entry is { variant: ProductVariant; score: number } => entry.score !== null)
@@ -460,6 +458,7 @@ export function formatSelectedCatalogPrice(
 ) {
   const amount = variant ? variantPrice(variant) : 0;
   if (amount) return formatMoney(amount, product.prices?.currencySymbol || "تومان");
+  if (variant) return "استعلام قیمت";
   return formatCatalogPrice(product);
 }
 
@@ -477,7 +476,7 @@ export function selectionForAttributeOption(
     return applyLinkedDimensions(attributes, { ...selected, [attributeId]: optionId }, attributeId);
   }
 
-  const candidates = pricedVariants(product).filter((variant) =>
+  const candidates = enabledVariants(product).filter((variant) =>
     variantHasOption(variant, attribute.label, option.label),
   );
   if (!candidates.length) {
@@ -531,7 +530,7 @@ export function debugVariantPriceFlow(product: ShopProduct): VariantPriceIssue[]
       selected = selectionForAttributeOption(product, allAttributes, selected, attribute.id, option.id);
       const matched = variantMatchingSelection(product, allAttributes, selected);
       const amount = matched ? variantPrice(matched) : 0;
-      if (!amount) {
+      if (!matched) {
         issues.push({
           slug: product.slug,
           name: product.name,
@@ -541,6 +540,7 @@ export function debugVariantPriceFlow(product: ShopProduct): VariantPriceIssue[]
         });
         continue;
       }
+      if (!amount) continue;
       seenPrices.add(amount);
     }
 
