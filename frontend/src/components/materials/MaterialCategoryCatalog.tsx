@@ -79,27 +79,20 @@ export default function MaterialCategoryCatalog({
             {filtered.map((item, index) => (
               <FadeUp key={item.slug} delay={index * 0.06}>
                 <Link href={`/materials/${item.categoryId}/${item.slug}`} className="group block focus-visible:outline-none">
-                  <div className="grid aspect-[4/5] grid-rows-[1.1fr_0.9fr] overflow-hidden bg-forest/5">
-                    <div className="relative overflow-hidden">
-                      <Image
-                        src={item.applicationImage}
-                        alt={`کاربرد ${item.name}`}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                        unoptimized={isUploadedMedia(item.applicationImage) || item.applicationImage.startsWith("/images/materials/")}
-                        className="media-hover object-cover"
-                      />
+                  <div className="relative aspect-square overflow-hidden bg-forest/5">
+                    <Image
+                      src={item.applicationImage}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                      unoptimized={isUploadedMedia(item.applicationImage) || item.applicationImage.startsWith("/images/materials/")}
+                      className="media-hover object-cover"
+                    />
+                    {item.code ? (
                       <span className="absolute right-4 top-4 rounded-full bg-paper/90 px-3 py-1.5 text-[10px] tracking-[0.14em] text-forest backdrop-blur-md">
                         {item.code}
                       </span>
-                    </div>
-                    <div className="relative p-5" style={{ background: `linear-gradient(145deg, ${item.accent}, ${item.color})` }}>
-                      <div className="absolute inset-5 border border-white/25" />
-                      <div className="relative flex h-full items-end justify-between gap-4 text-white">
-                        <p className="text-xs tracking-[0.16em] opacity-75">CHH MATERIAL</p>
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/35 transition-colors group-hover:bg-white group-hover:text-forest group-focus-visible:bg-white group-focus-visible:text-forest">↙</span>
-                      </div>
-                    </div>
+                    ) : null}
                   </div>
                   <div className="mt-4 flex items-start justify-between gap-4 border-b border-forest/10 pb-4">
                     <div>

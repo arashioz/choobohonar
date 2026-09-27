@@ -170,7 +170,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {kind === "article" && <Field label="متن مقاله" hint="نسخه فعلی ویرایشگر متنی است؛ ساختار بلوکی در فاز بعد قابل افزودن است."><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-[420px] resize-y leading-8`} placeholder="متن کامل مقاله را بنویسید…" /></Field>}
           </Panel>
 
-          <SpecificFields kind={kind} title={entry.title} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} />
+          <SpecificFields kind={kind} title={entry.title} data={data} setData={setData} dataText={dataText} relations={relations} images={entry.images || []} onBusy={setUploading} />
 
           {kind !== "article" && <Panel title="محتوای تکمیلی" description="جزئیات روایی یا فنی برای صفحه کامل."><Field label="محتوای تفصیلی"><textarea value={entry.content || ""} onChange={(e) => setField("content", e.target.value)} className={`${inputClass} min-h-56 resize-y leading-7`} placeholder="جزئیات بیشتر، شیوه نگهداری یا روایت تکمیلی…" /></Field><TagInput label="برچسب‌ها" hint="برای افزودن هر تگ Enter بزنید." value={entry.tags || []} onChange={(tags) => setField("tags", tags)} placeholder="مثلاً طراحی معاصر" /></Panel>}
 
@@ -178,7 +178,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
         </div>
 
         <aside className="space-y-5 lg:col-span-4">
-          <Panel title={kind === "story" ? "ویدیوی عمودی" : "گالری رسانه"} description={kind === "story" ? "یک MP4 عمودی ۹:۱۶ آپلود کنید. فایل پس از ذخیره و انتشار، مستقیم در بخش پایین صفحه محصولات پخش می‌شود." : "چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."}><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : kind === "story" ? "انتخاب ویدیوی عمودی" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">{kind === "story" ? "MP4 / WebM · حداکثر ۵۰۰ مگابایت" : "انتخاب هم‌زمان · حداکثر ۵۰۰ مگابایت برای هر فایل"}</span><input type="file" accept={kind === "story" ? "video/mp4,video/webm" : "image/*,video/*"} multiple={kind !== "story"} onChange={upload} disabled={uploading} className="hidden" /></label>{uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه انتشار غیرفعال است.</p></div> : null}<MediaList images={kind === "story" ? [dataText("video")].filter(Boolean) : entry.images || []} onChange={(media) => kind === "story" ? setData("video", media[0] || "") : setField("images", media)} videoOnly={kind === "story"} /></Panel>
+          <Panel title={kind === "story" ? "ویدیوی عمودی" : "گالری رسانه"} description={kind === "story" ? "یک MP4 عمودی ۹:۱۶ آپلود کنید. فایل پس از ذخیره و انتشار، مستقیم در بخش پایین صفحه محصولات پخش می‌شود." : kind === "material" ? "گالری اضافه. کاور صفحه، عکس محصول و عکس متریال را در فرم کنار مشخص کنید؛ همان‌ها روی سایت نمایش داده می‌شوند." : "چند فایل را هم‌زمان انتخاب کنید؛ مورد اول تصویر اصلی است."}><label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-forest/20 bg-forest/[0.02] px-4 py-8 text-center transition-colors hover:border-forest/35 hover:bg-white"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-peach/35 text-lg text-brick">+</span><span className="mt-3 text-xs font-medium text-forest">{uploading ? `در حال آپلود… ${uploadProgress}٪` : kind === "story" ? "انتخاب ویدیوی عمودی" : "انتخاب چند تصویر یا ویدئو"}</span><span className="mt-1 text-[9px] text-forest/35">{kind === "story" ? "MP4 / WebM · حداکثر ۵۰۰ مگابایت" : "انتخاب هم‌زمان · حداکثر ۵۰۰ مگابایت برای هر فایل"}</span><input type="file" accept={kind === "story" ? "video/mp4,video/webm" : "image/*,video/*"} multiple={kind !== "story"} onChange={upload} disabled={uploading} className="hidden" /></label>{uploading ? <div className="mt-3" role="status" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full rounded-full bg-brick transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-forest/45">{uploadProgress}٪ تکمیل شده؛ تا پایان آپلود دکمه انتشار غیرفعال است.</p></div> : null}<MediaList images={kind === "story" ? [dataText("video")].filter(Boolean) : entry.images || []} onChange={(media) => kind === "story" ? setData("video", media[0] || "") : setField("images", media)} videoOnly={kind === "story"} /></Panel>
 
           {kind === "article" && <Panel title="دسته‌بندی و انتشار"><Field label="نویسنده"><input value={dataText("author")} onChange={(e) => setData("author", e.target.value)} className={inputClass} placeholder="تحریریه چوب و هنر" /></Field><Field label="دسته‌بندی"><select value={dataText("category")} onChange={(e) => setData("category", e.target.value)} className={inputClass}><option value="">انتخاب دسته‌بندی</option>{articleTaxonomy.categories.map((category) => <option key={category} value={category}>{category}</option>)}</select><span className="mt-1 block text-[9px] text-forest/35">دسته‌ها از مقالات ثبت‌شده در دیتابیس خوانده می‌شوند.</span></Field><Field label="زمان مطالعه"><input value={dataText("readingTime")} onChange={(e) => setData("readingTime", e.target.value)} className={inputClass} placeholder="۶ دقیقه" /></Field><TagInput label="برچسب‌ها" value={entry.tags || []} onChange={(tags) => setField("tags", tags)} hint={articleTaxonomy.tags.length ? `برچسب‌های موجود: ${articleTaxonomy.tags.slice(0, 8).join("، ")}` : undefined} /></Panel>}
 
@@ -200,8 +200,59 @@ type MaterialHighlight = { title: string; description: string };
 
 function safeColor(value: string) { return /^#[0-9a-f]{6}$/i.test(value) ? value : "#8b6b52"; }
 
+function MaterialImageSlot({ label, hint, value, onChange, onBusy }: { label: string; hint: string; value: string; onChange: (value: string) => void; onBusy?: (busy: boolean) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function onFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    onBusy?.(true);
+    try {
+      onChange(await uploadMedia(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "آپلود انجام نشد");
+    } finally {
+      setBusy(false);
+      onBusy?.(false);
+    }
+  }
+  return (
+    <div>
+      <span className="mb-1 block text-[11px] font-medium text-forest/60">{label}</span>
+      <p className="mb-3 text-[9px] leading-5 text-forest/35">{hint}</p>
+      <div className="flex items-center gap-4">
+        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-forest/10 bg-[#ebe5dc]">
+          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px] text-forest/35">بدون عکس</span>}
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="inline-flex cursor-pointer items-center rounded-xl border border-forest/15 px-3 py-2 text-[11px] text-forest hover:bg-white">
+            {busy ? "در حال آپلود…" : value ? "تعویض عکس" : "آپلود عکس"}
+            <input type="file" accept="image/*" onChange={onFile} disabled={busy} className="hidden" />
+          </label>
+          {value ? <button type="button" onClick={() => onChange("")} className="text-start text-[10px] text-brick">حذف این عکس</button> : null}
+          {error ? <p className="text-[10px] text-brick">{error}</p> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MaterialPreview({ title, image, color, type }: { title: string; image?: string; color: string; type?: string }) {
-  return <div className="relative overflow-hidden rounded-2xl border border-forest/10 bg-[#ebe5dc] p-5 text-forest" style={image ? { backgroundImage: `linear-gradient(90deg, rgba(250,248,245,.96), rgba(250,248,245,.5)), url(${image})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(135deg, ${safeColor(color)}, #f7f3ed)` }}><p className="text-[9px] font-medium tracking-[0.16em] text-forest/45">پیش‌نمایش کارت سایت</p><div className="mt-8 flex items-end justify-between gap-4"><div><p className="text-xs text-forest/55">{type || "کتابخانه متریال"}</p><p className="mt-2 text-xl font-light">{title || "نام متریال"}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-full border border-forest/20 bg-paper/75 text-lg">↙</span></div></div>;
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-forest/10 bg-[#faf8f5] p-4">
+      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-[#ebe5dc]" style={image ? undefined : { background: safeColor(color) }}>
+        {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : null}
+      </div>
+      <div>
+        <p className="text-[9px] font-medium tracking-[0.16em] text-forest/45">پیش‌نمایش قاب مربع</p>
+        <p className="mt-2 text-xs text-forest/55">{type || "کتابخانه متریال"}</p>
+        <p className="mt-1 text-lg font-light text-forest">{title || "نام متریال"}</p>
+      </div>
+    </div>
+  );
 }
 
 function HighlightEditor({ value, onChange }: { value: MaterialHighlight[]; onChange: (value: MaterialHighlight[]) => void }) {
@@ -209,7 +260,7 @@ function HighlightEditor({ value, onChange }: { value: MaterialHighlight[]; onCh
   return <div><span className="mb-2 block text-[11px] font-medium text-forest/60">نکات کلیدی متریال</span><p className="mb-3 text-[9px] leading-5 text-forest/35">حداکثر سه نکته کوتاه در بخش بالای صفحه متریال نمایش داده می‌شود.</p><div className="space-y-2">{rows.map((row, index) => <div key={index} className="rounded-xl border border-forest/10 bg-[#faf8f5] p-3"><div className="grid gap-2 sm:grid-cols-[.8fr_1.2fr_34px]"><input value={row.title} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, title: e.target.value } : item))} className={inputClass} placeholder="مثلاً مقاومت سایشی" /><input value={row.description} onChange={(e) => onChange(rows.map((item, current) => current === index ? { ...item, description: e.target.value } : item))} className={inputClass} placeholder="توضیح کوتاه و کاربردی" /><button type="button" onClick={() => onChange(rows.filter((_, current) => current !== index))} className="rounded-xl border border-forest/10 text-forest/35 hover:text-brick" aria-label="حذف نکته">×</button></div></div>)}</div><button type="button" onClick={() => onChange([...rows, { title: "", description: "" }].slice(0, 3))} disabled={rows.length >= 3} className="mt-2 text-[10px] font-medium text-brick disabled:opacity-35">+ افزودن نکته</button></div>;
 }
 
-function SpecificFields({ kind, title, data, setData, dataText, relations, images = [] }: { kind: CmsKind; title: string; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] }; images?: string[] }) {
+function SpecificFields({ kind, title, data, setData, dataText, relations, images = [], onBusy }: { kind: CmsKind; title: string; data: Record<string, unknown>; setData: (key: string, value: unknown) => void; dataText: (key: string) => string; relations: { materials: CmsEntry[]; collections: CmsEntry[] }; images?: string[]; onBusy?: (busy: boolean) => void }) {
   if (kind === "page") return <Panel title="دادهٔ صفحه" description="ساختار این صفحه از دیتابیس خوانده می‌شود. برای تغییر محتوای ناوبری، برند یا فرم‌ها JSON را ویرایش کنید."><textarea dir="ltr" defaultValue={JSON.stringify(data, null, 2)} onBlur={(event) => { try { const parsed = JSON.parse(event.currentTarget.value); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setData("__replace", parsed); } catch { /* keep the last valid payload */ } }} className={`${inputClass} min-h-[520px] resize-y font-mono text-[11px] leading-6`} spellCheck={false} /><p className="text-[9px] leading-5 text-forest/35">پس از ویرایش، ابتدا JSON را معتبر نگه دارید و سپس ذخیره کنید.</p></Panel>;
   if (kind === "product") {
     const categories = arrayValue(data.categories, data.category);
@@ -247,8 +298,13 @@ function SpecificFields({ kind, title, data, setData, dataText, relations, image
     </>;
   }
   if (kind === "material") return <>
-    <Panel title="هویت و نمایش در سایت" description="این اطلاعات مستقیماً کارت و صفحه عمومی متریال را می‌سازند. تصویر اول گالری، تصویر کارت و هدر صفحه خواهد بود.">
-      <MaterialPreview title={title} image={images[0]} color={dataText("colorHex")} type={arrayValue(data.materialTypes, data.materialType)[0]} />
+    <Panel title="تصاویر صفحه متریال" description="هر کدام جدا روی سایت می‌نشیند. بعد از آپلود، انتشار را بزنید تا در صفحه عمومی دیده شود.">
+      <MaterialImageSlot label="کاور صفحه" hint="عکس کاتالوگ بالای صفحه این متریال. اندازه قاب در سایت ثابت است." value={dataText("coverImage")} onChange={(value) => setData("coverImage", value)} onBusy={onBusy} />
+      <MaterialImageSlot label="عکس محصول" hint="فقط همین عکس در کارت مربع فهرست متریال‌ها نمایش داده می‌شود." value={dataText("applicationImage")} onChange={(value) => setData("applicationImage", value)} onBusy={onBusy} />
+      <MaterialImageSlot label="عکس متریال" hint="در نمونه‌های هم‌خانواده و کارت نمونه فیزیکی، داخل قاب مربع." value={dataText("image")} onChange={(value) => setData("image", value)} onBusy={onBusy} />
+    </Panel>
+    <Panel title="هویت و نمایش در سایت" description="عنوان، کد، رنگ و دسته‌بندی همین صفحه. متن‌ها و برچسب‌ها مستقیم روی سایت منتشر می‌شوند.">
+      <MaterialPreview title={title} image={dataText("image") || dataText("coverImage") || images[0]} color={dataText("colorHex")} type={arrayValue(data.materialTypes, data.materialType)[0]} />
       <div className="grid gap-4 sm:grid-cols-2"><Field label="کد متریال"><input value={dataText("code")} onChange={(e) => setData("code", e.target.value)} className={inputClass} dir="ltr" placeholder="MAT-WD-01" /></Field><Field label="واحد اندازه‌گیری"><input value={dataText("unit")} onChange={(e) => setData("unit", e.target.value)} className={inputClass} placeholder="متر مربع، کیلوگرم، عدد" /></Field><Field label="عنوان بالای کارت و صفحه" hint="اگر خالی باشد، نوع متریال نمایش داده می‌شود."><input value={dataText("eyebrow")} onChange={(e) => setData("eyebrow", e.target.value)} className={inputClass} placeholder="چوب طبیعی / سطح و رگه" /></Field><Field label="رنگ شاخص کارت"><div className="flex gap-2"><input type="color" value={safeColor(dataText("colorHex"))} onChange={(e) => setData("colorHex", e.target.value)} className="h-11 w-12 cursor-pointer rounded-xl border border-forest/10 bg-[#faf8f5] p-1" /><input value={dataText("colorHex")} onChange={(e) => setData("colorHex", e.target.value)} className={inputClass} dir="ltr" placeholder="#8B6B52" /></div></Field></div>
       <TagInput label="انواع متریال" value={arrayValue(data.materialTypes, data.materialType)} onChange={(values) => { setData("materialTypes", values); setData("materialType", values[0] || ""); }} placeholder="مثلاً چوب طبیعی" hint="اولین مورد برای دسته‌بندی کارت در فهرست استفاده می‌شود." />
       <TagInput label="رنگ‌ها" value={arrayValue(data.colors, data.color)} onChange={(values) => { setData("colors", values); setData("color", values[0] || ""); }} placeholder="مثلاً قهوه‌ای گرم" />

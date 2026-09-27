@@ -10,6 +10,7 @@ import {
   type PublicCmsEntry,
 } from "@/lib/public-cms";
 import { fetchMaterialSwatches, type MaterialSwatch } from "@/lib/storefront-products";
+import type { ShopProduct } from "@/data/products";
 
 const FAMILY_IDS = new Set(["wood", "fabric", "veneer", "metal"]);
 
@@ -149,7 +150,10 @@ export function commerceItemFromSwatch(swatch: MaterialSwatch): MaterialCommerce
       `پرداخت ${swatch.name} از متریال‌هایی است که روی محصولات خانه چوب و هنر استفاده شده است.`,
     color: swatch.hex || "#8B6B52",
     accent: swatch.hex || "#C4A882",
-    applicationImage: swatch.image || "/images/aknoon-16.jpg",
+    materialImage: swatch.image || "",
+    applicationImage: swatch.applicationImage || swatch.image || "/images/aknoon-16.jpg",
+    coverImage: swatch.coverImage || "",
+    aliases: swatch.aliases || [],
     priceLabel: "قابل انتخاب روی محصول",
     unit: "پرداخت چوب",
     commerceMode: "sample",
@@ -216,4 +220,31 @@ export async function fetchPublicMaterialFamilies(): Promise<PublicMaterial[]> {
 export async function fetchPublicMaterial(slug: string): Promise<PublicMaterial | null> {
   const entry = await fetchPublicCmsEntry("material", slug);
   return entry ? normalizePublicMaterial(entry) : fallbackMaterial(slug);
+}
+
+function foldMaterialKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[آأإ]/g, "ا")
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[\s‌ـ\-_/]+/g, "");
+}
+
+export function materialIdentityKeys(item: Pick<MaterialCommerceItem, "name" | "slug" | "code" | "aliases">) {
+  return [...new Set([item.name, item.slug, item.code, ...(item.aliases || [])].map(foldMaterialKey).filter(Boolean))];
+}
+
+export function productUsesMaterial(product: ShopProduct, item: Pick<MaterialCommerceItem, "name" | "slug" | "code" | "aliases">) {
+  const keys = new Set(materialIdentityKeys(item));
+  const values = [
+    ...(product.finishes || []),
+    ...(product.attributes || []).flatMap((attribute) => {
+      if (!/چوب|wood|پرداخت|فینیش|finish/i.test(attribute.name) || /سر\s*تخت|هدبورد|headboard|پایه/i.test(attribute.name)) return [];
+      return attribute.terms?.map((term) => term.name) || [];
+    }),
+    ...(product.materialImageMappings || []).map((mapping) => mapping.value),
+  ];
+  return values.some((value) => keys.has(foldMaterialKey(value)));
 }

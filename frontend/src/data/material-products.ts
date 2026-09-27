@@ -10,6 +10,9 @@ export type MaterialCommerceItem = {
   color: string;
   accent: string;
   applicationImage: string;
+  materialImage?: string;
+  coverImage?: string;
+  aliases?: string[];
   priceLabel: string;
   unit: string;
   commerceMode: MaterialCommerceMode;

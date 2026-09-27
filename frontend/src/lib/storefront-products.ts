@@ -148,6 +148,8 @@ export type MaterialSwatch = {
   color: string;
   hex: string;
   image: string;
+  applicationImage?: string;
+  coverImage?: string;
   excerpt: string;
   href: string;
   aliases?: string[];

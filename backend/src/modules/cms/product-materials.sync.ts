@@ -146,7 +146,8 @@ export async function syncProductWoodMaterials(
       colorHex: hex,
       hex,
       image,
-      applicationImage: image,
+      applicationImage: '',
+      coverImage: '',
       aliases,
       sample: true,
       source: 'product-wood',
@@ -155,40 +156,41 @@ export async function syncProductWoodMaterials(
 
     if (current) {
       keepIds.push(String(current._id));
-      const previousSlugs = Array.isArray((current.data as { previousSlugs?: string[] } | undefined)?.previousSlugs)
-        ? [...(current.data as { previousSlugs: string[] }).previousSlugs]
+      const currentData =
+        current.data && typeof current.data === 'object'
+          ? (current.data as Record<string, unknown>)
+          : {};
+      const previousSlugs = Array.isArray(currentData.previousSlugs)
+        ? [...(currentData.previousSlugs as string[])]
         : [];
       if (current.slug && current.slug !== slug && !previousSlugs.includes(current.slug)) {
         previousSlugs.push(current.slug);
       }
-      await entryModel.updateOne(
-        { _id: current._id },
-        {
-          $set: {
-            slug,
-            status: 'published',
-            title: current.title || title,
-            'data.previousSlugs': previousSlugs,
-            excerpt: current.excerpt || `پرداخت چوب ${title}`,
-            'data.code': nextData.code,
-            'data.family': 'wood',
-            'data.categoryId': 'wood',
-            'data.materialType': 'چوب',
-            'data.materialTypes': ['چوب', 'پرداخت'],
-            'data.color': title,
-            'data.colorHex': hex,
-            'data.hex': hex,
-            'data.image': image || (current.data as { image?: string } | undefined)?.image || '',
-            'data.applicationImage':
-              image || (current.data as { applicationImage?: string } | undefined)?.applicationImage || '',
-            'data.aliases': aliases,
-            'data.sample': true,
-            'data.source': 'product-wood',
-            'data.eyebrow': nextData.eyebrow,
-            ...(image ? { images: [image] } : {}),
-          },
-        },
-      );
+      const keptImage = String(currentData.image || '').trim();
+      const keptApplication = String(currentData.applicationImage || '').trim();
+      const patch: Record<string, unknown> = {
+        slug,
+        status: 'published',
+        title: current.title || title,
+        'data.previousSlugs': previousSlugs,
+        excerpt: current.excerpt || `پرداخت چوب ${title}`,
+        'data.code': nextData.code,
+        'data.family': 'wood',
+        'data.categoryId': 'wood',
+        'data.materialType': 'چوب',
+        'data.materialTypes': ['چوب', 'پرداخت'],
+        'data.color': title,
+        'data.colorHex': hex,
+        'data.hex': hex,
+        'data.image': keptImage || image,
+        'data.applicationImage': keptApplication,
+        'data.aliases': aliases,
+        'data.sample': true,
+        'data.source': 'product-wood',
+        'data.eyebrow': nextData.eyebrow,
+      };
+      if (!current.images?.length && image) patch.images = [image];
+      await entryModel.updateOne({ _id: current._id }, { $set: patch });
     } else {
       const created = await entryModel.create({
         kind: 'material',
@@ -204,6 +206,12 @@ export async function syncProductWoodMaterials(
       } as Partial<CmsEntry>);
       keepIds.push(String(created._id));
       existing.push(created.toObject() as typeof existing[number]);
+    }
+  }
+
+  for (const entry of existing) {
+    if (['wood', 'fabric', 'veneer', 'metal'].includes(entry.slug)) {
+      keepIds.push(String(entry._id));
     }
   }
 
