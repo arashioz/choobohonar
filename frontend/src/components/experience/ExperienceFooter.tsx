@@ -119,14 +119,14 @@ export default function ExperienceFooter() {
           </dl>
         </div>
 
-        <div className="bg-paper px-6 py-8 text-forest md:px-8">
+        <div className="bg-peach px-5 py-8 text-forest sm:px-8 [&_input]:min-h-12 [&_input]:text-base [&_select]:min-h-12 [&_select]:text-base [&_textarea]:text-base [&_button.bg-forest>span[aria-hidden]]:!bg-paper">
           <p className="eyebrow text-brick">فرم ثبت اطلاعات</p>
           <h2 className="mt-3 text-3xl font-light tracking-tightest">
             {kind === "cooperation" ? "درخواست همکاری" : "ثبت اطلاعات"}
           </h2>
           <label className="mt-8 flex flex-col text-sm text-forest/70">
             نوع درخواست
-            <select value={kind} onChange={(e) => onKind(e.target.value)} className={fieldClass(false)}>
+            <select value={kind} onChange={(e) => onKind(e.target.value)} className={cn(fieldClass(false), "min-h-12 text-base")}>
               <option value="">انتخاب کنید</option>
               <option value="info">ثبت اطلاعات</option>
               <option value="cooperation">درخواست همکاری</option>
@@ -147,22 +147,22 @@ export default function ExperienceFooter() {
             <form onSubmit={onSubmitInfo} noValidate className="mt-6 grid gap-5">
               <label className="flex flex-col text-sm text-forest/70">
                 نام و نام خانوادگی
-                <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass(Boolean(errors.name))} />
+                <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" className={cn(fieldClass(Boolean(errors.name)), "min-h-12 text-base")} />
                 {errors.name ? <span className="mt-1 text-xs text-brick">{errors.name}</span> : null}
               </label>
               <label className="flex flex-col text-sm text-forest/70">
                 شماره تماس
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" className={cn(fieldClass(Boolean(errors.phone)), "text-right")} />
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" autoComplete="tel" className={cn(fieldClass(Boolean(errors.phone)), "min-h-12 text-right text-base")} />
                 {errors.phone ? <span className="mt-1 text-xs text-brick">{errors.phone}</span> : null}
               </label>
               <label className="flex flex-col text-sm text-forest/70">
                 توضیحات
-                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className={fieldClass(false)} />
+                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className={cn(fieldClass(false), "text-base")} />
               </label>
               <button
                 type="submit"
                 disabled={!FORM_ENABLED || submitting}
-                className="mt-2 inline-flex w-fit rounded-full bg-forest px-6 py-3 text-xs tracking-[0.18em] text-paper disabled:opacity-50"
+                className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-forest px-6 py-3 text-sm tracking-[0.14em] text-paper active:opacity-80 disabled:opacity-50 sm:w-fit"
               >
                 {submitting ? "در حال ارسال…" : "ارسال درخواست"}
               </button>

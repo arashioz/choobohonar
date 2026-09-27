@@ -49,11 +49,11 @@ const laterCatalogs = [
     alt: "جلد کاتالوگ فرش",
   },
   {
-    title: "پارچه",
+    title: "منسوجات",
     edition: "TEXTILE",
     image: "/experience/catalogs/textile-cover.jpg",
     file: "/experience/catalogs/textile.pdf",
-    alt: "جلد کاتالوگ پارچه",
+    alt: "جلد کاتالوگ منسوجات",
   },
   {
     title: "کالای خواب",
@@ -61,6 +61,14 @@ const laterCatalogs = [
     image: "/experience/catalogs/mattress-cover.jpg",
     file: "/experience/catalogs/mattress.pdf",
     alt: "ست کالای خواب خانه چوب و هنر",
+    frame: "object-center",
+  },
+  {
+    title: "نشیمن و غذاخوری",
+    edition: "LIVING",
+    image: "/experience/catalogs/living-cover.jpg",
+    file: "/experience/catalogs/living.pdf",
+    alt: "کاتالوگ نشیمن و غذاخوری خانه چوب و هنر",
     frame: "object-center",
   },
 ];
@@ -77,7 +85,30 @@ export default async function ExperiencePage() {
 
       <CatalogPair catalogs={catalogs} kicker="کاتالوگ" title="سه برگ از مجموعه" />
 
-      <CatalogPair catalogs={laterCatalogs} kicker="ادامه مجموعه" title="سه برگ دیگر" tone="paper" />
+      <CatalogPair
+        catalogs={laterCatalogs}
+        kicker="ادامه مجموعه"
+        title="از فرش تا نشیمن"
+        tone="paper"
+        aside={
+          <div className="flex h-full flex-col justify-between gap-8 border border-forest/10 bg-forest/[0.03] px-5 py-8 sm:px-8 md:px-10 md:py-12">
+            <div>
+              <p className="eyebrow text-brick">چوب و هنر</p>
+              <h3 className="mt-5 max-w-md text-balance text-[clamp(1.7rem,3vw,2.6rem)] font-extralight leading-[1.2] tracking-tightest">
+                هر برگ، گوشه‌ای از خانه
+              </h3>
+            </div>
+            <div className="max-w-xl">
+              <p className="text-pretty text-base leading-8 text-forest/72">
+                فرش، منسوجات، کالای خواب و نشیمن و غذاخوری را می‌توانید همین‌جا دانلود کنید و بعد از نمایشگاه همراه داشته باشید.
+              </p>
+              <p className="mt-5 text-pretty text-base leading-8 text-forest/72">
+                خانه چوب و هنر از پیوند صنعتگری و تجربهٔ زیستن در خانه شکل گرفته است. بیش از پنج دهه، این مسیر با آرامش ادامه داشته؛ از کارگاه تا کنجی که در آن زندگی می‌کنید.
+              </p>
+            </div>
+          </div>
+        }
+      />
 
       <section className="bg-paper py-16 md:py-24">
         <Container>

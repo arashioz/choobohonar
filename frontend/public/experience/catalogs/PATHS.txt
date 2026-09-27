@@ -13,4 +13,6 @@
 /experience/catalogs/textile.pdf
 /experience/catalogs/mattress-cover.jpg
 /experience/catalogs/mattress.pdf
+/experience/catalogs/living-cover.jpg
+/experience/catalogs/living.pdf
 /experience/banners/plp-03.jpg

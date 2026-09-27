@@ -44,9 +44,9 @@ export default function ExperienceAbout() {
       </Container>
 
       <div className="border-t border-forest/10 bg-[#f4efe8]">
-        <Container className="grid gap-10 py-16 md:grid-cols-12 md:py-24">
-          <h3 className="text-balance text-[clamp(2rem,4vw,3.25rem)] font-extralight leading-none tracking-tightest md:col-span-4">
-            {aboutPage.factory.title}
+        <Container className="grid gap-8 py-14 md:grid-cols-12 md:gap-10 md:py-24">
+          <h3 className="text-balance text-[clamp(1.85rem,6.4vw,3.25rem)] font-extralight leading-[1.18] tracking-tightest md:col-span-4">
+            خانه این‌جا شکل می‌گیرد
           </h3>
           <div className="md:col-span-8">
             <p className="max-w-2xl text-pretty text-base leading-8 text-forest/70">{aboutPage.factory.body}</p>
