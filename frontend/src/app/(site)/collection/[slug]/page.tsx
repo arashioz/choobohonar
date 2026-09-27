@@ -96,7 +96,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                       <h3 className="text-xl font-light tracking-tight text-forest">{product.name}</h3>
                       <span className="text-sm text-forest/65">{product.category}</span>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
+                    <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
                   </Link>
               </FadeUp>
             ))}
@@ -158,7 +158,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                     <h3 className="text-xl font-light tracking-tight text-forest">{product.name}</h3>
                     <span className="text-sm text-forest/65">{product.category}</span>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
+                  <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-forest/60">{product.shortDescription}</p>
                 </Link>
             </FadeUp>
           ))}

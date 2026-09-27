@@ -44,7 +44,7 @@ export default function RelatedProducts({ products }: { products: AnyProduct[] }
                   <h3 className="text-lg font-light tracking-tight text-forest">{p.name}</h3>
                   <span className="text-sm text-forest/65">{p.category}</span>
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-forest/60">{p.shortDescription}</p>
+                <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-forest/60">{p.shortDescription}</p>
               </Link>
             </FadeUp>
           ))}

@@ -187,7 +187,7 @@ export default function ProductsCatalogPage() {
                       <h2 className="text-xl font-light tracking-tight text-forest">{p.name}</h2>
                       <span className="text-sm text-forest/65">{p.category}</span>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-forest/60">{p.shortDescription}</p>
+                    <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-forest/60">{p.shortDescription}</p>
                     <span className="mt-4 inline-flex items-center gap-2 text-sm text-brick transition-colors group-hover:text-forest">
                       معرفی محصول
                       <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-1">←</span>
