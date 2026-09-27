@@ -86,14 +86,14 @@ export default async function MaterialsPage() {
                   href={`/materials/${material.id}`}
                   className="group relative min-h-[31rem] overflow-hidden bg-paper p-7 md:p-9 lg:min-h-[37rem] lg:p-12"
                 >
-                  {material.image ? (
+                  {first?.applicationImage ? (
                     <>
                       <Image
-                        src={material.image}
+                        src={first.applicationImage}
                         alt=""
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        unoptimized={isUploadedMedia(material.image)}
+                        unoptimized={isUploadedMedia(first.applicationImage)}
                         className="object-cover opacity-20 transition-opacity duration-700 group-hover:opacity-35"
                       />
                       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(250,248,245,0.05),rgba(250,248,245,0.9)_76%)]" />

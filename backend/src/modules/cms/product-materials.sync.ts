@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import type { Model } from 'mongoose';
 import type { CmsEntry, CmsEntryDocument } from './schemas/cms-entry.schema';
@@ -19,6 +19,31 @@ export function normalizeMaterialName(value: string) {
     .replace(/ي/g, 'ی')
     .replace(/ك/g, 'ک')
     .replace(/[\s‌ـ\-_/]+/g, '');
+}
+
+export const MATERIAL_PLACEHOLDER_URL = '/uploads/material-placeholder.png';
+
+/** A material photo the admin uploaded. Product-catalog files and /images paths are not. */
+export function isAdminMaterialImage(value: string) {
+  const url = value.trim();
+  return url.startsWith('/uploads/') && !url.startsWith('/uploads/products/');
+}
+
+export function materialImageOrPlaceholder(value: string) {
+  return isAdminMaterialImage(value) ? value.trim() : MATERIAL_PLACEHOLDER_URL;
+}
+
+/** Copy the committed swatch into the uploads volume so nginx and the admin can serve it. */
+export function ensureMaterialPlaceholder() {
+  const destDir = join(process.cwd(), 'uploads');
+  const dest = join(destDir, 'material-placeholder.png');
+  const source = join(
+    process.cwd(),
+    'src/modules/cms/data/material-placeholder.png',
+  );
+  mkdirSync(destDir, { recursive: true });
+  if (!existsSync(dest)) copyFileSync(source, dest);
+  return MATERIAL_PLACEHOLDER_URL;
 }
 
 export function isProductWoodAttribute(name: string) {
@@ -183,6 +208,7 @@ export async function syncProductWoodMaterials(
   _products: { attributes?: { name?: string; values?: string[] }[] }[],
 ) {
   const assets = loadWoodAssets();
+  ensureMaterialPlaceholder();
   const removed = await loadMaterialRemovals(entryModel);
   await deleteRemovedMaterials(entryModel, removed);
   const existing = await entryModel
@@ -230,9 +256,9 @@ export async function syncProductWoodMaterials(
       colors: [title],
       colorHex: hex,
       hex,
-      image: '',
-      applicationImage: '',
-      coverImage: '',
+      image: MATERIAL_PLACEHOLDER_URL,
+      applicationImage: MATERIAL_PLACEHOLDER_URL,
+      coverImage: MATERIAL_PLACEHOLDER_URL,
       aliases,
       sample: true,
       source: 'product-wood',
@@ -251,9 +277,14 @@ export async function syncProductWoodMaterials(
       if (current.slug && current.slug !== slug && !previousSlugs.includes(current.slug)) {
         previousSlugs.push(current.slug);
       }
-      const keptImage = String(currentData.image || '').trim();
-      const keptApplication = String(currentData.applicationImage || '').trim();
-      const keptCover = String(currentData.coverImage || '').trim();
+      const keptImage = materialImageOrPlaceholder(String(currentData.image || ''));
+      const keptApplication = materialImageOrPlaceholder(
+        String(currentData.applicationImage || ''),
+      );
+      const keptCover = materialImageOrPlaceholder(String(currentData.coverImage || ''));
+      const gallery = (current.images || [])
+        .map((item) => String(item || '').trim())
+        .filter(isAdminMaterialImage);
       const patch: Record<string, unknown> = {
         slug,
         status: 'published',
@@ -275,6 +306,7 @@ export async function syncProductWoodMaterials(
         'data.sample': true,
         'data.source': 'product-wood',
         'data.eyebrow': nextData.eyebrow,
+        images: gallery,
       };
       await entryModel.updateOne({ _id: current._id }, { $set: patch });
     } else {

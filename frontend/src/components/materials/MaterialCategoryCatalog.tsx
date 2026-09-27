@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import FadeUp from "@/components/motion/FadeUp";
 import type { MaterialCommerceItem, MaterialCommerceMode } from "@/data/material-products";
+import { adminMaterialPhoto } from "@/lib/material-photo";
 import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
 
@@ -81,11 +82,11 @@ export default function MaterialCategoryCatalog({
                 <Link href={`/materials/${item.categoryId}/${item.slug}`} className="group block focus-visible:outline-none">
                   <div className="relative aspect-square overflow-hidden bg-forest/5">
                     <Image
-                      src={item.applicationImage}
+                      src={adminMaterialPhoto(item.applicationImage)}
                       alt={item.name}
                       fill
                       sizes="(max-width: 640px) 100vw, 33vw"
-                      unoptimized={isUploadedMedia(item.applicationImage) || item.applicationImage.startsWith("/images/materials/")}
+                      unoptimized={isUploadedMedia(adminMaterialPhoto(item.applicationImage))}
                       className="media-hover object-cover"
                     />
                     {item.code ? (

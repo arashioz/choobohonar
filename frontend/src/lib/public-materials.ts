@@ -1,9 +1,6 @@
 import { getMaterial, LAUNCHED_MATERIAL_FAMILIES, materials } from "@/data/materials";
-import {
-  getMaterialCommerceItem,
-  getMaterialCommerceItems,
-  type MaterialCommerceItem,
-} from "@/data/material-products";
+import { type MaterialCommerceItem } from "@/data/material-products";
+import { adminMaterialPhoto } from "@/lib/material-photo";
 import {
   fetchPublicCmsEntries,
   fetchPublicCmsEntry,
@@ -150,9 +147,9 @@ export function commerceItemFromSwatch(swatch: MaterialSwatch): MaterialCommerce
       `پرداخت ${swatch.name} از متریال‌هایی است که روی محصولات خانه چوب و هنر استفاده شده است.`,
     color: swatch.hex || "#8B6B52",
     accent: swatch.hex || "#C4A882",
-    materialImage: swatch.image || "",
-    applicationImage: swatch.applicationImage || swatch.image || "/images/aknoon-16.jpg",
-    coverImage: swatch.coverImage || "",
+    materialImage: adminMaterialPhoto(swatch.image),
+    applicationImage: adminMaterialPhoto(swatch.applicationImage, swatch.image),
+    coverImage: adminMaterialPhoto(swatch.coverImage, swatch.applicationImage, swatch.image),
     aliases: swatch.aliases || [],
     priceLabel: "قابل انتخاب روی محصول",
     unit: "پرداخت چوب",
@@ -173,8 +170,7 @@ export async function fetchMaterialCatalog(family?: string): Promise<MaterialCom
     .filter((item) => !FAMILY_IDS.has(item.slug))
     .filter((item) => !family || item.family === family || !item.family)
     .map(commerceItemFromSwatch);
-  if (items.length) return items;
-  return family ? getMaterialCommerceItems(family) : getMaterialCommerceItems("wood");
+  return items;
 }
 
 export async function fetchMaterialCatalogItem(family: string, slug: string) {
@@ -188,7 +184,7 @@ export async function fetchMaterialCatalogItem(family: string, slug: string) {
         if (!key) return false;
         return key === slug || key === decoded || key.replace(/[\s-]+/g, "").toLowerCase() === compact;
       });
-    }) || getMaterialCommerceItem(family, decoded)
+    }) || null
   );
 }
 

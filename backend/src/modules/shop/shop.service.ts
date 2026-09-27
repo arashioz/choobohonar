@@ -35,8 +35,7 @@ import {
   UpdateShopProductDto,
 } from './dto/shop-product.dto';
 import {
-  isProductWoodAttribute,
-  normalizeMaterialName,
+  materialImageOrPlaceholder,
   syncProductWoodMaterials,
 } from '../cms/product-materials.sync';
 
@@ -295,19 +294,12 @@ export class ShopService implements OnModuleInit {
   }
 
   async listMaterialSwatches() {
-    const [entries, products] = await Promise.all([
-      this.collectionModel
-        .find({ kind: 'material', status: 'published' })
-        .select({ title: 1, slug: 1, images: 1, excerpt: 1, data: 1 })
-        .sort({ title: 1 })
-        .lean()
-        .exec(),
-      this.productModel
-        .find({ status: 'published' })
-        .select({ image: 1, attributes: 1, finishes: 1, materialImageMappings: 1 })
-        .lean()
-        .exec(),
-    ]);
+    const entries = await this.collectionModel
+      .find({ kind: 'material', status: 'published' })
+      .select({ title: 1, slug: 1, images: 1, excerpt: 1, data: 1 })
+      .sort({ title: 1 })
+      .lean()
+      .exec();
     const families = new Set(['wood', 'fabric', 'veneer', 'metal']);
     return entries
       .map((entry) => {
@@ -316,21 +308,21 @@ export class ShopService implements OnModuleInit {
             ? (entry.data as Record<string, unknown>)
             : {};
         const family = String(data.family || data.categoryId || '');
-        const image =
+        const storedImage =
           String(data.image || '') ||
           (Array.isArray(entry.images) ? entry.images.find(Boolean) || '' : '');
+        const image = materialImageOrPlaceholder(storedImage);
         const aliases = Array.isArray(data.aliases)
           ? data.aliases.map((item) => String(item).trim()).filter(Boolean)
           : [];
-        const uploadedApplication = String(data.applicationImage || '').trim();
-        const productPhoto = productPhotoForMaterial(
-          [entry.title, entry.slug, String(data.code || ''), ...aliases],
-          products,
+        const applicationImage = materialImageOrPlaceholder(
+          String(data.applicationImage || '') || storedImage,
         );
-        const applicationImage =
-          uploadedApplication && uploadedApplication !== image
-            ? uploadedApplication
-            : productPhoto || uploadedApplication || image;
+        const coverImage = materialImageOrPlaceholder(
+          String(data.coverImage || '') ||
+            String(data.applicationImage || '') ||
+            storedImage,
+        );
         return {
           slug: entry.slug,
           name: entry.title,
@@ -342,7 +334,7 @@ export class ShopService implements OnModuleInit {
           hex: String(data.colorHex || data.hex || ''),
           image,
           applicationImage,
-          coverImage: String(data.coverImage || '').trim(),
+          coverImage,
           excerpt: entry.excerpt || String(data.shortDescription || ''),
           href: family
             ? `/materials/${family}/${entry.slug}`
@@ -1511,35 +1503,4 @@ export class ShopService implements OnModuleInit {
       .exec();
     return this.serializeCampaignBanner(slug, saved);
   }
-}
-
-type MaterialProductPhoto = {
-  image?: string;
-  attributes?: { name?: string; values?: string[] }[];
-  finishes?: string[];
-  materialImageMappings?: { value?: string; image?: string }[];
-};
-
-function productPhotoForMaterial(keys: string[], products: MaterialProductPhoto[]) {
-  const folded = new Set(keys.map((key) => normalizeMaterialName(key)).filter(Boolean));
-  const uses = (product: MaterialProductPhoto) => {
-    const values = [
-      ...(product.finishes || []),
-      ...(product.attributes || []).flatMap((attribute) =>
-        isProductWoodAttribute(String(attribute.name || ''))
-          ? attribute.values || []
-          : [],
-      ),
-      ...(product.materialImageMappings || []).map((item) => item.value || ''),
-    ];
-    return values.some((value) => folded.has(normalizeMaterialName(value)));
-  };
-  for (const product of products) {
-    if (!uses(product)) continue;
-    const mapped = (product.materialImageMappings || []).find(
-      (item) => item.image && folded.has(normalizeMaterialName(item.value || '')),
-    );
-    if (mapped?.image) return mapped.image;
-  }
-  return products.find((product) => uses(product) && product.image)?.image || '';
 }

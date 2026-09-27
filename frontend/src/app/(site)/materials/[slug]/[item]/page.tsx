@@ -6,6 +6,7 @@ import Container from "@/components/layout/Container";
 import CommerceProductCard from "@/components/commerce/CommerceProductCard";
 import FadeUp from "@/components/motion/FadeUp";
 import { DEFAULT_MATERIALS_HREF, getMaterial } from "@/data/materials";
+import { adminMaterialPhoto } from "@/lib/material-photo";
 import { fetchMaterialCatalog, fetchMaterialCatalogItem, productUsesMaterial } from "@/lib/public-materials";
 import { isUploadedMedia } from "@/lib/media";
 import { safelyDecodeSlug } from "@/lib/public-cms";
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${item.name} | خانه چوب و هنر`,
       description: item.description,
-      images: [item.coverImage || item.applicationImage],
+      images: [item.coverImage || item.applicationImage || item.materialImage || ""],
       locale: "fa_IR",
     },
   };
@@ -52,8 +53,8 @@ export default async function MaterialProductPage({ params }: PageProps) {
   const relatedProducts = storefront
     .filter((product) => product.image && productUsesMaterial(product, item))
     .slice(0, 6);
-  const materialPhoto = item.materialImage || item.applicationImage;
-  const coverPhoto = item.coverImage || item.applicationImage || materialPhoto;
+  const materialPhoto = adminMaterialPhoto(item.materialImage);
+  const coverPhoto = adminMaterialPhoto(item.coverImage, item.applicationImage, item.materialImage);
 
   const actionLabel =
     item.commerceMode === "direct"
@@ -71,7 +72,7 @@ export default async function MaterialProductPage({ params }: PageProps) {
           fill
           priority
           sizes="100vw"
-          unoptimized={isUploadedMedia(coverPhoto) || coverPhoto.startsWith("/images/materials/")}
+          unoptimized={isUploadedMedia(coverPhoto)}
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-forest/70 via-forest/15 to-forest/25" />
@@ -148,7 +149,7 @@ export default async function MaterialProductPage({ params }: PageProps) {
                     alt={item.name}
                     fill
                     sizes="24rem"
-                    unoptimized={isUploadedMedia(materialPhoto) || materialPhoto.startsWith("/images/materials/")}
+                    unoptimized={isUploadedMedia(materialPhoto)}
                     className="object-cover"
                   />
                   {item.code ? (
@@ -187,11 +188,11 @@ export default async function MaterialProductPage({ params }: PageProps) {
               <Link key={related.slug} href={`/materials/${related.categoryId}/${related.slug}`} className="group block">
                 <div className="relative aspect-square overflow-hidden bg-forest/5">
                   <Image
-                    src={related.materialImage || related.applicationImage}
+                    src={adminMaterialPhoto(related.materialImage, related.applicationImage)}
                     alt={related.name}
                     fill
                     sizes="(max-width: 640px) 100vw, 33vw"
-                    unoptimized={isUploadedMedia(related.materialImage || related.applicationImage) || (related.materialImage || related.applicationImage).startsWith("/images/materials/")}
+                    unoptimized={isUploadedMedia(adminMaterialPhoto(related.materialImage, related.applicationImage))}
                     className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   />
                   {related.code ? (

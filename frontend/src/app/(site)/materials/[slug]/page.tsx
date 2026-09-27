@@ -30,7 +30,7 @@ export default async function MaterialCategoryPage({ params }: PageProps) {
   const material = await fetchPublicMaterial(slug);
   if (!material) notFound();
   const items = await fetchMaterialCatalog(material.id);
-  const heroImage = items[0]?.applicationImage || material.image;
+  const heroImage = items[0]?.coverImage || items[0]?.applicationImage || "";
   const details = [
     { label: "نوع", values: material.materialTypes },
     { label: "رنگ", values: material.colors },
