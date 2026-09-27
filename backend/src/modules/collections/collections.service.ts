@@ -15,6 +15,10 @@ import {
   ShopProductDocument,
 } from '../shop/schemas/shop-product.schema';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
+import {
+  readCmsCover,
+  resolveCollectionCover,
+} from './collection-cover';
 
 const statuses: CollectionStatus[] = ['draft', 'published', 'archived'];
 
@@ -84,10 +88,12 @@ export class CollectionsService {
         .exec();
       if (item) {
         const products = await this.getProductsForCollection(item);
-        const image = this.resolveCover(
-          item as unknown as Record<string, unknown>,
-          products,
-        );
+        const image = resolveCollectionCover({
+          coverMode: item.coverMode,
+          image: item.image,
+          cmsCover: await this.cmsCoverFor(item),
+          productImage: products[0]?.image,
+        });
         return { ...item, image, products };
       }
 
@@ -227,9 +233,8 @@ export class CollectionsService {
       ),
     );
 
-    // CMS is normally the source used by «مدیریت آثار». A deliberately chosen
-    // standalone custom cover is the one exception: it must win so the image
-    // selected in the Collections admin is visible on the storefront too.
+    // A cover chosen in «کالکشن‌ها» wins over the first product photo. A
+    // standalone custom cover is the fallback when that admin cover is empty.
     const result = new Map<string, Record<string, unknown>>();
     const seenSeries = new Set<string>();
     const addUnique = (collection: Record<string, unknown>) => {
@@ -242,13 +247,16 @@ export class CollectionsService {
       result.set(slug, collection);
       if (seriesKey) seenSeries.add(seriesKey);
     };
+    for (const collection of cmsWithProducts) {
+      if (collection.adminCover) addUnique(collection);
+    }
     for (const collection of withProducts) {
       if (collection.coverMode === 'custom' && collection.image)
         addUnique(collection);
     }
     for (const collection of cmsWithProducts) addUnique(collection);
     for (const collection of withProducts) addUnique(collection);
-    return [...result.values()];
+    return [...result.values()].map(({ adminCover: _adminCover, ...collection }) => collection);
   }
 
   private async toPublicCmsCollection(
@@ -278,8 +286,14 @@ export class CollectionsService {
       ? collection.images.map(String).filter(Boolean)
       : [];
     const productCover = String(products[0]?.image || '');
-    const processedImages = productCover
-      ? [productCover, ...savedImages.filter((image) => image !== productCover)]
+    const adminCover = readCmsCover(collection);
+    const image = resolveCollectionCover({
+      cmsCover: adminCover,
+      productImage: productCover,
+      image: savedImages[0],
+    });
+    const processedImages = image
+      ? [image, ...savedImages.filter((saved) => saved !== image)]
       : savedImages;
 
     return {
@@ -289,7 +303,8 @@ export class CollectionsService {
       status: String(collection.status || 'draft'),
       excerpt: String(collection.excerpt || ''),
       description: String(collection.description || collection.content || ''),
-      image: processedImages[0] || '',
+      image,
+      adminCover: Boolean(adminCover),
       gallery: processedImages,
       series,
       tags: Array.isArray(collection.tags) ? collection.tags.map(String) : [],
@@ -623,13 +638,56 @@ export class CollectionsService {
     return name.replace(/^کالکشن\s+/u, '').trim();
   }
 
+  private async cmsCoverFor(collection: {
+    slug?: string;
+    series?: string;
+    name?: string;
+  }): Promise<string> {
+    const slug = String(collection.slug || '').trim();
+    if (slug) {
+      const bySlug = await this.cmsEntries
+        .findOne({
+          kind: 'collection',
+          slug,
+          status: { $ne: 'archived' },
+        })
+        .select('data')
+        .lean()
+        .exec();
+      const cover = readCmsCover(bySlug);
+      if (cover) return cover;
+    }
+    const series = this.normalizeForMatch(
+      String(collection.series || collection.name || ''),
+    );
+    if (!series) return '';
+    const rows = await this.cmsEntries
+      .find({ kind: 'collection', status: { $ne: 'archived' } })
+      .select('title data')
+      .lean()
+      .exec();
+    const match = rows.find((row) => {
+      const data =
+        row.data && typeof row.data === 'object'
+          ? (row.data as Record<string, unknown>)
+          : {};
+      const candidates = [data.seriesName, data.series, row.title];
+      return candidates.some(
+        (value) => this.normalizeForMatch(String(value || '')) === series,
+      );
+    });
+    return readCmsCover(match);
+  }
+
   private resolveCover(
     collection: Record<string, unknown>,
     products: Record<string, unknown>[],
   ): string {
-    if (collection.coverMode === 'custom' && collection.image)
-      return String(collection.image);
-    return String(products[0]?.image || collection.image || '');
+    return resolveCollectionCover({
+      coverMode: collection.coverMode,
+      image: collection.image,
+      productImage: products[0]?.image,
+    });
   }
 
   private isAutomaticCollection(collection: Record<string, unknown>): boolean {
