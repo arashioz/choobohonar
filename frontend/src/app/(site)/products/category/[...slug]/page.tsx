@@ -13,6 +13,7 @@ import {
   resolveCommerceCategory,
 } from "@/data/commerce";
 import { shopProducts } from "@/data/products";
+import { isUploadedMedia } from "@/lib/media";
 import { toFa } from "@/lib/utils";
 import ProductStoriesSection from "@/components/commerce/ProductStoriesSection";
 import { fetchCampaignBanner } from "@/lib/campaign-banners";
@@ -64,16 +65,26 @@ export default async function ProductCategoryPage({ params }: PageProps) {
       category.root.slug !== "decor" || !/دراور|قاب\s*آینه\s*آلدر/u.test(product.name),
     );
   const activeLabel = category.active?.label ?? category.root.label;
+  const heroImage = campaign?.heroImage || category.root.image;
+  const heroEyebrow = campaign?.heroEyebrow || category.root.eyebrow;
+  const heroTitle = !category.active && campaign?.heroTitle ? campaign.heroTitle : activeLabel;
+  const heroText =
+    !category.active && campaign?.heroText
+      ? campaign.heroText
+      : category.active
+        ? `${category.active.label}؛ بخشی از ${category.root.label} با انتخاب‌هایی برای سبک‌ها و مقیاس‌های متفاوت.`
+        : category.root.story;
 
   return (
     <>
       <section className="relative flex min-h-[76svh] items-end overflow-hidden bg-forest text-paper">
         <Image
-          src={category.root.image}
+          src={heroImage}
           alt={activeLabel}
           fill
           priority
           sizes="100vw"
+          unoptimized={isUploadedMedia(heroImage)}
           className="object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,29,19,0.28)_0%,rgba(6,29,19,0.2)_30%,rgba(6,29,19,0.88)_100%)]" />
@@ -97,19 +108,17 @@ export default async function ProductCategoryPage({ params }: PageProps) {
           <div className="grid gap-10 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
               <ClipReveal>
-                <p className="eyebrow text-peach">{category.root.eyebrow}</p>
+                <p className="eyebrow text-peach">{heroEyebrow}</p>
               </ClipReveal>
               <ClipReveal delay={0.06} className="mt-6">
                 <h1 className="text-[clamp(4rem,12vw,10rem)] font-extralight leading-[0.78] tracking-[-0.065em]">
-                  {activeLabel}
+                  {heroTitle}
                 </h1>
               </ClipReveal>
             </div>
             <FadeUp delay={0.12} className="border-r border-paper/25 pr-5">
               <p className="text-lg leading-8 text-paper/75">
-                {category.active
-                  ? `${category.active.label}؛ بخشی از ${category.root.label} با انتخاب‌هایی برای سبک‌ها و مقیاس‌های متفاوت.`
-                  : category.root.story}
+                {heroText}
               </p>
               <p className="mt-5 text-xs tracking-[0.2em] text-peach">{toFa(products.length)} PRODUCT</p>
             </FadeUp>

@@ -19,8 +19,12 @@ import { presentShopProduct } from './variant-playbook';
 import {
   ShopCampaignBanner,
   ShopCampaignBannerDocument,
-  STOREFRONT_CAMPAIGN_SLOTS,
 } from './schemas/shop-campaign-banner.schema';
+import {
+  STOREFRONT_CAMPAIGN_SLOTS,
+  campaignBannerUpdate,
+  serializeCampaignBanner as toCampaignBanner,
+} from './campaign-banner';
 import { CmsEntry, CmsEntryDocument } from '../cms/schemas/cms-entry.schema';
 import {
   Collection,
@@ -1419,17 +1423,18 @@ export class ShopService implements OnModuleInit {
 
   serializeCampaignBanner(
     slug: string,
-    item?: { title?: string; subtitle?: string; image?: string } | null,
+    item?: {
+      title?: string;
+      subtitle?: string;
+      image?: string;
+      cardImage?: string;
+      heroImage?: string;
+      heroEyebrow?: string;
+      heroTitle?: string;
+      heroText?: string;
+    } | null,
   ) {
-    const slot = STOREFRONT_CAMPAIGN_SLOTS.find((entry) => entry.slug === slug);
-    if (!slot) throw new NotFoundException('دسته‌بندی پیدا نشد');
-    return {
-      slug: slot.slug,
-      label: slot.label,
-      title: item?.title?.trim() || slot.title,
-      subtitle: item?.subtitle?.trim() || slot.subtitle,
-      image: item?.image?.trim() || slot.image,
-    };
+    return toCampaignBanner(slug, item);
   }
 
   async listCampaignBanners() {
@@ -1450,24 +1455,28 @@ export class ShopService implements OnModuleInit {
 
   async upsertCampaignBanner(
     slug: string,
-    input: { title?: string; subtitle?: string; image?: string },
+    input: {
+      title?: string;
+      subtitle?: string;
+      image?: string;
+      cardImage?: string;
+      heroImage?: string;
+      heroEyebrow?: string;
+      heroTitle?: string;
+      heroText?: string;
+    },
   ) {
-    const slot = STOREFRONT_CAMPAIGN_SLOTS.find((item) => item.slug === slug);
-    if (!slot) throw new NotFoundException('دسته‌بندی پیدا نشد');
-    return this.campaignBannerModel
+    const next = campaignBannerUpdate(slug, input);
+    const saved = await this.campaignBannerModel
       .findOneAndUpdate(
         { slug },
         {
-          $set: {
-            label: slot.label,
-            title: String(input.title || '').trim(),
-            subtitle: String(input.subtitle || '').trim(),
-            image: String(input.image || '').trim(),
-          },
+          $set: next,
         },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       )
       .lean()
       .exec();
+    return this.serializeCampaignBanner(slug, saved);
   }
 }

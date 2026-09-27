@@ -25,6 +25,7 @@ import {
   MockPayDto,
   UpdateOrderStatusDto,
 } from './dto/shop-order.dto';
+import { UpdateCampaignBannerDto } from './dto/shop-campaign-banner.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('shop')
@@ -83,7 +84,7 @@ export class ShopController {
   @UseGuards(JwtAuthGuard)
   updateCampaignBanner(
     @Param('slug') slug: string,
-    @Body() body: { title?: string; subtitle?: string; image?: string },
+    @Body() body: UpdateCampaignBannerDto,
   ) {
     return this.shopService.upsertCampaignBanner(decodeURIComponent(slug), body);
   }

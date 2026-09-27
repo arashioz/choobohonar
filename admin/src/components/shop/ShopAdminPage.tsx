@@ -19,6 +19,7 @@ import {
   type ShopSuggestionGroup,
 } from "@/lib/shop-api";
 import CampaignBannersPanel from "@/components/shop/CampaignBannersPanel";
+import CategoryPageMediaPanel from "@/components/shop/CategoryPageMediaPanel";
 
 type Tab = "products" | "orders" | "proformas" | "invoices";
 
@@ -119,6 +120,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [bulkStockBusy, setBulkStockBusy] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState("");
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [pageMediaOpen, setPageMediaOpen] = useState(false);
 
   function importPrices(file: File) {
     setImporting(true); setImportProgress(0); setError(""); setMessage("");
@@ -335,7 +337,14 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                 onClick={() => setBannerOpen(true)}
                 className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs text-forest/70"
               >
-                بنر کمپین‌های محصول
+                تصویر دسته‌ها
+              </button>
+              <button
+                type="button"
+                onClick={() => setPageMediaOpen(true)}
+                className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs text-forest/70"
+              >
+                هیرو و بنر
               </button>
               <Link
                 href="/admin/manage/products/new"
@@ -875,6 +884,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
         ) : null}
       </main>
       {bannerOpen ? <CampaignBannersPanel onClose={() => setBannerOpen(false)} /> : null}
+      {pageMediaOpen ? <CategoryPageMediaPanel onClose={() => setPageMediaOpen(false)} /> : null}
     </div>
   );
 }

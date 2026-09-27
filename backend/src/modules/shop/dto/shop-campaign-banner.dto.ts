@@ -12,4 +12,24 @@ export class UpdateCampaignBannerDto {
   @IsOptional()
   @IsString()
   image?: string;
+
+  @IsOptional()
+  @IsString()
+  cardImage?: string;
+
+  @IsOptional()
+  @IsString()
+  heroImage?: string;
+
+  @IsOptional()
+  @IsString()
+  heroEyebrow?: string;
+
+  @IsOptional()
+  @IsString()
+  heroTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  heroText?: string;
 }

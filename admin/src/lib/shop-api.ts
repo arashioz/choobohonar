@@ -255,7 +255,7 @@ export const shopApi = {
 
   campaignBanners: {
     list: () => shopFetch<ShopCampaignBanner[]>("/campaign-banners"),
-    update: (slug: string, body: { title?: string; subtitle?: string; image?: string }) =>
+    update: (slug: string, body: Partial<Pick<ShopCampaignBanner, "title" | "subtitle" | "image" | "cardImage" | "heroImage" | "heroEyebrow" | "heroTitle" | "heroText">>) =>
       shopFetch<ShopCampaignBanner>(`/campaign-banners/${encodeURIComponent(slug)}`, {
         method: "PATCH",
         body: JSON.stringify(body),
@@ -269,6 +269,11 @@ export type ShopCampaignBanner = {
   title: string;
   subtitle: string;
   image: string;
+  cardImage: string;
+  heroImage: string;
+  heroEyebrow: string;
+  heroTitle: string;
+  heroText: string;
 };
 
 export type ShopOrder = {

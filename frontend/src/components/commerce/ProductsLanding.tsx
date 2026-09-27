@@ -10,6 +10,7 @@ import { commerceCategories, getFeaturedCommerceProducts } from "@/data/commerce
 import { fetchStorefrontProducts } from "@/lib/storefront-products";
 import { isUploadedMedia } from "@/lib/media";
 import { fetchProductStories } from "@/lib/product-stories";
+import { fetchCampaignBanners } from "@/lib/campaign-banners";
 
 export default async function ProductsLanding() {
   const backendProducts = await fetchStorefrontProducts();
@@ -18,7 +19,9 @@ export default async function ProductsLanding() {
     if (live.length >= 8) return live.slice(0, 32);
     return getFeaturedCommerceProducts(32, live.length ? live : undefined);
   })();
-  const stories = await fetchProductStories();
+  const [stories, banners] = await Promise.all([fetchProductStories(), fetchCampaignBanners()]);
+  const categoryImage = (slug: string, fallback: string) =>
+    banners.find((banner) => banner.slug === slug)?.cardImage || fallback;
   const heroProduct = featured[0];
 
   return (
@@ -101,10 +104,11 @@ export default async function ProductsLanding() {
               >
                 <div className={index === 0 || index === 5 ? "aspect-[16/8]" : "aspect-[5/4]"}>
                   <Image
-                    src={category.image}
+                    src={categoryImage(category.slug, category.image)}
                     alt={category.label}
                     fill
                     sizes={index === 0 || index === 5 ? "100vw" : "50vw"}
+                    unoptimized={isUploadedMedia(categoryImage(category.slug, category.image))}
                     className="media-hover object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
