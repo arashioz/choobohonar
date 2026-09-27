@@ -302,24 +302,25 @@ export default function CommerceProductDetail({
                       <legend className="text-sm font-medium text-forest">{label}</legend>
                       <div className="mt-3 flex flex-wrap items-center gap-2.5">
                         {attribute.options.map((option) => {
-                          const swatch = matchSwatch(swatches, option.label);
                           const active = selected[attribute.id] === option.id;
                           return (
                             <button
                               key={option.id}
                               type="button"
                               onClick={() => { setSelected((current) => ({ ...current, [attribute.id]: option.id })); setAdded(false); }}
-                              title={option.label}
                               aria-label={`انتخاب ${label} ${option.label}`}
                               aria-pressed={active}
-                              className={swatchButtonClass(active)}
+                              className={cn(
+                                "rounded-full border px-4 py-2 text-xs transition-colors",
+                                active
+                                  ? "border-forest bg-forest text-paper"
+                                  : "border-forest/15 text-forest/65 hover:border-forest/40 hover:text-forest",
+                              )}
                             >
-                              {swatch?.image ? <span className="absolute inset-0" style={materialSwatchFill(swatch.image)} /> : <span className="absolute inset-0" style={{ backgroundColor: swatch?.hex || "#c9b8a3" }} />}
-                              <span className="sr-only">{option.label}</span>
+                              {option.label}
                             </button>
                           );
                         })}
-                        <span className="mr-1 text-xs text-forest/70">{attribute.options.find((item) => item.id === selected[attribute.id])?.label}</span>
                       </div>
                     </fieldset>
                   );
