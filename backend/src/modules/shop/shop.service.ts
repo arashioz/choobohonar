@@ -195,8 +195,8 @@ export class ShopService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Bootstrap the catalog into MongoDB once. Admin-created products are
-    // preserved on subsequent restarts and can then be managed normally.
+    // Bootstrap missing catalog rows once. Restarts must not overwrite
+    // products, prices, or copy edited in the admin.
     await this.seedFromCatalog(false);
     await this.seedCollectionsFromCatalog();
     await this.migrateShopProductModels();
@@ -993,25 +993,35 @@ export class ShopService implements OnModuleInit {
         suggested,
         ...catalogFields
       } = doc;
+      const inserted = {
+        ...catalogFields,
+        slug: doc.slug,
+        image: seedImage,
+        gallery: seedGallery,
+        finishes,
+        featured,
+        suggested,
+      };
+      // A normal boot only fills slugs that do not exist yet. `force` and
+      // `replaceAll` are the explicit admin re-imports that may rewrite rows.
+      const update =
+        force || replaceAll
+          ? {
+              $set: catalogFields,
+              $setOnInsert: {
+                slug: doc.slug,
+                image: seedImage,
+                gallery: seedGallery,
+                finishes,
+                featured,
+                suggested,
+              },
+            }
+          : { $setOnInsert: inserted };
       return {
         updateOne: {
           filter: { slug: doc.slug },
-          // Keep image URLs edited by admin or localized by the media migration.
-          // New catalog rows still receive the complete seed document.
-          // Every other field is already present in `$set`; repeating it in
-          // `$setOnInsert` makes MongoDB reject the operation as a path conflict.
-          // Finishes and featured flags are admin-owned after first insert.
-          update: {
-            $set: catalogFields,
-            $setOnInsert: {
-              slug: doc.slug,
-              image: seedImage,
-              gallery: seedGallery,
-              finishes,
-              featured,
-              suggested,
-            },
-          },
+          update,
           upsert: true,
         },
       };
@@ -1142,12 +1152,12 @@ export class ShopService implements OnModuleInit {
               description: '',
               tags: [group.name],
               publishedAt: new Date(),
-            },
-            $set: {
-              status: 'published',
               title: `کالکشن ${group.name}`,
               excerpt: `${productSlugs.length} محصول از سری ${group.name}`,
               ...(firstImage ? { images: [firstImage] } : {}),
+            },
+            $set: {
+              status: 'published',
               'data.productSlugs': productSlugs,
               'data.productIds': productSlugs,
               'data.productCount': productSlugs.length,
@@ -1329,7 +1339,7 @@ export class ShopService implements OnModuleInit {
     const ops = rows.map((row) => ({
       updateOne: {
         filter: { slug: row.slug },
-        update: { $set: row },
+        update: replaceAll ? { $set: row } : { $setOnInsert: row },
         upsert: true,
       },
     }));
