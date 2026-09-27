@@ -3,13 +3,12 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import ClipReveal from "@/components/motion/ClipReveal";
 import CatalogPair from "@/components/experience/CatalogPair";
+import ExperienceAbout from "@/components/experience/ExperienceAbout";
 import ExperienceCover from "@/components/experience/ExperienceCover";
-import InterludeSection from "@/components/sections/InterludeSection";
-import SeasonalProductRails from "@/components/commerce/SeasonalProductRails";
+import ExperienceProjects from "@/components/experience/ExperienceProjects";
 import ExperienceStoreCycle from "@/components/experience/ExperienceStoreCycle";
-import ExperienceStories from "@/components/experience/ExperienceStories";
-import { shopProducts } from "@/data/products";
 import { stores } from "@/data/stores";
+import { fetchPublicProjects } from "@/lib/public-projects";
 
 export const metadata: Metadata = {
   title: "نهمین نمایشگاه معماری تهران | خانه چوب و هنر",
@@ -61,22 +60,20 @@ const laterCatalogs = [
     edition: "MATTRESS",
     image: "/experience/catalogs/mattress-cover.jpg",
     file: "/experience/catalogs/mattress.pdf",
-    alt: "برگ کاتالوگ تشک",
+    alt: "ست کالای خواب خانه چوب و هنر",
+    frame: "object-center",
   },
 ];
 
-export default function ExperiencePage() {
-  const featured = shopProducts.filter(
-    (product) => product.image && (product.room === "decor" || product.room === "lighting"),
-  );
+export default async function ExperiencePage() {
+  const projects = await fetchPublicProjects();
   const branches = stores.filter((store) => store.kind === "branch");
   const agencies = stores.filter((store) => store.kind === "agency");
 
   return (
     <>
       <ExperienceCover />
-      <InterludeSection />
-      <ExperienceStories />
+      <ExperienceAbout />
 
       <CatalogPair catalogs={catalogs} kicker="کاتالوگ" title="سه برگ از مجموعه" />
 
@@ -111,23 +108,7 @@ export default function ExperiencePage() {
         </ClipReveal>
       </section>
 
-      <section className="bg-[#e8ded2] py-16 md:py-24">
-        <Container>
-          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-            <div>
-              <p className="eyebrow text-brick">در نمایشگاه</p>
-              <h2 className="mt-5 text-[clamp(2.4rem,4.5vw,4.2rem)] font-extralight leading-none tracking-tightest text-forest">
-                از نزدیک
-              </h2>
-            </div>
-            <Link href="/products" className="group inline-flex items-center gap-3 text-sm text-forest">
-              مشاهده همه محصولات
-              <span className="transition-transform duration-300 group-hover:-translate-x-1">←</span>
-            </Link>
-          </div>
-          <SeasonalProductRails products={featured} />
-        </Container>
-      </section>
+      <ExperienceProjects projects={projects} />
     </>
   );
 }

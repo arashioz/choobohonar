@@ -1,6 +1,7 @@
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import FooterGate from "@/components/layout/FooterGate";
 import CartProvider from "@/components/commerce/cart/CartProvider";
 import ShopCartDrawer from "@/components/shop/ShopCartDrawer";
 import ScrollProgress from "@/components/motion/ScrollProgress";
@@ -21,7 +22,9 @@ export default function SiteLayout({
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>
-        <Footer />
+        <FooterGate>
+          <Footer />
+        </FooterGate>
         <ShopCartDrawer />
       </SmoothScroll>
     </CartProvider>
