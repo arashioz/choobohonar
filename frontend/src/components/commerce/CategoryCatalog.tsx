@@ -93,14 +93,17 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
     || facet === "default"
     || (facet === "decor" && family === "decor-textile")
   );
-  const showLampTypes = categoryLabel === "آباژور" || family === "lampshade";
-  const lampTypeOptions = typeOptions.filter((item) => item.type.slug === "floor-lampshade" || item.type.slug === "table-lampshade");
-  const showLampTypeChips = lampTypeOptions.length > 1 && (categoryLabel === "روشنایی" || categoryLabel === "آباژور" || family === "lampshade");
+  const lampTypeOptions = useMemo(
+    () => getTypesInProducts(products).filter((item) => item.type.slug === "floor-lampshade" || item.type.slug === "table-lampshade"),
+    [products],
+  );
+  const splitLampshade = lampTypeOptions.length > 1;
+  const lampTypeSelected = splitLampshade && lampTypeOptions.some((item) => item.type.slug === type);
   const showTypeFilter = facet === "bedroom"
     ? family === "vanity" || family === "makeup-table" || (categoryLabel === "میز آرایش" && family === "all")
     : facet === "decor"
       ? family === "decor-textile" && typeOptions.length > 0
-      : facet === "default" && typeOptions.length > 1 && (showLampTypes || family !== "all");
+      : facet === "default" && typeOptions.length > 1 && family !== "all" && family !== "lampshade";
   const matchesType = (product: ShopProduct) => {
     if (facet === "bedroom") return productMatchesBedroomType(product, type);
     if (facet === "decor") return productMatchesDecorType(product, type);
@@ -188,13 +191,19 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   }, [filterOpen]);
 
   const visible = filtered.slice(0, visibleCount);
-  const activeFilterCount = Number(family !== "all") + Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
+  const activeFilterCount = Number(family !== "all" && !lampTypeSelected) + Number(type !== "all") + Number(collection !== "all") + Number(stockOnly);
   const filtersActive = family !== "all" || type !== "all" || collection !== "all" || Boolean(query.trim()) || stockOnly;
 
   const selectFamily = (next: string) => {
     scrollToProductsAfterSync.current = true;
     setFamily(next);
     setType("all");
+  };
+
+  const selectLampType = (slug: string) => {
+    scrollToProductsAfterSync.current = true;
+    setFamily("lampshade");
+    setType(slug);
   };
 
   const clearFilters = () => {
@@ -268,26 +277,18 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
           <div className="mb-8 border-b border-forest/10 pb-6">
             <p className="mb-3 text-xs tracking-[0.16em] text-forest/45">دسته</p>
             <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-              <button type="button" onClick={() => selectFamily("all")} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه محصولات</button>
-              {familyOptions.map(({ family: option, count }) => (
-                <button key={option.slug} type="button" onClick={() => selectFamily(option.slug)} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === option.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>
-              ))}
+              <button type="button" onClick={() => selectFamily("all")} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === "all" && type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه محصولات</button>
+              {familyOptions.flatMap(({ family: option, count }) => {
+                if (option.slug === "lampshade" && splitLampshade) {
+                  return lampTypeOptions.map(({ type: lamp, count: lampCount }) => (
+                    <button key={lamp.slug} type="button" onClick={() => selectLampType(lamp.slug)} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === lamp.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{lamp.label} <span className="mr-1 text-xs opacity-70">{toFa(lampCount)}</span></button>
+                  ));
+                }
+                return [
+                  <button key={option.slug} type="button" onClick={() => selectFamily(option.slug)} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === option.slug && type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>,
+                ];
+              })}
             </div>
-            {showLampTypeChips ? (
-              <div className="no-scrollbar mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-                <button type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه انواع</button>
-                {lampTypeOptions.map(({ type: option, count }) => (
-                  <button
-                    key={option.slug}
-                    type="button"
-                    onClick={() => { scrollToProductsAfterSync.current = true; setFamily("lampshade"); setType(option.slug); }}
-                    className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === option.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}
-                  >
-                    {option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
         ) : null}
         <div className="sticky top-[68px] z-30 -mx-6 border-y border-forest/10 bg-paper/95 px-6 py-4 backdrop-blur-xl md:-mx-10 md:px-10 lg:-mx-16 lg:px-16">
@@ -342,8 +343,8 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
             <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-forest/10 pb-5 text-sm text-forest/55">
               <p>{toFa(filtered.length)} نتیجه</p>
               <div className="flex flex-wrap gap-2">
-                {family !== "all" ? <ActiveChip label={familyOptions.find((item) => item.family.slug === family)?.family.label ?? family} onRemove={() => selectFamily("all")} /> : null}
-                {type !== "all" ? <ActiveChip label={typeOptions.find((item) => item.type.slug === type)?.type.label ?? type} onRemove={() => { scrollToProductsAfterSync.current = true; setType("all"); }} /> : null}
+                {family !== "all" && !(family === "lampshade" && splitLampshade) ? <ActiveChip label={familyOptions.find((item) => item.family.slug === family)?.family.label ?? family} onRemove={() => selectFamily("all")} /> : null}
+                {type !== "all" ? <ActiveChip label={lampTypeOptions.find((item) => item.type.slug === type)?.type.label ?? typeOptions.find((item) => item.type.slug === type)?.type.label ?? type} onRemove={() => selectFamily(family === "lampshade" ? "all" : family)} /> : null}
                 {collection !== "all" ? <ActiveChip label={`کالکشن ${collection}`} onRemove={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} /> : null}
                 {stockOnly ? <ActiveChip label="موجود" onRemove={() => { scrollToProductsAfterSync.current = true; setStockOnly(false); }} /> : null}
               </div>
