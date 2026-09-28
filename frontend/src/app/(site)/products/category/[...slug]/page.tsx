@@ -133,6 +133,7 @@ export default async function ProductCategoryPage({ params }: PageProps) {
           campaignImage={campaign?.image || category.root.image}
           campaign={campaign}
           emptyHref={category.active ? `/products/category/${category.root.slug}` : "/products"}
+          resetHref={`/products/category/${category.root.slug}`}
         />
       </Suspense>
 

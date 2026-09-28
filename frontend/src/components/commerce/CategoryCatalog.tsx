@@ -34,8 +34,10 @@ type CategoryCatalogProps = {
   categoryLabel: string;
   campaignImage: string;
   campaign?: { title: string; subtitle: string; image: string } | null;
-  /** Parent section for an empty category. Falls back to the full catalog. */
+  /** Parent section for a category that has no products. */
   emptyHref?: string;
+  /** Current section, used when filters match nothing. */
+  resetHref?: string;
 };
 
 type SortMode = "featured" | "newest" | "popular" | "price-asc" | "price-desc";
@@ -44,7 +46,7 @@ function numericPrice(product: ShopProduct): number {
   return Number(product.prices?.value ?? Number.MAX_SAFE_INTEGER);
 }
 
-export default function CategoryCatalog({ products, categoryLabel, campaignImage, campaign, emptyHref = "/products" }: CategoryCatalogProps) {
+export default function CategoryCatalog({ products, categoryLabel, campaignImage, campaign, emptyHref = "/products", resetHref = emptyHref }: CategoryCatalogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -92,6 +94,8 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
     || (facet === "decor" && family === "decor-textile")
   );
   const showLampTypes = categoryLabel === "آباژور" || family === "lampshade";
+  const lampTypeOptions = typeOptions.filter((item) => item.type.slug === "floor-lampshade" || item.type.slug === "table-lampshade");
+  const showLampTypeChips = lampTypeOptions.length > 1 && (categoryLabel === "روشنایی" || categoryLabel === "آباژور" || family === "lampshade");
   const showTypeFilter = facet === "bedroom"
     ? family === "vanity" || family === "makeup-table" || (categoryLabel === "میز آرایش" && family === "all")
     : facet === "decor"
@@ -269,6 +273,21 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
                 <button key={option.slug} type="button" onClick={() => selectFamily(option.slug)} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", family === option.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>{option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span></button>
               ))}
             </div>
+            {showLampTypeChips ? (
+              <div className="no-scrollbar mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+                <button type="button" onClick={() => { scrollToProductsAfterSync.current = true; setType("all"); }} className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === "all" ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}>همه انواع</button>
+                {lampTypeOptions.map(({ type: option, count }) => (
+                  <button
+                    key={option.slug}
+                    type="button"
+                    onClick={() => { scrollToProductsAfterSync.current = true; setFamily("lampshade"); setType(option.slug); }}
+                    className={cn("shrink-0 rounded-full px-5 py-2.5 text-sm transition-colors", type === option.slug ? "bg-forest text-paper" : "border border-forest/15 text-forest hover:border-forest")}
+                  >
+                    {option.label} <span className="mr-1 text-xs opacity-70">{toFa(count)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
         <div className="sticky top-[68px] z-30 -mx-6 border-y border-forest/10 bg-paper/95 px-6 py-4 backdrop-blur-xl md:-mx-10 md:px-10 lg:-mx-16 lg:px-16">
@@ -374,7 +393,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
               <div className="border border-dashed border-forest/20 px-6 py-20 text-center">
                 <p className="text-2xl font-light text-forest">محصولی پیدا نشد</p>
                 <p className="mt-3 text-sm text-forest/55">عبارت جستجو یا فیلترها را تغییر دهید.</p>
-                <Link href={emptyHref} className="mt-6 inline-block text-sm text-brick">
+                <Link href={resetHref} className="mt-6 inline-block text-sm text-brick">
                   نمایش همه محصولات
                 </Link>
               </div>
