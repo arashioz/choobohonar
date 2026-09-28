@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: PageProps) {
       brand: { "@type": "Brand", name: "خانه چوب و هنر" },
       category: product.category,
       url: canonicalUrl,
-      additionalProperty: product.attributes.slice(0, 8).map((attribute) => ({
+      additionalProperty: product.attributes.filter((attribute) => !/^(طول|length)$/i.test(attribute.name.trim())).slice(0, 8).map((attribute) => ({
         "@type": "PropertyValue",
         name: attribute.name,
         value: attribute.terms.map((term) => term.name).join("، "),

@@ -1,6 +1,7 @@
 import type { ProductRoom, ShopProduct } from "@/data/products";
 import { getRoomLabel } from "@/data/product-categories";
 import { getCollectionName } from "@/lib/commerce";
+import { isInternalStructureAttribute, isMattressProduct } from "@/lib/variant-playbook";
 
 type RoomEditorial = {
   context: string;
@@ -64,7 +65,7 @@ export function getProductEditorialContent(product: ShopProduct): ProductEditori
   const copy = roomEditorial[product.room];
   const collection = getCollectionName(product);
   const visibleAttributes = product.attributes
-    .filter((attribute) => attribute.terms.length)
+    .filter((attribute) => attribute.terms.length && !/^(طول|length)$/i.test(attribute.name.trim()) && !(isMattressProduct(product) && isInternalStructureAttribute(attribute.name)))
     .slice(0, 4);
   const optionNames = visibleAttributes.map((attribute) => attribute.name).join("، ");
   const optionValues = visibleAttributes

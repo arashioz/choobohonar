@@ -59,7 +59,7 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
   const variants = item.variants?.map((variant, index) => ({
     id: variant._id || variant.sku || String(index),
     sku: variant.sku,
-    options: variant.options || [],
+    options: (variant.options || []).filter((option) => !/^(طول|length)$/i.test(option.name.trim())),
     price: variant.price,
     compareAtPrice: variant.compareAtPrice,
     stockQty: variant.stockQty || 0,
@@ -83,7 +83,7 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
       ...(item.series && !(item.attributes || []).some((attribute) => attribute.name.trim() === "کالکشن")
         ? [{ id: -1, name: "کالکشن", taxonomy: "pa_collection", hasVariations: false, terms: [{ id: 0, name: item.series, slug: item.series, default: true }] }]
         : []),
-      ...(item.attributes || []).map((attribute, index) => ({
+      ...(item.attributes || []).filter((attribute) => !/^(طول|length)$/i.test(attribute.name.trim())).map((attribute, index) => ({
         id: index,
         name: attribute.name,
         taxonomy: attribute.name.trim() === "کالکشن" ? "pa_collection" : null,

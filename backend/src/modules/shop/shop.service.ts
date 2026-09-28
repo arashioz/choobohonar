@@ -15,7 +15,7 @@ import {
   ProductRoom,
 } from './schemas/shop-product.schema';
 import { ShopCategory, ShopCategoryDocument } from './schemas/shop-category.schema';
-import { presentShopProduct } from './variant-playbook';
+import { isLengthAttribute, presentShopProduct, withoutDimensionRangeAttributes } from './variant-playbook';
 import {
   ShopCampaignBanner,
   ShopCampaignBannerDocument,
@@ -282,9 +282,9 @@ export class ShopService implements OnModuleInit {
   }
 
   async get(id: string) {
-    const product = await this.productModel.findById(id).exec();
+    const product = await this.productModel.findById(id).lean().exec();
     if (!product) throw new NotFoundException('محصول پیدا نشد');
-    return product;
+    return withoutDimensionRangeAttributes(product);
   }
 
   async getBySlug(slug: string) {
@@ -640,7 +640,7 @@ export class ShopService implements OnModuleInit {
     };
     const withStock =
       dto.inStock === undefined ? created : applyInStockFlag(created, dto.inStock);
-    return this.productModel.create(withStock);
+    return this.productModel.create(withoutDimensionRangeAttributes(withStock));
   }
 
   async update(id: string, dto: UpdateShopProductDto) {
@@ -660,7 +660,7 @@ export class ShopService implements OnModuleInit {
     if (!existing) throw new NotFoundException('محصول پیدا نشد');
 
     let patch: Record<string, unknown> = {
-      ...dto,
+      ...withoutDimensionRangeAttributes(dto),
       ...(autoSeries ? { series: autoSeries } : {}),
     };
     if (dto.finishes) {
@@ -677,17 +677,17 @@ export class ShopService implements OnModuleInit {
         dto.inStock,
       );
       patch = {
-        ...dto,
+        ...withoutDimensionRangeAttributes(dto),
         ...(autoSeries ? { series: autoSeries } : {}),
         ...patch,
       };
     }
 
     const updated = await this.productModel
-      .findByIdAndUpdate(id, { $set: patch }, { new: true })
+      .findByIdAndUpdate(id, { $set: withoutDimensionRangeAttributes(patch as UpdateShopProductDto) }, { new: true })
       .exec();
     if (!updated) throw new NotFoundException('محصول پیدا نشد');
-    return updated;
+    return withoutDimensionRangeAttributes(updated.toObject());
   }
 
   async updateBulkStock(ids: string[], inStock: boolean) {
@@ -980,7 +980,7 @@ export class ShopService implements OnModuleInit {
               .filter(Boolean),
             required: Boolean(attribute.hasVariations),
           }))
-          .filter((attribute) => attribute.name && attribute.values.length),
+          .filter((attribute) => attribute.name && attribute.values.length && !isLengthAttribute(attribute.name)),
         variants: (row.variants || []).map((variant) => ({
           sku: variant.sku,
           options: variant.options || [],
@@ -1263,7 +1263,7 @@ export class ShopService implements OnModuleInit {
     for (const product of products) {
       for (const attribute of product.attributes || []) {
         const name = String(attribute.name || '').trim();
-        if (!name) continue;
+        if (!name || isLengthAttribute(name)) continue;
         const values = valuesByAttribute.get(name) || new Set<string>();
         for (const value of attribute.values || []) {
           const normalized = String(value || '').trim();

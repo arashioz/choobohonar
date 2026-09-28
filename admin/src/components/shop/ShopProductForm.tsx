@@ -19,6 +19,10 @@ import {
   type ShopProductStatus,
 } from "@/lib/shop-api";
 
+function isDimensionRangeAttribute(name: string) {
+  return /^(طول|length)$/i.test(name.trim());
+}
+
 type FormState = {
   slug: string;
   name: string;
@@ -77,8 +81,8 @@ function fromProduct(p?: ShopProduct): FormState {
     height: p?.dimensions?.height != null ? String(p.dimensions.height) : "",
     specs: p?.specs || [],
     highlights: p?.highlights || [],
-    attributes: (p?.attributes || []).map((attribute) => ({ name: attribute.name, values: attribute.values.length ? attribute.values : [""] })),
-    variants: (p?.variants || []).map((variant) => ({ sku: variant.sku || "", options: variant.options || [], price: variant.price != null ? formatPrice(String(variant.price)) : "", compareAtPrice: variant.compareAtPrice != null ? formatPrice(String(variant.compareAtPrice)) : "", stockQty: String(variant.stockQty ?? 0), enabled: variant.enabled !== false })),
+    attributes: (p?.attributes || []).filter((attribute) => !isDimensionRangeAttribute(attribute.name)).map((attribute) => ({ name: attribute.name, values: attribute.values.length ? attribute.values : [""] })),
+    variants: (p?.variants || []).map((variant) => ({ sku: variant.sku || "", options: (variant.options || []).filter((option) => !isDimensionRangeAttribute(option.name)), price: variant.price != null ? formatPrice(String(variant.price)) : "", compareAtPrice: variant.compareAtPrice != null ? formatPrice(String(variant.compareAtPrice)) : "", stockQty: String(variant.stockQty ?? 0), enabled: variant.enabled !== false })),
     inStock: typeof p?.inStock === "boolean" ? p.inStock : (p?.variants?.length ? p.variants.some((variant) => variant.enabled !== false && (variant.stockQty || 0) > 0) : (p?.trackInventory ? (p.stockQty || 0) > 0 : true)),
   };
 }
@@ -104,7 +108,7 @@ export default function ShopProductForm({
 
   useEffect(() => {
     shopApi.series().then((rows) => setSeriesOptions(Array.from(new Set(rows.map((row) => row.series).filter(Boolean))))).catch(() => undefined);
-    shopApi.productOptions().then((result) => setAttributeOptions(result.attributes)).catch(() => undefined);
+    shopApi.productOptions().then((result) => setAttributeOptions(result.attributes.filter((attribute) => !isDimensionRangeAttribute(attribute.name)))).catch(() => undefined);
   }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -144,7 +148,7 @@ export default function ShopProductForm({
       dimensions: compactDimensions(form),
       specs: form.specs.filter((item) => item.label.trim() && item.value.trim()),
       highlights: form.highlights.filter((item) => item.title.trim() && item.description.trim()),
-      attributes: form.attributes.filter((attribute) => attribute.name.trim() && attribute.values.some((value) => value.trim())).map((attribute) => ({ name: attribute.name.trim(), values: attribute.values.map((value) => value.trim()).filter(Boolean), required: true })),
+      attributes: form.attributes.filter((attribute) => attribute.name.trim() && !isDimensionRangeAttribute(attribute.name) && attribute.values.some((value) => value.trim())).map((attribute) => ({ name: attribute.name.trim(), values: attribute.values.map((value) => value.trim()).filter(Boolean), required: true })),
       variants: form.variants.map((variant) => ({ sku: variant.sku.trim() || undefined, options: variant.options.filter((option) => option.name.trim() && option.value.trim()), price: variant.price ? parsePrice(variant.price) : undefined, compareAtPrice: variant.compareAtPrice ? parsePrice(variant.compareAtPrice) : undefined, stockQty: Number(variant.stockQty) || 0, enabled: variant.enabled })),
       inStock: form.inStock,
     };
@@ -553,15 +557,16 @@ function CatalogPlacementFields({
 function VariantsEditor({ attributes, variants, optionCatalog, onAttributes, onVariants }: { attributes: { name: string; values: string[] }[]; variants: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]; optionCatalog: { name: string; values: string[] }[]; onAttributes: (value: { name: string; values: string[] }[]) => void; onVariants: (value: { sku: string; options: { name: string; value: string }[]; price: string; compareAtPrice: string; stockQty: string; enabled: boolean }[]) => void }) {
   const nextAttribute = () => onAttributes([...attributes, { name: "", values: [""] }]);
   const nextVariant = () => onVariants([...variants, { sku: "", options: attributes.filter((attribute) => attribute.name.trim()).map((attribute) => ({ name: attribute.name, value: attribute.values.find((value) => value.trim()) || "" })), price: "", compareAtPrice: "", stockQty: "0", enabled: true }]);
-  const knownNames = Array.from(new Set(["سایز", "ظرفیت", "مکانیزم", "نوع سرتخت", "سرتخت", "چوب", "پارچه", "پارچه کوسن", ...optionCatalog.map((item) => item.name)]));
+  const knownNames = Array.from(new Set(["سایز", "ظرفیت", "مکانیزم", "نوع سرتخت", "سرتخت", "چوب", "پارچه", "پارچه کوسن", ...optionCatalog.map((item) => item.name)])).filter((name) => !isDimensionRangeAttribute(name));
 
   function addKnownAttribute(name: string) {
-    if (!name || attributes.some((item) => item.name === name)) return;
+    if (!name || isDimensionRangeAttribute(name) || attributes.some((item) => item.name === name)) return;
     const known = optionCatalog.find((item) => item.name === name);
     onAttributes([...attributes, { name, values: known?.values.length ? [known.values[0]] : [""] }]);
   }
 
   function setAttributeName(index: number, name: string) {
+    if (isDimensionRangeAttribute(name)) return;
     const previousName = attributes[index]?.name;
     onAttributes(attributes.map((item, i) => (i === index ? { ...item, name } : item)));
     if (previousName) {
