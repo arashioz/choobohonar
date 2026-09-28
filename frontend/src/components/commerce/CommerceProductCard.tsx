@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import MaterialCircle from "@/components/commerce/MaterialCircle";
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
@@ -54,6 +55,16 @@ export default function CommerceProductCard({
               <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-forest backdrop-blur-md">
                 کالکشن {collection}
               </span>
+            </div>
+          ) : null}
+
+          {product.materialCircles?.length ? (
+            <div className="absolute bottom-4 right-4 flex items-center gap-1.5">
+              {product.materialCircles.map((circle) => (
+                <span key={`${circle.name}-${circle.image}`} title={circle.name} className="size-8 shrink-0 overflow-hidden rounded-full border border-paper shadow-[0_4px_16px_rgba(9,43,28,0.18)]">
+                  <MaterialCircle src={circle.image} alt={circle.name} />
+                </span>
+              ))}
             </div>
           ) : null}
 

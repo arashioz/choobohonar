@@ -1,6 +1,7 @@
 import type { ShopProduct, ProductRoom } from "@/data/products";
 import { shopProducts } from "@/data/products";
 import { getApiBase } from "@/lib/api-base";
+import { materialCirclesForProduct } from "@/lib/material-circle";
 import { getCatalogHighestPrice } from "@/lib/commerce";
 
 type BackendProduct = {
@@ -108,13 +109,21 @@ export function normalizeStorefrontProduct(item: BackendProduct): ShopProduct {
   });
 }
 
+function withMaterialCircles(product: ShopProduct, materials: MaterialSwatch[]): ShopProduct {
+  const materialCircles = materialCirclesForProduct(product, materials);
+  return materialCircles.length ? { ...product, materialCircles } : product;
+}
+
 export async function fetchStorefrontProducts(): Promise<ShopProduct[]> {
   try {
-    const response = await fetch(`${getApiBase()}/shop/products?status=published&limit=1000`, { cache: "no-store" });
+    const [response, materials] = await Promise.all([
+      fetch(`${getApiBase()}/shop/products?status=published&limit=1000`, { cache: "no-store" }),
+      fetchMaterialSwatches(),
+    ]);
     if (!response.ok) return [];
     const payload = await response.json() as { items?: BackendProduct[] } | BackendProduct[];
     const items = Array.isArray(payload) ? payload : payload.items || [];
-    return items.map(normalizeStorefrontProduct);
+    return items.map((item) => withMaterialCircles(normalizeStorefrontProduct(item), materials));
   } catch {
     return [];
   }
@@ -129,11 +138,14 @@ export async function fetchStorefrontProductsBySlugs(slugs: string[]): Promise<S
       limit: String(Math.min(1000, unique.length)),
       slugs: unique.join(","),
     });
-    const response = await fetch(`${getApiBase()}/shop/products?${params.toString()}`, { cache: "no-store" });
+    const [response, materials] = await Promise.all([
+      fetch(`${getApiBase()}/shop/products?${params.toString()}`, { cache: "no-store" }),
+      fetchMaterialSwatches(),
+    ]);
     if (!response.ok) return [];
     const payload = await response.json() as { items?: BackendProduct[] } | BackendProduct[];
     const items = Array.isArray(payload) ? payload : payload.items || [];
-    const bySlug = new Map(items.map((item) => [item.slug, normalizeStorefrontProduct(item)]));
+    const bySlug = new Map(items.map((item) => [item.slug, withMaterialCircles(normalizeStorefrontProduct(item), materials)]));
     return unique.map((slug) => bySlug.get(slug)).filter((item): item is ShopProduct => Boolean(item));
   } catch {
     return [];

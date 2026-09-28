@@ -51,12 +51,14 @@ const nextConfig: NextConfig = {
       "http://localhost:3001/api";
 
     const uploadOrigin = api.replace(/\/api\/?$/, "");
+    const storefront = process.env.STOREFRONT_URL || "http://localhost:3000";
     return [
       // App Route Handlers under /api already attach the admin JWT and proxy
       // to the right Nest paths. A catch-all rewrite would steal /api/cms/:id
       // and hit the public CMS, which looks up slugs and returns
       // "Published entry not found".
       { source: "/uploads/:path*", destination: `${uploadOrigin}/uploads/:path*` },
+      { source: "/images/materials/:path*", destination: `${storefront}/images/materials/:path*` },
     ];
   },
 };

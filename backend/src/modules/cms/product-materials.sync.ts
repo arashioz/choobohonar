@@ -23,38 +23,43 @@ export function normalizeMaterialName(value: string) {
 
 export const MATERIAL_PLACEHOLDER_URL = '/uploads/material-placeholder.png';
 
-/** A material photo the admin uploaded. Product-catalog files and /images paths are not. */
+/** A material photo the admin uploaded. Catalog files under /uploads/products are not. */
 export function isAdminMaterialImage(value: string) {
   const url = value.trim();
   return url.startsWith('/uploads/') && !url.startsWith('/uploads/products/');
 }
 
-export function materialImageOrPlaceholder(value: string) {
-  return isAdminMaterialImage(value) ? value.trim() : MATERIAL_PLACEHOLDER_URL;
+const STATIC_WOOD_SWATCH =
+  /^\/images\/materials\/wood\/(?:wa|pw|pl|pd|pg|sb|sm|al|be|gr)\.jpg$/;
+
+/** Bundled wood photos live in the storefront so Next can optimize them. */
+export function isStaticWoodSwatch(value: string) {
+  return STATIC_WOOD_SWATCH.test(value.trim());
 }
 
-/** Default swatch shipped with the app. Admin uploads replace it and are left untouched. */
-export function publishedWoodSwatchUrl(slug: string) {
+export function staticWoodSwatchPath(slug: string) {
   const safe = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-  if (!safe) return '';
-  const source = join(
-    process.cwd(),
-    'src/modules/cms/data/wood-swatches',
-    `${safe}.jpg`,
-  );
-  if (!existsSync(source)) return '';
-  const destDir = join(process.cwd(), 'uploads', 'materials');
-  mkdirSync(destDir, { recursive: true });
-  const dest = join(destDir, `${safe}.jpg`);
-  if (!existsSync(dest)) copyFileSync(source, dest);
-  return `/uploads/materials/${safe}.jpg`;
+  const path = `/images/materials/wood/${safe}.jpg`;
+  return isStaticWoodSwatch(path) ? path : '';
 }
 
-/** The product circle reads data.image. Keep an admin upload; otherwise install the bundled swatch. */
+export function materialImageOrPlaceholder(value: string) {
+  const url = value.trim();
+  if (isStaticWoodSwatch(url) || isAdminMaterialImage(url)) return url;
+  return MATERIAL_PLACEHOLDER_URL;
+}
+
+/** Keep an admin upload. Placeholder and the old /uploads/materials copies point at the static file. */
 export function materialSwatchImage(slug: string, stored: string) {
-  const kept = materialImageOrPlaceholder(stored);
-  if (kept !== MATERIAL_PLACEHOLDER_URL) return kept;
-  return publishedWoodSwatchUrl(slug) || kept;
+  const url = stored.trim();
+  if (
+    !url ||
+    url === MATERIAL_PLACEHOLDER_URL ||
+    /^\/uploads\/materials\/[a-z0-9-]+\.jpg$/i.test(url)
+  ) {
+    return staticWoodSwatchPath(slug) || MATERIAL_PLACEHOLDER_URL;
+  }
+  return materialImageOrPlaceholder(url);
 }
 
 /** Copy the committed swatch into the uploads volume so nginx and the admin can serve it. */

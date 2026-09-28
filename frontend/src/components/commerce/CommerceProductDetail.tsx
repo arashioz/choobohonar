@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { scrollToTop } from "@/lib/lenis-control";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +12,8 @@ import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
 import { useCart, type CartOption } from "@/components/commerce/cart/CartProvider";
+import MaterialCircle from "@/components/commerce/MaterialCircle";
+import { matchMaterialSwatch, resolveMaterialImage } from "@/lib/material-circle";
 import type { MaterialSwatch } from "@/lib/storefront-products";
 
 const roomCategoryPaths = {
@@ -32,33 +34,8 @@ function isWoodDisplay(attribute: { label: string; role: string; ui: string }) {
   );
 }
 
-/** Circle photo is the admin material image (عکس متریال). */
-function circlePhoto(item: { image?: string }) {
-  return (item.image || "").trim();
-}
-
 function isFabricDisplay(attribute: { label: string; role: string }) {
   return attribute.role === "display" && /پارچه|fabric|کوسن|cushion/i.test(attribute.label);
-}
-
-function normalizeSwatchKey(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[آأإ]/g, "ا")
-    .replace(/ي/g, "ی")
-    .replace(/ك/g, "ک")
-    .replace(/روکش|سند\s*بلاست|کد/g, "")
-    .replace(/[\s‌ـ\-_/]+/g, "");
-}
-
-function materialSwatchFill(image: string): CSSProperties {
-  return {
-    backgroundImage: `url(${image})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-  };
 }
 
 function swatchButtonClass(active: boolean) {
@@ -69,12 +46,7 @@ function swatchButtonClass(active: boolean) {
 }
 
 function matchSwatch(swatches: MaterialSwatch[], value: string) {
-  const normalized = normalizeSwatchKey(value);
-  if (!normalized) return undefined;
-  return swatches.find((item) => {
-    const keys = [item.slug, item.name, item.color, item.code, ...(item.aliases || [])];
-    return keys.some((key) => key && (key === value || normalizeSwatchKey(key) === normalized));
-  });
+  return matchMaterialSwatch(swatches, value);
 }
 
 export default function CommerceProductDetail({
@@ -361,8 +333,8 @@ export default function CommerceProductDetail({
                             className={cn("inline-flex shrink-0", visibleSwatches.length > 1 && "w-16 flex-col items-center gap-2 text-center")}
                           >
                             <span className={swatchButtonClass(isSelected)}>
-                              {circlePhoto(item) ? (
-                                <span className="absolute inset-0" style={materialSwatchFill(circlePhoto(item))} />
+                              {resolveMaterialImage(item) ? (
+                                <MaterialCircle src={resolveMaterialImage(item)} alt="" />
                               ) : (
                                 <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
                               )}
