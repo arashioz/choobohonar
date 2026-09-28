@@ -263,7 +263,8 @@ export function getCollectionName(product: ShopProduct): string | null {
 }
 
 function optionHasEnabledVariant(product: ShopProduct, attributeName: string, optionLabel: string) {
-  return enabledVariants(product).some((variant) => variantHasOption(variant, attributeName, optionLabel));
+  const pool = pricedVariants(product);
+  return pool.some((variant) => variantHasOption(variant, attributeName, optionLabel));
 }
 
 function productHint(product: ShopProduct) {
