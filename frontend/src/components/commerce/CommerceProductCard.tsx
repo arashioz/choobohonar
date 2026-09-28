@@ -49,16 +49,13 @@ export default function CommerceProductCard({
           ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-forest/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-          <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-            {collection ? (
+          {collection ? (
+            <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
               <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-forest backdrop-blur-md">
                 کالکشن {collection}
               </span>
-            ) : (
-              <span />
-            )}
-            {!product.isInStock ? <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-brick backdrop-blur-md">ناموجود</span> : null}
-          </div>
+            </div>
+          ) : null}
 
           <span className="absolute bottom-4 left-4 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-peach text-xl text-forest opacity-0 transition-[transform,opacity] duration-500 ease-out-expo group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
             ↙
@@ -72,8 +69,8 @@ export default function CommerceProductCard({
               {product.name}
             </h3>
           </div>
-          <p className="shrink-0 pt-6 text-sm font-medium text-forest/70">
-            {formatCatalogPrice(product)}
+          <p className={cn("shrink-0 pt-6 text-sm font-medium", product.isInStock ? "text-forest/70" : "text-brick")}>
+            {product.isInStock ? formatCatalogPrice(product) : "ناموجود"}
           </p>
         </div>
       </Link>
