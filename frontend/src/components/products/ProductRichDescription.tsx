@@ -23,6 +23,7 @@ const allowedTags = new Set([
   "h3",
   "h4",
   "blockquote",
+  "img",
 ]);
 
 /**
@@ -46,6 +47,13 @@ function sanitizeProductHtml(value: string): string {
       // WordPress tables use these two harmless layout attributes. Everything
       // else, including style and event-handler attributes, is deliberately
       // removed.
+      if (normalized === "img") {
+        const src = tag.match(/\bsrc\s*=\s*["'](https:\/\/[^"']+)["']/i)?.[1];
+        if (!src) return "";
+        const alt = tag.match(/\balt\s*=\s*["']([^"']*)["']/i)?.[1] ?? "";
+        return `<img src="${src}" alt="${alt.replace(/"/g, "")}">`;
+      }
+
       if (normalized === "td" || normalized === "th") {
         const attributes = ["colspan", "rowspan"]
           .map((attribute) => {
@@ -69,7 +77,7 @@ export default function ProductRichDescription({
   return (
     <div
       dir="rtl"
-      className={`max-w-3xl whitespace-normal text-base leading-9 text-forest/70 [&_p]:mb-5 [&_p:last-child]:mb-0 [&_ul]:mb-5 [&_ul]:list-disc [&_ul]:pr-6 [&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:pr-6 [&_table]:mb-5 [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_td]:border [&_td]:border-forest/15 [&_td]:p-3 [&_th]:border [&_th]:border-forest/15 [&_th]:bg-forest/5 [&_th]:p-3 [&_th]:font-medium ${className}`}
+      className={`max-w-3xl whitespace-normal text-base leading-9 text-forest/70 [&_p]:mb-5 [&_p:last-child]:mb-0 [&_ul]:mb-5 [&_ul]:list-disc [&_ul]:pr-6 [&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:pr-6 [&_table]:mb-5 [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_td]:border [&_td]:border-forest/15 [&_td]:p-3 [&_th]:border [&_th]:border-forest/15 [&_th]:bg-forest/5 [&_th]:p-3 [&_th]:font-medium [&_img]:mb-5 [&_img]:h-auto [&_img]:max-w-full ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitizeProductHtml(html) }}
     />
   );
