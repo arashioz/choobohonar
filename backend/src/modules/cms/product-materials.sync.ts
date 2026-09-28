@@ -33,6 +33,30 @@ export function materialImageOrPlaceholder(value: string) {
   return isAdminMaterialImage(value) ? value.trim() : MATERIAL_PLACEHOLDER_URL;
 }
 
+/** Default swatch shipped with the app. Admin uploads replace it and are left untouched. */
+export function publishedWoodSwatchUrl(slug: string) {
+  const safe = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (!safe) return '';
+  const source = join(
+    process.cwd(),
+    'src/modules/cms/data/wood-swatches',
+    `${safe}.jpg`,
+  );
+  if (!existsSync(source)) return '';
+  const destDir = join(process.cwd(), 'uploads', 'materials');
+  mkdirSync(destDir, { recursive: true });
+  const dest = join(destDir, `${safe}.jpg`);
+  if (!existsSync(dest)) copyFileSync(source, dest);
+  return `/uploads/materials/${safe}.jpg`;
+}
+
+/** The product circle reads data.image. Keep an admin upload; otherwise install the bundled swatch. */
+export function materialSwatchImage(slug: string, stored: string) {
+  const kept = materialImageOrPlaceholder(stored);
+  if (kept !== MATERIAL_PLACEHOLDER_URL) return kept;
+  return publishedWoodSwatchUrl(slug) || kept;
+}
+
 /** Copy the committed swatch into the uploads volume so nginx and the admin can serve it. */
 export function ensureMaterialPlaceholder() {
   const destDir = join(process.cwd(), 'uploads');
@@ -256,7 +280,7 @@ export async function syncProductWoodMaterials(
       colors: [title],
       colorHex: hex,
       hex,
-      image: MATERIAL_PLACEHOLDER_URL,
+      image: materialSwatchImage(slug, ''),
       applicationImage: MATERIAL_PLACEHOLDER_URL,
       coverImage: MATERIAL_PLACEHOLDER_URL,
       aliases,
@@ -277,7 +301,7 @@ export async function syncProductWoodMaterials(
       if (current.slug && current.slug !== slug && !previousSlugs.includes(current.slug)) {
         previousSlugs.push(current.slug);
       }
-      const keptImage = materialImageOrPlaceholder(String(currentData.image || ''));
+      const keptImage = materialSwatchImage(slug, String(currentData.image || ''));
       const keptApplication = materialImageOrPlaceholder(
         String(currentData.applicationImage || ''),
       );

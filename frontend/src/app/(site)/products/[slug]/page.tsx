@@ -23,6 +23,7 @@ import { getProductEditorialContent } from "@/lib/product-editorial";
 import { getApiBase } from "@/lib/api-base";
 import { fetchMaterialSwatches, normalizeStorefrontProduct } from "@/lib/storefront-products";
 
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 export function generateStaticParams() {

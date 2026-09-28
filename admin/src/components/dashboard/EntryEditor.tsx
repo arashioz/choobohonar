@@ -328,7 +328,7 @@ function SpecificFields({ kind, title, data, setData, dataText, relations, image
     <Panel title="تصاویر صفحه متریال" description="هر کدام جدا روی سایت می‌نشیند. بعد از آپلود، انتشار را بزنید تا در صفحه عمومی دیده شود.">
       <MaterialImageSlot label="کاور صفحه" hint="عکس کاتالوگ بالای صفحه این متریال. اندازه قاب در سایت ثابت است." value={dataText("coverImage")} onChange={(value) => setData("coverImage", value)} onBusy={onBusy} />
       <MaterialImageSlot label="عکس محصول" hint="فقط همین عکس در کارت مربع فهرست متریال‌ها نمایش داده می‌شود." value={dataText("applicationImage")} onChange={(value) => setData("applicationImage", value)} onBusy={onBusy} />
-      <MaterialImageSlot label="عکس متریال" hint="در نمونه‌های هم‌خانواده و کارت نمونه فیزیکی، داخل قاب مربع." value={dataText("image")} onChange={(value) => setData("image", value)} onBusy={onBusy} />
+      <MaterialImageSlot label="عکس متریال" hint="همین عکس داخل دایرهٔ متریال در صفحهٔ محصول نشان داده می‌شود. با تعویض آن، دایره هم عوض می‌شود." value={dataText("image")} onChange={(value) => setData("image", value)} onBusy={onBusy} />
     </Panel>
     <Panel title="هویت و نمایش در سایت" description="عنوان، کد، رنگ و دسته‌بندی همین صفحه. متن‌ها و برچسب‌ها مستقیم روی سایت منتشر می‌شوند.">
       <MaterialPreview title={title} image={dataText("image") || dataText("coverImage") || images[0]} color={dataText("colorHex")} type={arrayValue(data.materialTypes, data.materialType)[0]} />

@@ -25,19 +25,6 @@ const roomCategoryPaths = {
   dishes: "decor",
 } as const;
 
-const woodCirclePhotos: Record<string, string> = {
-  wa: "/images/materials/wood/wa-walnut.jpg",
-  pw: "/images/materials/wood/pw-whitewash.jpg",
-  pl: "/images/materials/wood/pl-light-patina.jpg",
-  pd: "/images/materials/wood/pd-dark-patina.jpg",
-  pg: "/images/materials/wood/pg-green-patina.jpg",
-  sb: "/images/materials/wood/sb-black-sandblast.jpg",
-  sm: "/images/materials/wood/sm-smoked.jpg",
-  al: "/images/materials/wood/al-almond.jpg",
-  be: "/images/materials/wood/be-beige.jpg",
-  gr: "/images/materials/wood/gr-green.jpg",
-};
-
 function isWoodDisplay(attribute: { label: string; role: string; ui: string }) {
   return (
     (attribute.role === "display" || attribute.role === "purchase") &&
@@ -45,10 +32,9 @@ function isWoodDisplay(attribute: { label: string; role: string; ui: string }) {
   );
 }
 
-function circlePhoto(item: { slug: string; image?: string }) {
-  if (item.image && !item.image.includes("material-placeholder")) return item.image;
-  const key = item.slug.trim().toLowerCase();
-  return woodCirclePhotos[key] || woodCirclePhotos[key.split("-")[0] || ""] || item.image || "";
+/** Circle photo is the admin material image (عکس متریال). */
+function circlePhoto(item: { image?: string }) {
+  return (item.image || "").trim();
 }
 
 function isFabricDisplay(attribute: { label: string; role: string }) {
@@ -66,11 +52,10 @@ function normalizeSwatchKey(value: string) {
     .replace(/[\s‌ـ\-_/]+/g, "");
 }
 
-/** Studio material photos sit on a large white field; zoom the sample into the 36px circle. */
 function materialSwatchFill(image: string): CSSProperties {
   return {
     backgroundImage: `url(${image})`,
-    backgroundSize: "250%",
+    backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
   };
@@ -78,7 +63,7 @@ function materialSwatchFill(image: string): CSSProperties {
 
 function swatchButtonClass(active: boolean) {
   return cn(
-    "relative box-border size-9 shrink-0 overflow-hidden rounded-full border p-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
+    "relative inline-block size-9 shrink-0 overflow-hidden rounded-full border p-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest",
     active ? "border-2 border-forest ring-2 ring-inset ring-forest/20" : "border-forest/15 hover:border-forest/45",
   );
 }
@@ -373,7 +358,7 @@ export default function CommerceProductDetail({
                             title={`${variableName}: ${item.name}`}
                             aria-label={`انتخاب ${variableName} ${item.name}`}
                             aria-pressed={isSelected}
-                            className={cn(visibleSwatches.length > 1 && "flex w-16 flex-col items-center gap-2 text-center")}
+                            className={cn("inline-flex shrink-0", visibleSwatches.length > 1 && "w-16 flex-col items-center gap-2 text-center")}
                           >
                             <span className={swatchButtonClass(isSelected)}>
                               {circlePhoto(item) ? (
