@@ -25,8 +25,30 @@ const roomCategoryPaths = {
   dishes: "decor",
 } as const;
 
+const woodCirclePhotos: Record<string, string> = {
+  wa: "/images/materials/wood/wa-walnut.jpg",
+  pw: "/images/materials/wood/pw-whitewash.jpg",
+  pl: "/images/materials/wood/pl-light-patina.jpg",
+  pd: "/images/materials/wood/pd-dark-patina.jpg",
+  pg: "/images/materials/wood/pg-green-patina.jpg",
+  sb: "/images/materials/wood/sb-black-sandblast.jpg",
+  sm: "/images/materials/wood/sm-smoked.jpg",
+  al: "/images/materials/wood/al-almond.jpg",
+  be: "/images/materials/wood/be-beige.jpg",
+  gr: "/images/materials/wood/gr-green.jpg",
+};
+
 function isWoodDisplay(attribute: { label: string; role: string; ui: string }) {
-  return attribute.role === "display" && (attribute.ui === "swatch" || /چوب|متریال|پرداخت|فینیش|رویه|wood|material|finish/i.test(attribute.label));
+  return (
+    (attribute.role === "display" || attribute.role === "purchase") &&
+    (attribute.ui === "swatch" || /^(چوب|متریال|پرداخت|فینیش|رویه|wood|material|finish)$/i.test(attribute.label.trim()))
+  );
+}
+
+function circlePhoto(item: { slug: string; image?: string }) {
+  if (item.image && !item.image.includes("material-placeholder")) return item.image;
+  const key = item.slug.trim().toLowerCase();
+  return woodCirclePhotos[key] || woodCirclePhotos[key.split("-")[0] || ""] || item.image || "";
 }
 
 function isFabricDisplay(attribute: { label: string; role: string }) {
@@ -108,7 +130,7 @@ export default function CommerceProductDetail({
   }, [attributes, product.finishes, swatches]);
   const materialAttribute = attributes.find(isWoodDisplay);
   const headboardMaterialAttribute = attributes.find((attribute) => isHeadboardMaterialAttribute(attribute.label) || attribute.role === "linked");
-  const selectableAttributes = attributes.filter((attribute) => attribute.role === "purchase");
+  const selectableAttributes = attributes.filter((attribute) => attribute.role === "purchase" && !isWoodDisplay(attribute));
   const displayAttributes = attributes.filter(
     (attribute) => attribute.role === "display" && !isWoodDisplay(attribute) && !isFabricDisplay(attribute),
   );
@@ -354,8 +376,8 @@ export default function CommerceProductDetail({
                             className={cn(visibleSwatches.length > 1 && "flex w-16 flex-col items-center gap-2 text-center")}
                           >
                             <span className={swatchButtonClass(isSelected)}>
-                              {item.image ? (
-                                <span className="absolute inset-0" style={materialSwatchFill(item.image)} />
+                              {circlePhoto(item) ? (
+                                <span className="absolute inset-0" style={materialSwatchFill(circlePhoto(item))} />
                               ) : (
                                 <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
                               )}
