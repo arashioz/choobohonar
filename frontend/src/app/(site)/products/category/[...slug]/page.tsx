@@ -127,7 +127,13 @@ export default async function ProductCategoryPage({ params }: PageProps) {
       </section>
 
       <Suspense fallback={<div className="min-h-[40rem] bg-paper" />}>
-        <CategoryCatalog products={products} categoryLabel={activeLabel} campaignImage={campaign?.image || category.root.image} campaign={campaign} />
+        <CategoryCatalog
+          products={products}
+          categoryLabel={activeLabel}
+          campaignImage={campaign?.image || category.root.image}
+          campaign={campaign}
+          emptyHref={category.active ? `/products/category/${category.root.slug}` : "/products"}
+        />
       </Suspense>
 
       <ProductStoriesSection stories={stories} />

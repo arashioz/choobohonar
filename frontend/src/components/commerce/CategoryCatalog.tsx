@@ -12,6 +12,7 @@ import {
   getBedroomFamiliesInProducts,
   getBedroomTypesInProducts,
   getDecorFamiliesInProducts,
+  getDecorTypesInProducts,
   getDiningFamiliesInProducts,
   getFamiliesInProducts,
   getTypesInProducts,
@@ -19,6 +20,7 @@ import {
   productMatchesBedroomFamily,
   productMatchesBedroomType,
   productMatchesDecorFamily,
+  productMatchesDecorType,
   productMatchesDiningFamily,
   productMatchesFamily,
   productMatchesType,
@@ -32,6 +34,8 @@ type CategoryCatalogProps = {
   categoryLabel: string;
   campaignImage: string;
   campaign?: { title: string; subtitle: string; image: string } | null;
+  /** Parent section for an empty category. Falls back to the full catalog. */
+  emptyHref?: string;
 };
 
 type SortMode = "featured" | "newest" | "popular" | "price-asc" | "price-desc";
@@ -40,7 +44,7 @@ function numericPrice(product: ShopProduct): number {
   return Number(product.prices?.value ?? Number.MAX_SAFE_INTEGER);
 }
 
-export default function CategoryCatalog({ products, categoryLabel, campaignImage, campaign }: CategoryCatalogProps) {
+export default function CategoryCatalog({ products, categoryLabel, campaignImage, campaign, emptyHref = "/products" }: CategoryCatalogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -78,21 +82,49 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
   };
   const typeOptions = useMemo(() => {
     if (facet === "bedroom") return getBedroomTypesInProducts(products, family);
-    if (facet === "decor" || facet === "bedding" || facet === "dining") return [];
+    if (facet === "decor") return getDecorTypesInProducts(products, family);
+    if (facet === "bedding" || facet === "dining") return [];
     return getTypesInProducts(products, family);
   }, [facet, family, products]);
+  const typeFilterActive = type !== "all" && (
+    facet === "bedroom"
+    || facet === "default"
+    || (facet === "decor" && family === "decor-textile")
+  );
+  const showLampTypes = categoryLabel === "آباژور" || family === "lampshade";
   const showTypeFilter = facet === "bedroom"
     ? family === "vanity" || family === "makeup-table" || (categoryLabel === "میز آرایش" && family === "all")
-    : facet === "default" && family !== "all" && typeOptions.length > 1;
+    : facet === "decor"
+      ? family === "decor-textile" && typeOptions.length > 0
+      : facet === "default" && typeOptions.length > 1 && (showLampTypes || family !== "all");
+  const matchesType = (product: ShopProduct) => {
+    if (facet === "bedroom") return productMatchesBedroomType(product, type);
+    if (facet === "decor") return productMatchesDecorType(product, type);
+    return productMatchesType(product, type);
+  };
+
+  const categoryProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (family !== "all" && !matchesFamily(product, family)) return false;
+      if (typeFilterActive && !matchesType(product)) return false;
+      return true;
+    });
+  }, [family, products, typeFilterActive, type]);
 
   const collectionOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    products.forEach((product) => {
+    categoryProducts.forEach((product) => {
       const name = getCollectionName(product);
       if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
     });
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  }, [products]);
+  }, [categoryProducts]);
+
+  useEffect(() => {
+    if (collection !== "all" && !collectionOptions.some(([label]) => label === collection)) {
+      setCollection("all");
+    }
+  }, [collection, collectionOptions]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("fa");
@@ -102,8 +134,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         if (!haystack.includes(normalizedQuery)) return false;
       }
       if (family !== "all" && !matchesFamily(product, family)) return false;
-      const typeFilterActive = type !== "all" && (facet === "bedroom" || facet === "default");
-      if (typeFilterActive && !(facet === "bedroom" ? productMatchesBedroomType(product, type) : productMatchesType(product, type))) return false;
+      if (typeFilterActive && !matchesType(product)) return false;
       if (collection !== "all" && getCollectionName(product) !== collection) return false;
       if (stockOnly && !product.isInStock) return false;
       return true;
@@ -197,7 +228,7 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
         <fieldset>
           <legend className="text-sm font-medium text-forest">کالکشن</legend>
           <ScrollableFilterList>
-            <FilterRadio label="همه کالکشن‌ها" count={products.length} active={collection === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} />
+            <FilterRadio label="همه کالکشن‌ها" count={categoryProducts.length} active={collection === "all"} onClick={() => { scrollToProductsAfterSync.current = true; setCollection("all"); }} />
             {collectionOptions.map(([label, count]) => (
               <FilterRadio
                 key={label}
@@ -332,11 +363,18 @@ export default function CategoryCatalog({ products, categoryLabel, campaignImage
                   );
                 })}
               </div>
+            ) : products.length === 0 ? (
+              <div className="border border-dashed border-forest/20 px-6 py-20 text-center">
+                <p className="text-2xl font-light text-forest">در این دسته محصولی وجود ندارد</p>
+                <Link href={emptyHref} className="mt-6 inline-block text-sm text-brick">
+                  نمایش همه محصولات
+                </Link>
+              </div>
             ) : (
               <div className="border border-dashed border-forest/20 px-6 py-20 text-center">
                 <p className="text-2xl font-light text-forest">محصولی پیدا نشد</p>
                 <p className="mt-3 text-sm text-forest/55">عبارت جستجو یا فیلترها را تغییر دهید.</p>
-                <Link href="/products" className="mt-6 inline-block text-sm text-brick">
+                <Link href={emptyHref} className="mt-6 inline-block text-sm text-brick">
                   نمایش همه محصولات
                 </Link>
               </div>
