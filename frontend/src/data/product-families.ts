@@ -34,10 +34,7 @@ export const productFamilies: ProductFamily[] = [
   {
     slug: "armchair",
     label: "مبل تک نفره",
-    types: [
-      { slug: "armchair", label: "مبل تک نفره" },
-      { slug: "مبل-تک-نفره", label: "مبل تک نفره فضای باز" },
-    ],
+    types: [{ slug: "armchair", label: "مبل تک نفره" }],
   },
   {
     slug: "modular-sofa",
@@ -46,9 +43,10 @@ export const productFamilies: ProductFamily[] = [
   },
   {
     slug: "outdoor-furniture",
-    label: "مبلمان فضای باز",
+    label: "مبل و صندلی فضای باز",
     types: [
-      { slug: "outdoor-furniture", label: "مبلمان فضای باز" },
+      { slug: "outdoor-furniture", label: "مبل و صندلی فضای باز" },
+      { slug: "مبل-تک-نفره", label: "مبل تک نفره فضای باز" },
       { slug: "تخت-آفتاب", label: "تخت آفتاب" },
       { slug: "نیمکت", label: "نیمکت" },
     ],
@@ -327,16 +325,53 @@ export function productMatchesFamily(product: ShopProduct, familySlug: string) {
   return getProductFamily(product)?.slug === familySlug;
 }
 
+function enabledPurchaseValues(product: ShopProduct, attributeName: string) {
+  const values = new Set<string>();
+  for (const variant of product.variants ?? []) {
+    if (variant.enabled === false || !(Number(variant.price) > 0)) continue;
+    for (const option of variant.options ?? []) {
+      if (option.name?.trim() === attributeName && option.value?.trim()) values.add(option.value.trim());
+    }
+  }
+  return [...values];
+}
+
+/** آباژورهایی که نوعِ قابل‌خرید دارند، در فیلتر رومیزی و ایستاده همان نوع را می‌گیرند. */
+export function lampshadeTypeSlugs(product: ShopProduct) {
+  const text = `${product.category ?? ""} ${product.name}`;
+  if (!/آباژور/.test(text)) return [];
+  const values = enabledPurchaseValues(product, "نوع");
+  const slugs: string[] = [];
+  if (values.includes("ایستاده")) slugs.push("floor-lampshade");
+  if (values.includes("رومیزی")) slugs.push("table-lampshade");
+  if (slugs.length) return slugs;
+  const typed = mostSpecificType(typesFromProduct(product)) ?? inferFromName(product)?.type;
+  if (typed?.slug === "floor-lampshade" || typed?.slug === "table-lampshade") return [typed.slug];
+  return [];
+}
+
 export function productMatchesType(product: ShopProduct, typeSlug: string) {
   const canonical = typeBySlug.get(typeSlug)?.slug ?? typeSlug;
+  if (canonical === "floor-lampshade" || canonical === "table-lampshade") {
+    const slugs = lampshadeTypeSlugs(product);
+    if (slugs.length) return slugs.includes(canonical);
+  }
   return getProductType(product)?.slug === canonical;
 }
 
 /** Decor landing chips, in the order of the category menu. */
 const decorCatalogFamilies: ProductFamily[] = [
   { slug: "decor-clock", label: "ساعت", types: [{ slug: "decor-clock", label: "ساعت" }] },
-  { slug: "decor-throw", label: "شال مبل", types: [{ slug: "decor-throw", label: "شال مبل" }] },
-  { slug: "decor-cushion", label: "کوسن", types: [{ slug: "decor-cushion", label: "کوسن" }] },
+  {
+    slug: "decor-textile",
+    label: "منسوجات",
+    types: [
+      { slug: "decor-throw", label: "شال مبل" },
+      { slug: "decor-cushion", label: "کوسن" },
+      { slug: "decor-runner", label: "رانر" },
+      { slug: "decor-napkin", label: "دستمال سفره" },
+    ],
+  },
   { slug: "decor-panel", label: "تابلو دکوراتیو", types: [{ slug: "decor-panel", label: "تابلو دکوراتیو" }] },
   { slug: "decor-mirror", label: "آینه", types: [{ slug: "decor-mirror", label: "آینه" }] },
   { slug: "decor-candle", label: "شمع", types: [{ slug: "decor-candle", label: "شمع" }] },
@@ -353,6 +388,10 @@ const decorChipSlugByMenu: Record<string, string> = {
   candle: "decor-candle",
   candlestick: "decor-candlestick",
   cushion: "decor-cushion",
+  throw: "decor-throw",
+  runner: "decor-runner",
+  napkin: "decor-napkin",
+  textiles: "decor-textile",
   decorative: "decor-object",
   mirror: "decor-mirror",
 };
@@ -361,47 +400,75 @@ function decorFamily(slug: string) {
   return decorCatalogFamilies.find((family) => family.slug === slug);
 }
 
-/** Classify a decor product into the menu chip. Unmatched products stay in «همه محصولات». */
-const decorCategoryMap: Record<string, string> = {
-  "جا عودی": "decor-incense",
-  "شال مبل": "decor-throw",
-  ساعت: "decor-clock",
-  "تابلو دکوراتیو": "decor-panel",
-  آینه: "decor-mirror",
-  کوسن: "decor-cushion",
-  شمعدان: "decor-candlestick",
-  "شمع دکوراتیو": "decor-candle",
-  شمع: "decor-candle",
-  گلدان: "decor-vase",
-  ظروف: "decor-dishes",
-  "ظروف پذیرایی": "decor-dishes",
-  دکوراتیو: "decor-object",
+function decorType(slug: string) {
+  return decorCatalogFamilies.flatMap((family) => family.types).find((type) => type.slug === slug);
+}
+
+/** Category stored on the product, mapped to a decor chip and its filter type. */
+const decorCategoryMap: Record<string, [string, string]> = {
+  "جا عودی": ["decor-incense", "decor-incense"],
+  "شال مبل": ["decor-textile", "decor-throw"],
+  ساعت: ["decor-clock", "decor-clock"],
+  "تابلو دکوراتیو": ["decor-panel", "decor-panel"],
+  آینه: ["decor-mirror", "decor-mirror"],
+  کوسن: ["decor-textile", "decor-cushion"],
+  شمعدان: ["decor-candlestick", "decor-candlestick"],
+  "شمع دکوراتیو": ["decor-candle", "decor-candle"],
+  شمع: ["decor-candle", "decor-candle"],
+  گلدان: ["decor-vase", "decor-vase"],
+  ظروف: ["decor-dishes", "decor-dishes"],
+  "ظروف پذیرایی": ["decor-dishes", "decor-dishes"],
+  رانر: ["decor-textile", "decor-runner"],
+  "دستمال سفره": ["decor-textile", "decor-napkin"],
+  دکوراتیو: ["decor-object", "decor-object"],
 };
 
-export function getDecorCatalogFamily(product: ShopProduct): ProductFamily | undefined {
+function packDecor(familySlug: string, typeSlug: string): Classified | undefined {
+  const family = decorFamily(familySlug);
+  const type = decorType(typeSlug);
+  return family && type ? { family, type } : undefined;
+}
+
+export function classifyDecorProduct(product: ShopProduct): Classified | undefined {
   const category = (product.category || "").trim();
-  const mapped = decorCategoryMap[category];
-  if (mapped) return decorFamily(mapped);
-  if (category) return undefined;
   const name = product.name || "";
-  const text = name;
-  if (/عود/.test(text)) return decorFamily("decor-incense");
-  if (category === "شال مبل" || name.startsWith("شال")) return decorFamily("decor-throw");
-  if (category === "ساعت" || name.startsWith("ساعت")) return decorFamily("decor-clock");
-  if (category.includes("تابلو") || name.includes("تابلو")) return decorFamily("decor-panel");
-  if (category === "آینه" || name.includes("آینه")) return decorFamily("decor-mirror");
-  if (category === "کوسن" || name.includes("کوسن")) return decorFamily("decor-cushion");
-  if (category === "شمعدان" || /شمعدان|جاشمعی/.test(text)) return decorFamily("decor-candlestick");
-  if (category.includes("شمع") || name.includes("شمع")) return decorFamily("decor-candle");
-  if (category === "گلدان" || name.includes("گلدان")) return decorFamily("decor-vase");
-  if (category.includes("ظروف")) return decorFamily("decor-dishes");
-  if (category === "دکوراتیو") return decorFamily("decor-object");
+  // Textile pieces stay in منسوجات even when an older record still says دکوراتیو.
+  if (category === "شال مبل" || name.startsWith("شال")) return packDecor("decor-textile", "decor-throw");
+  if (category === "کوسن" || name.includes("کوسن")) return packDecor("decor-textile", "decor-cushion");
+  if (category === "رانر" || name.startsWith("رانر")) return packDecor("decor-textile", "decor-runner");
+  if (category === "دستمال سفره" || name.startsWith("دستمال")) return packDecor("decor-textile", "decor-napkin");
+  // Decorative mirrors filed under the generic دکوراتیو category still belong in آینه.
+  if ((category === "دکوراتیو" || category === "آینه") && /آینه/.test(name) && !/قاب\s*آینه/.test(name)) {
+    return packDecor("decor-mirror", "decor-mirror");
+  }
+  const mapped = decorCategoryMap[category];
+  if (mapped) return packDecor(mapped[0], mapped[1]);
+  if (category) return undefined;
+  if (/عود/.test(name)) return packDecor("decor-incense", "decor-incense");
+  if (name.startsWith("ساعت")) return packDecor("decor-clock", "decor-clock");
+  if (name.includes("تابلو")) return packDecor("decor-panel", "decor-panel");
+  if (name.includes("آینه")) return packDecor("decor-mirror", "decor-mirror");
+  if (/شمعدان|جاشمعی/.test(name)) return packDecor("decor-candlestick", "decor-candlestick");
+  if (name.includes("شمع")) return packDecor("decor-candle", "decor-candle");
+  if (name.includes("گلدان")) return packDecor("decor-vase", "decor-vase");
+  if (name.includes("ظروف")) return packDecor("decor-dishes", "decor-dishes");
   return undefined;
 }
 
+export function getDecorCatalogFamily(product: ShopProduct): ProductFamily | undefined {
+  return classifyDecorProduct(product)?.family;
+}
+
 export function productMatchesDecorFamily(product: ShopProduct, familySlug: string) {
+  const hit = classifyDecorProduct(product);
+  if (!hit) return false;
   const slug = decorChipSlugByMenu[familySlug] ?? familySlug;
-  return getDecorCatalogFamily(product)?.slug === slug;
+  return hit.family.slug === slug || hit.type.slug === slug;
+}
+
+export function productMatchesDecorType(product: ShopProduct, typeSlug: string) {
+  const slug = decorChipSlugByMenu[typeSlug] ?? typeSlug;
+  return classifyDecorProduct(product)?.type.slug === slug;
 }
 
 export function getDecorFamiliesInProducts(products: ShopProduct[]) {
@@ -413,6 +480,20 @@ export function getDecorFamiliesInProducts(products: ShopProduct[]) {
   }
   return decorCatalogFamilies
     .map((family) => ({ family, count: counts.get(family.slug) ?? 0 }))
+    .filter((item) => item.count > 0);
+}
+
+export function getDecorTypesInProducts(products: ShopProduct[], familySlug?: string) {
+  const requested = decorChipSlugByMenu[familySlug || ""] ?? familySlug;
+  if (requested !== "decor-textile") return [];
+  const textile = decorFamily("decor-textile");
+  if (!textile) return [];
+  const scoped = products.filter((product) => classifyDecorProduct(product)?.family.slug === "decor-textile");
+  return textile.types
+    .map((type) => ({
+      type,
+      count: scoped.filter((product) => classifyDecorProduct(product)?.type.slug === type.slug).length,
+    }))
     .filter((item) => item.count > 0);
 }
 
@@ -657,10 +738,14 @@ export function getTypesInProducts(products: ShopProduct[], familySlug?: string)
     : products;
   const counts = new Map<string, { type: ProductFamilyType; count: number }>();
   for (const product of scoped) {
-    const type = getProductType(product);
-    if (!type) continue;
-    const current = counts.get(type.slug);
-    counts.set(type.slug, { type, count: (current?.count ?? 0) + 1 });
+    const lampTypes = lampshadeTypeSlugs(product)
+      .map((slug) => typeBySlug.get(slug))
+      .filter((type): type is ProductFamilyType => Boolean(type));
+    const types = lampTypes.length ? lampTypes : [getProductType(product)].filter((type): type is ProductFamilyType => Boolean(type));
+    for (const type of types) {
+      const current = counts.get(type.slug);
+      counts.set(type.slug, { type, count: (current?.count ?? 0) + 1 });
+    }
   }
   const order = familySlug && familySlug !== "all"
     ? productFamilies.find((family) => family.slug === familySlug)?.types.map((type) => type.slug) ?? []
