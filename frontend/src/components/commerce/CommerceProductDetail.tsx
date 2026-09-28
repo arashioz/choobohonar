@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { scrollToTop } from "@/lib/lenis-control";
 import Image from "next/image";
 import Link from "next/link";
 import ProductRichDescription from "@/components/products/ProductRichDescription";
+import { getSeatingSpec, splitProductCopy, stripProseParagraphs } from "@/lib/product-copy";
 import type { ShopProduct } from "@/data/products";
-import { formatSelectedCatalogPrice, getCollectionName, getCraftAttributes, getHighestPricedVariant, getProductAttributeOptions, headboardMaterialLabel, isHeadboardMaterialAttribute, isOptionCompatibleWithSelection, purchaseAttributeLabel, selectionForAttributeOption, selectionFromVariant, variantMatchingSelection, type PurchaseAttribute } from "@/lib/commerce";
+import { defaultAttributeSelection, formatSelectedCatalogPrice, getCollectionName, getCraftAttributes, getProductAttributeOptions, headboardMaterialLabel, isHeadboardMaterialAttribute, isOptionCompatibleWithSelection, purchaseAttributeLabel, selectionForAttributeOption, variantMatchingSelection, type PurchaseAttribute } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
 import { getProductDeliveryLeadTime } from "@/lib/product-delivery";
 import { cn, toFa } from "@/lib/utils";
@@ -113,7 +114,7 @@ export default function CommerceProductDetail({
   );
   const fabricAttributes = attributes.filter(isFabricDisplay);
   const [selected, setSelected] = useState<Record<string, string>>(() =>
-    selectionFromVariant(attributes, getHighestPricedVariant(product)),
+    defaultAttributeSelection(product, attributes),
   );
   const selectedHeadboardMaterial = headboardMaterialAttribute?.options.find((option) => option.id === selected[headboardMaterialAttribute.id]);
   const visibleSwatches = assignedSwatches;
@@ -136,6 +137,23 @@ export default function CommerceProductDetail({
     }
     return "";
   }, [attributes, product.materialImageMappings, selected]);
+  const activeImageCaption = useMemo(() => {
+    const labels = (product.materialImageMappings || [])
+      .filter((mapping) => mapping.image && mapping.image === activeImage && mapping.attribute.trim() && mapping.value.trim())
+      .map((mapping) => `${mapping.attribute}: ${mapping.value}`);
+    if (labels.length) return labels.join(" · ");
+    if (selectedVariant?.image && selectedVariant.image === activeImage) {
+      const variantLabels = selectedVariant.options
+        .filter((option) => option.name.trim() && option.value.trim())
+        .map((option) => `${option.name}: ${option.value}`);
+      if (variantLabels.length) return variantLabels.join(" · ");
+    }
+    if (visibleSwatches.length > 1) {
+      const selectedSwatch = visibleSwatches.find((item) => item.slug === selectedMaterial);
+      if (selectedSwatch) return `${materialAttribute?.label || "متریال"}: ${selectedSwatch.name}`;
+    }
+    return "";
+  }, [activeImage, materialAttribute?.label, product.materialImageMappings, selectedMaterial, selectedVariant, visibleSwatches]);
   const priceValue = selectedVariant
     ? Number(selectedVariant.price || 0)
     : Number(product.prices?.value ?? 0);
@@ -245,6 +263,11 @@ export default function CommerceProductDetail({
                 <a href={activeImage} target="_blank" rel="noopener noreferrer" className="absolute bottom-5 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-paper/90 text-forest backdrop-blur-md" aria-label="بازکردن تصویر اصلی محصول">
                   ↗
                 </a>
+                {activeImageCaption ? (
+                  <p className="absolute bottom-5 right-5 max-w-[min(24rem,calc(100%-6.5rem))] rounded-full bg-paper/90 px-4 py-2 text-xs text-forest backdrop-blur-md">
+                    {activeImageCaption}
+                  </p>
+                ) : null}
               </div>
 
               {gallery.length > 1 ? (
@@ -270,12 +293,20 @@ export default function CommerceProductDetail({
               <h1 className="text-[clamp(3rem,6vw,6rem)] font-extralight leading-[0.88] tracking-tightest text-forest">
                 {product.name}
               </h1>
-              <p className="mt-6 max-w-lg text-base leading-8 text-forest/60">{product.shortDescription}</p>
 
               <div className="mt-8 flex items-end justify-between gap-6 border-y border-forest/10 py-6">
                 <div>
                   <p className="text-xs text-forest/45">قیمت</p>
-                  <p className="mt-2 text-2xl font-light text-forest">{formatSelectedCatalogPrice(product, selectedVariant)}</p>
+                  {product.isInStock ? (
+                    <p className="mt-2 text-2xl font-light text-forest">{formatSelectedCatalogPrice(product, selectedVariant)}</p>
+                  ) : priceValue > 0 ? (
+                    <div className="mt-2 flex flex-wrap items-end gap-3">
+                      <p className="text-2xl font-light text-forest">{formatSelectedCatalogPrice(product, selectedVariant)}</p>
+                      <p className="pb-1 text-sm font-medium text-brick">ناموجود</p>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-2xl font-light text-brick">ناموجود</p>
+                  )}
                 </div>
                 {product.reviewCount > 0 ? (
                   <div className="text-left">
@@ -297,6 +328,58 @@ export default function CommerceProductDetail({
                     setAdded={setAdded}
                   />
                 ))}
+                {selectedHeadboardMaterial ? (
+                  <fieldset>
+                    <legend className="text-sm font-medium text-forest">{headboardMaterialLabel(selectedHeadboardMaterial.label)}</legend>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="h-4 w-4 shrink-0 rounded-full border border-forest/30 bg-transparent" aria-hidden />
+                      <span className="text-xs text-forest">{selectedHeadboardMaterial.label}</span>
+                    </div>
+                  </fieldset>
+                ) : visibleSwatches.length ? (
+                  <fieldset>
+                    <legend className="text-sm font-medium text-forest">{materialAttribute?.label || "متریال"}</legend>
+                    <div className={cn("mt-3 flex flex-wrap", visibleSwatches.length > 1 ? "items-start gap-4" : "items-center gap-2.5")}>
+                      {visibleSwatches.map((item) => {
+                        const isSelected = item.slug === selectedMaterial;
+                        const variableName = materialAttribute?.label || "متریال";
+                        return (
+                          <button
+                            key={item.slug}
+                            type="button"
+                            onClick={() => selectMaterial(item.slug)}
+                            title={`${variableName}: ${item.name}`}
+                            aria-label={`انتخاب ${variableName} ${item.name}`}
+                            aria-pressed={isSelected}
+                            className={cn(visibleSwatches.length > 1 && "flex w-16 flex-col items-center gap-2 text-center")}
+                          >
+                            <span className={swatchButtonClass(isSelected)}>
+                              {item.image ? (
+                                <span className="absolute inset-0" style={materialSwatchFill(item.image)} />
+                              ) : (
+                                <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
+                              )}
+                            </span>
+                            {visibleSwatches.length > 1 ? (
+                              <span className={cn("text-[11px] leading-4", isSelected ? "font-medium text-forest" : "text-forest/55")}>{item.name}</span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                      {visibleSwatches.length === 1 ? (() => {
+                        const selectedSwatch = visibleSwatches[0];
+                        if (!selectedSwatch) return null;
+                        return selectedSwatch.href ? (
+                          <Link href={selectedSwatch.href} className="mr-1 text-xs text-brick underline-offset-4 hover:underline">
+                            {selectedSwatch.name}
+                          </Link>
+                        ) : (
+                          <span className="mr-1 text-xs text-forest/70">{selectedSwatch.name}</span>
+                        );
+                      })() : null}
+                    </div>
+                  </fieldset>
+                ) : null}
                 {fabricAttributes.map((attribute) => {
                   const label = purchaseAttributeLabel(attribute.label, attribute.options.map((option) => option.label));
                   return (
@@ -353,53 +436,6 @@ export default function CommerceProductDetail({
                     />
                   );
                 })}
-                {selectedHeadboardMaterial ? (
-                  <fieldset>
-                    <legend className="text-sm font-medium text-forest">{headboardMaterialLabel(selectedHeadboardMaterial.label)}</legend>
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="h-4 w-4 shrink-0 rounded-full border border-forest/30 bg-transparent" aria-hidden />
-                      <span className="text-xs text-forest">{selectedHeadboardMaterial.label}</span>
-                    </div>
-                  </fieldset>
-                ) : visibleSwatches.length ? (
-                  <fieldset>
-                    <legend className="text-sm font-medium text-forest">{materialAttribute?.label || "متریال"}</legend>
-                    <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                      {visibleSwatches.map((item) => {
-                        const isSelected = item.slug === selectedMaterial;
-                        return (
-                          <button
-                            key={item.slug}
-                            type="button"
-                            onClick={() => selectMaterial(item.slug)}
-                            title={item.name}
-                            aria-label={`انتخاب متریال ${item.name}`}
-                            aria-pressed={isSelected}
-                            className={swatchButtonClass(isSelected)}
-                          >
-                            {item.image ? (
-                              <span className="absolute inset-0" style={materialSwatchFill(item.image)} />
-                            ) : (
-                              <span className="absolute inset-0" style={{ backgroundColor: item.hex || "#c9b8a3" }} />
-                            )}
-                            <span className="sr-only">{item.name}</span>
-                          </button>
-                        );
-                      })}
-                      {(() => {
-                        const selectedSwatch = visibleSwatches.find((item) => item.slug === selectedMaterial);
-                        if (!selectedSwatch) return null;
-                        return selectedSwatch.href ? (
-                          <Link href={selectedSwatch.href} className="mr-1 text-xs text-brick underline-offset-4 hover:underline">
-                            {selectedSwatch.name}
-                          </Link>
-                        ) : (
-                          <span className="mr-1 text-xs text-forest/70">{selectedSwatch.name}</span>
-                        );
-                      })()}
-                    </div>
-                  </fieldset>
-                ) : null}
               </div>
 
               <div className="mt-9 grid gap-3 sm:grid-cols-[1fr_auto] lg:grid-cols-1 xl:grid-cols-[1fr_auto]">
@@ -476,25 +512,84 @@ export default function CommerceProductDetail({
         </div>
       </section>
 
-      {(product.longDescription || product.specs?.length) ? (
-        <section className="bg-paper py-20 md:py-28">
-          <div className="mx-auto grid w-full max-w-container gap-10 px-6 md:px-10 lg:grid-cols-[0.7fr_1.3fr] lg:px-16">
-            <div>
-              <p className="eyebrow text-brick">جزئیات محصول</p>
-              <h2 className="mt-5 text-4xl font-extralight text-forest md:text-6xl">توضیحات و ابعاد</h2>
-            </div>
-            <div>
-              {product.longDescription ? <ProductRichDescription html={product.longDescription} /> : null}
-              {product.specs?.length ? (
-                <dl className="mt-8 divide-y divide-forest/10 border-y border-forest/10">
-                  {product.specs.map((spec, index) => <div key={`${spec.label}-${index}`} className="grid grid-cols-2 gap-5 py-4 text-sm"><dt className="font-medium text-forest">{spec.label}</dt><dd className="text-forest/65">{spec.value}</dd></div>)}
-                </dl>
-              ) : null}
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <ProductDetails product={product} />
     </>
+  );
+}
+
+function ProductDetails({ product }: { product: ShopProduct }) {
+  const copy = product.longDescription ? splitProductCopy(product.longDescription) : null;
+  const description = copy?.description ? stripProseParagraphs(copy.description) : "";
+  const dimensions = copy?.dimensions ? stripProseParagraphs(copy.dimensions) : "";
+  const story = copy?.story?.trim() ?? "";
+  const seating = getSeatingSpec(product.slug);
+  const structured = Boolean(copy?.structured || seating);
+  const hasBody = Boolean(seating || description || dimensions || story || product.specs?.length);
+  if (!hasBody) return null;
+
+  return (
+    <section className="bg-paper py-20 md:py-28">
+      <div className="mx-auto grid w-full max-w-container gap-10 px-6 md:px-10 lg:grid-cols-[0.7fr_1.3fr] lg:px-16">
+        <div>
+          <p className="eyebrow text-brick">جزئیات محصول</p>
+          <h2 className="mt-5 text-4xl font-extralight text-forest md:text-6xl">
+            {structured ? "مشخصات" : "توضیحات و ابعاد"}
+          </h2>
+        </div>
+        <div className="space-y-12">
+          {seating ? (
+            <DetailBlock title="نوع نشیمن">
+              {seating.note ? <p className="mb-4 text-sm leading-7 text-forest/60">{seating.note}</p> : null}
+              <dl className="divide-y divide-forest/10 border-y border-forest/10">
+                {seating.rows.map((row) => (
+                  <div key={row.label} className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-5 py-4 text-sm">
+                    <dt className="font-medium text-forest">{row.label}</dt>
+                    <dd className="text-forest/65">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </DetailBlock>
+          ) : null}
+          {copy?.structured && description ? (
+            <DetailBlock title="توضیحات">
+              <ProductRichDescription html={description} />
+            </DetailBlock>
+          ) : null}
+          {copy?.structured && dimensions ? (
+            <DetailBlock title="ابعاد">
+              <ProductRichDescription html={dimensions} />
+            </DetailBlock>
+          ) : null}
+          {!copy?.structured && description ? (
+            <ProductRichDescription html={description} />
+          ) : null}
+          {story ? (
+            <DetailBlock title="چرا خانه چوب و هنر؟">
+              <ProductRichDescription html={story} />
+            </DetailBlock>
+          ) : null}
+          {product.specs?.length ? (
+            <dl className="divide-y divide-forest/10 border-y border-forest/10">
+              {product.specs.map((spec, index) => (
+                <div key={`${spec.label}-${index}`} className="grid grid-cols-2 gap-5 py-4 text-sm">
+                  <dt className="font-medium text-forest">{spec.label}</dt>
+                  <dd className="text-forest/65">{spec.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DetailBlock({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-4 text-2xl font-light text-forest">{title}</h3>
+      {children}
+    </div>
   );
 }
 
@@ -515,13 +610,9 @@ function AttributePills({
 }) {
   const optionLabels = attribute.options.map((option) => option.label);
   const label = purchaseAttributeLabel(attribute.label, optionLabels);
-  const selectedOption = attribute.options.find((option) => option.id === selected[attribute.id]);
   return (
     <fieldset>
-      <div className="flex items-center gap-3">
-        <legend className="text-sm font-medium text-forest">{label}</legend>
-        {selectedOption ? <span className="text-xs text-forest/45">{selectedOption.label}</span> : null}
-      </div>
+      <legend className="text-sm font-medium text-forest">{label}</legend>
       <div className="mt-3 flex flex-wrap justify-start gap-2" dir="rtl">
         {attribute.options.map((option) => {
           const compatible = isOptionCompatibleWithSelection(product, attributes, selected, attribute.id, option.id);
