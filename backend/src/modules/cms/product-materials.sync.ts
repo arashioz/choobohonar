@@ -29,37 +29,15 @@ export function isAdminMaterialImage(value: string) {
   return url.startsWith('/uploads/') && !url.startsWith('/uploads/products/');
 }
 
-const STATIC_WOOD_SWATCH =
-  /^\/images\/materials\/wood\/(?:wa|pw|pl|pd|pg|sb|sm|al|be|gr)\.jpg$/;
-
-/** Bundled wood photos live in the storefront so Next can optimize them. */
-export function isStaticWoodSwatch(value: string) {
-  return STATIC_WOOD_SWATCH.test(value.trim());
-}
-
-export function staticWoodSwatchPath(slug: string) {
-  const safe = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const path = `/images/materials/wood/${safe}.jpg`;
-  return isStaticWoodSwatch(path) ? path : '';
-}
-
+/** Keep the URL saved in admin. Only an empty field falls back to the placeholder. */
 export function materialImageOrPlaceholder(value: string) {
   const url = value.trim();
-  if (isStaticWoodSwatch(url) || isAdminMaterialImage(url)) return url;
-  return MATERIAL_PLACEHOLDER_URL;
+  return url || MATERIAL_PLACEHOLDER_URL;
 }
 
-/** Keep an admin upload. Placeholder and the old /uploads/materials copies point at the static file. */
-export function materialSwatchImage(slug: string, stored: string) {
-  const url = stored.trim();
-  if (
-    !url ||
-    url === MATERIAL_PLACEHOLDER_URL ||
-    /^\/uploads\/materials\/[a-z0-9-]+\.jpg$/i.test(url)
-  ) {
-    return staticWoodSwatchPath(slug) || MATERIAL_PLACEHOLDER_URL;
-  }
-  return materialImageOrPlaceholder(url);
+/** Keep the photo saved in admin. Do not replace it with a frontend file. */
+export function materialSwatchImage(_slug: string, stored: string) {
+  return materialImageOrPlaceholder(stored);
 }
 
 /** Copy the committed swatch into the uploads volume so nginx and the admin can serve it. */

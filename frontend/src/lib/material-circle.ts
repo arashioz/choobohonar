@@ -1,24 +1,10 @@
 import type { ShopProduct } from "@/data/products";
 import type { MaterialSwatch } from "@/lib/storefront-products";
 
-const woodCodes = ["wa", "pw", "pl", "pd", "pg", "sb", "sm", "al", "be", "gr"] as const;
-
-/** Cropped swatches in the frontend public folder, so Next can optimize them. */
-export function staticWoodSwatchPath(slug: string) {
-  const code = slug.trim().toLowerCase().split("-")[0] || "";
-  return (woodCodes as readonly string[]).includes(code) ? `/images/materials/wood/${code}.jpg` : "";
-}
-
-/**
- * Admin uploads stay on /uploads. The bundled wood photos are static frontend files.
- * Older records still point at /uploads/materials/{code}.jpg; those map back here.
- */
-export function resolveMaterialImage(item: { slug?: string; image?: string }) {
+/** The circle uses the photo stored on the material in admin. Placeholders are not a photo. */
+export function resolveMaterialImage(item: { image?: string }) {
   const image = (item.image || "").trim();
-  const bundled = staticWoodSwatchPath(item.slug || "");
-  const legacy = image.match(/^\/uploads\/materials\/([a-z0-9-]+)\.jpg$/i);
-  if (legacy) return staticWoodSwatchPath(legacy[1]) || bundled || image;
-  if (!image || image.includes("material-placeholder")) return bundled || image;
+  if (!image || image.includes("material-placeholder")) return "";
   return image;
 }
 

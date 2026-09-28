@@ -16,6 +16,11 @@ const copy: Record<ResourcePath, { title: string; singular: string; eyebrow: str
 
 const statusCopy: Record<CmsStatus, string> = { draft: "پیش‌نویس", published: "منتشرشده", archived: "بایگانی" };
 
+function hasMaterialPhoto(item: CmsEntry) {
+  const image = String(item.data?.image || "").trim();
+  return Boolean(image) && !image.includes("material-placeholder");
+}
+
 export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
   const labels = copy[kind];
   const apiKind = resourceToKind[kind];
@@ -27,6 +32,7 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
   const [syncingCollections, setSyncingCollections] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [featuringId, setFeaturingId] = useState("");
+  const [missingPhotos, setMissingPhotos] = useState<{ id: string; title: string }[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +55,26 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
     const timeout = window.setTimeout(load, 250);
     return () => window.clearTimeout(timeout);
   }, [load]);
+
+  useEffect(() => {
+    if (kind !== "materials") return;
+    let cancelled = false;
+    cmsRequest<{ items: CmsEntry[] }>("material?limit=250")
+      .then((result) => {
+        if (cancelled) return;
+        setMissingPhotos(
+          cmsListItems(result)
+            .filter((item) => !hasMaterialPhoto(item))
+            .map((item) => ({ id: item._id, title: item.title || item.slug })),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setMissingPhotos([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind, items]);
 
   const counts = useMemo(() => {
     const list = Array.isArray(items) ? items : [];
@@ -149,6 +175,20 @@ export default function ResourceWorkspace({ kind }: { kind: ResourcePath }) {
           <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-brick">{counts.draft.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">نیازمند تکمیل</p></div>
           {kind === "projects" ? <div className="rounded-2xl border border-forest/10 bg-white/70 p-4"><span className="text-xl font-medium text-forest">{counts.featured.toLocaleString("fa-IR")}</span><p className="mt-1 text-[10px] text-forest/40">پروژه شاخص (حداکثر ۲)</p></div> : null}
         </section>
+
+        {kind === "materials" && missingPhotos.length ? (
+          <div role="alert" className="mt-4 rounded-2xl border border-brick/20 bg-brick/[0.06] px-5 py-4 text-forest">
+            <p className="text-sm font-medium text-brick">این متریال‌ها عکس متریال ندارند</p>
+            <p className="mt-1 text-[11px] leading-5 text-forest/55">دایرهٔ صفحهٔ محصول و کارت، عکس همین فیلد را نشان می‌دهد. تا وقتی عکس نباشد، دایره‌ای برایشان دیده نمی‌شود.</p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {missingPhotos.map((item) => (
+                <li key={item.id}>
+                  <Link href={`/admin/manage/materials/${item.id}`} className="inline-flex rounded-full bg-white px-3 py-1.5 text-[11px] text-forest ring-1 ring-brick/15 hover:ring-brick/40">{item.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <section className="mt-4 overflow-hidden rounded-2xl border border-forest/10 bg-white/75 shadow-[0_10px_35px_rgba(9,43,28,0.035)]">
           <div className="flex flex-col gap-3 border-b border-forest/[0.08] p-4 sm:flex-row sm:items-center sm:justify-between">
