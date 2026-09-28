@@ -90,6 +90,15 @@ export function isLengthAttribute(name: string) {
   return /^(طول|length)$/i.test(name.trim());
 }
 
+export function isMattressProduct(hint: { category?: string; name?: string } = {}) {
+  return /تشک/.test(`${hint.category || ""} ${hint.name || ""}`);
+}
+
+/** Internal mattress construction. Kept for the catalog, not shown as a storefront option. */
+export function isInternalStructureAttribute(name: string) {
+  return /^ساختار$/i.test(name.trim());
+}
+
 export function isSeatAttribute(name: string, values: string[] = []) {
   const label = name.trim();
   if (/^(ظرفیت|نفره|seats?|seater)$/i.test(label)) return true;
@@ -172,11 +181,19 @@ export function classifyAttribute(name: string, values: string[] = [], hint: Pro
   const family = resolvePlaybookFamily(hint);
 
   if (kind === "collection" || kind === "classification") {
+    // «نوع» is a category label on most products, and a priced axis on lamps and clocks.
+    // A single remaining value still has to show, so the price is tied to رومیزی or ایستاده.
+    const pricedType = hint.onPricedVariant && /^نوع$/i.test(name.trim()) && values.some((value) => value.trim());
+    if (pricedType) return { role: "purchase" as const, ui: "pills" as const, kind, family };
     return { role: "ignore" as const, ui: "readonly" as const, kind, family };
   }
 
   if (kind === "headboard-material") {
     return { role: "linked" as const, ui: "readonly" as const, kind, family };
+  }
+
+  if (isInternalStructureAttribute(name) && isMattressProduct(hint)) {
+    return { role: "ignore" as const, ui: "readonly" as const, kind, family };
   }
 
   if (hint.onPricedVariant) {
@@ -229,10 +246,28 @@ type PresentableProduct = {
   variants?: { enabled?: boolean; price?: number; options?: { name?: string; value?: string }[] }[];
 };
 
+export function withoutDimensionRangeAttributes<T extends PresentableProduct>(product: T): T {
+  return {
+    ...product,
+    ...(product.attributes
+      ? { attributes: product.attributes.filter((attribute) => !isLengthAttribute(attribute.name || "")) }
+      : {}),
+    ...(product.variants
+      ? {
+          variants: product.variants.map((variant) => ({
+            ...variant,
+            options: (variant.options || []).filter((option) => !isLengthAttribute(option.name || "")),
+          })),
+        }
+      : {}),
+  };
+}
+
 export function presentShopProduct<T extends PresentableProduct>(product: T): T {
-  const pricedNames = pricedVariantAttributeNames(product.variants);
-  const hint = { category: product.category, room: product.room, name: product.name };
-  const attributes = (product.attributes || []).map((attribute) => {
+  const visible = withoutDimensionRangeAttributes(product);
+  const pricedNames = pricedVariantAttributeNames(visible.variants);
+  const hint = { category: visible.category, room: visible.room, name: visible.name };
+  const attributes = (visible.attributes || []).map((attribute) => {
     const classified = classifyAttribute(attribute.name, attribute.values || [], {
       ...hint,
       onPricedVariant: pricedNames.has(normalizePlaybookToken(attribute.name)),
@@ -243,5 +278,5 @@ export function presentShopProduct<T extends PresentableProduct>(product: T): T 
       ui: classified.ui,
     };
   });
-  return { ...product, attributes };
+  return { ...visible, attributes };
 }

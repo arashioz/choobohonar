@@ -90,6 +90,15 @@ export function isLengthAttribute(name: string) {
   return /^(طول|length)$/i.test(name.trim());
 }
 
+export function isMattressProduct(hint: { category?: string; name?: string } = {}) {
+  return /تشک/.test(`${hint.category || ""} ${hint.name || ""}`);
+}
+
+/** Internal mattress construction. Kept for the catalog, not shown as a storefront option. */
+export function isInternalStructureAttribute(name: string) {
+  return /^ساختار$/i.test(name.trim());
+}
+
 export function isSeatAttribute(name: string, values: string[] = []) {
   const label = name.trim();
   if (/^(ظرفیت|نفره|seats?|seater)$/i.test(label)) return true;
@@ -176,11 +185,19 @@ export function classifyAttribute(name: string, values: string[] = [], hint: Pro
   const family = resolvePlaybookFamily(hint);
 
   if (kind === "collection" || kind === "classification") {
+    // «نوع» is a category label on most products, and a priced axis on lamps and clocks.
+    // A single remaining value still has to show, so the price is tied to رومیزی or ایستاده.
+    const pricedType = hint.onPricedVariant && /^نوع$/i.test(name.trim()) && values.some((value) => value.trim());
+    if (pricedType) return { role: "purchase" as const, ui: "pills" as const, kind, family };
     return { role: "ignore" as const, ui: "readonly" as const, kind, family };
   }
 
   if (kind === "headboard-material") {
     return { role: "linked" as const, ui: "readonly" as const, kind, family };
+  }
+
+  if (isInternalStructureAttribute(name) && isMattressProduct(hint)) {
+    return { role: "ignore" as const, ui: "readonly" as const, kind, family };
   }
 
   if (hint.onPricedVariant) {
