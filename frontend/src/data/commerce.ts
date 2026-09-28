@@ -40,7 +40,7 @@ export const commerceCategories: CommerceCategory[] = [
       { slug: "sofa", label: "کاناپه" },
       { slug: "armchair", label: "مبل تک نفره" },
       { slug: "modular-sofa", label: "مبل ال" },
-      { slug: "outdoor-furniture", label: "مبلمان فضای باز" },
+      { slug: "outdoor-furniture", label: "مبل و صندلی فضای باز" },
       { slug: "chair", label: "صندلی" },
       { slug: "table", label: "میز" },
       { slug: "consoles", label: "کمد کنسول" },

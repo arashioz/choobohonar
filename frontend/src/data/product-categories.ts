@@ -31,7 +31,7 @@ export const productCategories: ProductCategoryItem[] = [
   { id: "sofa", label: "کاناپه", room: "living" },
   { id: "single-sofa", label: "مبل تک نفره", room: "living" },
   { id: "sectional", label: "مبل ال", room: "living" },
-  { id: "outdoor", label: "مبلمان فضای باز", room: "living" },
+  { id: "outdoor", label: "مبل و صندلی فضای باز", room: "living" },
   { id: "chair", label: "صندلی", room: "living" },
   { id: "table", label: "میز", room: "living" },
   { id: "coffee-table", label: "جلو مبلی", room: "living" },
