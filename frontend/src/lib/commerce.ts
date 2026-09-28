@@ -4,7 +4,9 @@ import {
   classifyAttribute,
   isHeadboardMaterialAttribute,
   isHeadboardTypeAttribute,
+  isInternalStructureAttribute,
   isLengthAttribute,
+  isMattressProduct,
   isMechanismAttribute,
   isSeatAttribute,
   pricedVariantAttributeNames,
@@ -151,8 +153,11 @@ function latinDigits(value: string) {
 
 export function optionMagnitude(label: string) {
   const text = latinDigits(label);
-  const seatWord = text.match(/یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|یازده|دوازده/);
+  const seatWord = text.match(/یازده|دوازده|چهار|پنج|شش|هفت|هشت|سه|ده|دو|یک|نه/);
   if (seatWord) return SEAT_WORDS[seatWord[0]] ?? 0;
+  if (/بزرگ/.test(text)) return 3;
+  if (/متوسط/.test(text)) return 2;
+  if (/کوچک/.test(text)) return 1;
   const numbers = text.match(/\d+/g)?.map(Number).filter((value) => Number.isFinite(value)) ?? [];
   if (!numbers.length) return 0;
   return numbers.length === 1 ? numbers[0] : (numbers[0] + numbers[1]) / 2;
@@ -274,6 +279,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
   const attributes: PurchaseAttribute[] = [];
 
   for (const attribute of product.attributes) {
+    if (isLengthAttribute(attribute.name)) continue;
     const values = attribute.terms.map((term) => term.name);
     if (!values.length) continue;
     const classified = classifyProductAttribute(
@@ -300,7 +306,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
   for (const variant of enabledVariants(product)) {
     for (const option of variant.options) {
       const siblingValues = variant.options.filter((entry) => entry.name === option.name).map((entry) => entry.value);
-      if (!option.value) continue;
+      if (!option.value || isLengthAttribute(option.name)) continue;
       const classified = classifyProductAttribute(product, option.name, siblingValues, true);
       if (classified.role === "ignore") continue;
       let attribute = attributes.find((item) => item.label === option.name);
@@ -375,11 +381,40 @@ export function getCraftAttributes(product: ShopProduct) {
       return false;
     }
     if (PRODUCT_TYPE_ATTRIBUTE.test(attribute.name.trim())) return false;
+    if (isLengthAttribute(attribute.name)) return false;
+    if (isInternalStructureAttribute(attribute.name) && isMattressProduct(product)) return false;
     const key = isCollectionAttribute(attribute.name, attribute.taxonomy) ? "collection" : attribute.name.trim();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   }).slice(0, 6);
+}
+
+function hasMagnitudeScale(labels: string[]) {
+  return labels.filter((label) => optionMagnitude(label) > 0).length >= 2;
+}
+
+function shouldPreferLargestOption(attribute: PurchaseAttribute) {
+  const labels = attribute.options.map((option) => option.label);
+  if (!hasMagnitudeScale(labels)) return false;
+  if (isSizeAttribute(attribute.label) || isLengthAttribute(attribute.label)) return true;
+  if (/^(ارتفاع|عرض|عمق|height|width|depth)$/i.test(attribute.label.trim())) return true;
+  return attribute.role === "purchase" && labels.every((label) => optionMagnitude(label) > 0);
+}
+
+export function defaultAttributeSelection(product: ShopProduct, attributes: PurchaseAttribute[]) {
+  const selected = selectionFromVariant(attributes, getHighestPricedVariant(product));
+  for (const attribute of attributes) {
+    if (!shouldPreferLargestOption(attribute)) continue;
+    const largest = attribute.options.reduce((best, option) =>
+      optionMagnitude(option.label) > optionMagnitude(best.label) ? option : best,
+    );
+    const current = attribute.options.find((option) => option.id === selected[attribute.id]);
+    if (!current || optionMagnitude(largest.label) > optionMagnitude(current.label)) {
+      selected[attribute.id] = largest.id;
+    }
+  }
+  return applyLinkedDimensions(attributes, selected);
 }
 
 export function selectionFromVariant(attributes: PurchaseAttribute[], variant?: ProductVariant) {

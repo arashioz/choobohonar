@@ -6,6 +6,7 @@ import {
   getProductAttributeOptions,
   selectionForAttributeOption,
   selectionFromVariant,
+  defaultAttributeSelection,
   getHighestPricedVariant,
   variantMatchingSelection,
 } from "./commerce";
@@ -151,6 +152,35 @@ test("Folia headboard type pairs wood with walnut and fabric with Capri 2", () =
   assert.equal(material.options.find((option) => option.id === selected[material.id])?.label, "کاپری دو");
   assert.equal(type.role, "purchase");
   assert.equal(material.role, "linked");
+});
+
+test("equal-priced sizes default to the largest value", () => {
+  const mirror = product({
+    slug: "قاب-اینه-فولیا",
+    name: "قاب آینه فولیا",
+    category: "آینه",
+    attributes: [
+      {
+        id: 1,
+        name: "سایز",
+        taxonomy: null,
+        hasVariations: true,
+        terms: [
+          { id: 0, name: "80", slug: "80", default: true },
+          { id: 1, name: "107", slug: "107", default: false },
+        ],
+      },
+    ],
+    variants: [
+      { id: "80", options: [{ name: "سایز", value: "80" }], price: 29300000, stockQty: 1, enabled: true },
+      { id: "107", options: [{ name: "سایز", value: "107" }], price: 29300000, stockQty: 1, enabled: true },
+    ],
+  });
+  const attributes = getProductAttributeOptions(mirror);
+  const size = attributes.find((attribute) => attribute.label === "سایز");
+  assert.ok(size);
+  const selected = defaultAttributeSelection(mirror, attributes);
+  assert.equal(size.options.find((option) => option.id === selected[size.id])?.label, "107");
 });
 
 test("sofa fabric is display even when it is not a priced SKU", () => {
