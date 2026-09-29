@@ -25,6 +25,8 @@ services:
     environment:
       MONGODB_URI: mongodb://mongo:27017/choob-va-honar
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      # Secure cookies; enable only once the site is served over HTTPS.
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}
       NODE_ENV: production
       # The backend must use the Docker service, never localhost inside its
       # own container. BullMQ needs this connection during application boot.
@@ -75,6 +77,7 @@ services:
       NODE_ENV: production
       API_URL: http://backend:3001/api
       API_PROXY_TARGET: http://backend:3001/api
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}
     volumes:
       # Raster brandbook assets are delivered outside Git. Keep them on the
       # host so an admin-image rebuild never removes them.
@@ -112,15 +115,31 @@ services:
       context: ./deploy/nginx
       dockerfile: Dockerfile
     restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-choobohonar.com}
+      # Old WordPress host (e.g. https://1.2.3.4) for /wp-content/uploads
+      # files that have not been copied into ./data/legacy yet.
+      LEGACY_WP_ORIGIN: ${LEGACY_WP_ORIGIN:-}
     ports:
-      # bind nginx to the specified host IP (public IP)
       - '${HTTP_PORT:-80}:80'
-      - '443:443'
+      - '${HTTPS_PORT:-443}:443'
     volumes:
       - ./backend/uploads:/var/www/uploads:ro
-      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+      # Optional copy of WordPress media: ./data/legacy/wp-content/uploads/…
+      - ./data/legacy:/var/www/legacy:ro
+      - ./data/certbot/conf:/etc/letsencrypt:ro
+      - ./data/certbot/www:/var/www/certbot:ro
     depends_on:
       - frontend
       - backend
       - admin
       - landing
+
+  certbot:
+    image: docker.arvancloud.ir/certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    # Renewal only; the first certificate is issued by deploy/init-ssl.sh.
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'

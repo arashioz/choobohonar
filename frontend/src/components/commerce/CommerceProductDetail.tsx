@@ -216,9 +216,9 @@ export default function CommerceProductDetail({
             <span className="text-forest">{product.name}</span>
           </nav>
 
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.75fr)] lg:gap-16 xl:gap-24">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:gap-16 xl:gap-24">
             <div className="min-w-0">
-              <div className="relative aspect-[4/5] overflow-hidden bg-forest/[0.04] md:aspect-[5/6]">
+              <div className="relative aspect-square overflow-hidden bg-forest/[0.04]">
                 {activeImage ? (
                   <Image
                     key={activeImage}

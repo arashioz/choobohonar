@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import MaterialCircle from "@/components/commerce/MaterialCircle";
+import ProductCardImage from "@/components/commerce/ProductCardImage";
 import type { ShopProduct } from "@/data/products";
 import { formatCatalogPrice, getCollectionName } from "@/lib/commerce";
 import { isUploadedMedia } from "@/lib/media";
@@ -32,13 +32,12 @@ export default function CommerceProductCard({
       <Link href={`/products/${product.slug}`} className="group flex h-full flex-col focus-visible:outline-none">
         <div
           className={cn(
-            "relative overflow-hidden bg-forest/[0.045]",
+            "relative overflow-hidden bg-white",
             aspectClasses[imageAspect],
-            "transition-colors duration-500 group-hover:bg-forest/[0.07]",
           )}
         >
           {product.image ? (
-            <Image
+            <ProductCardImage
               src={product.image}
               alt={product.name}
               fill
