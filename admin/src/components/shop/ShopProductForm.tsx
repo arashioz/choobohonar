@@ -387,6 +387,7 @@ export default function ShopProductForm({
           <ProductMediaGallery images={form.gallery} uploading={uploading} uploadProgress={uploadProgress} onUpload={uploadImages} onChange={setGallery} />
           <MaterialGalleryImageMapper
             attributes={form.attributes}
+            finishes={form.finishes}
             gallery={form.gallery}
             value={form.materialImageMappings}
             onChange={(materialImageMappings) => set("materialImageMappings", materialImageMappings)}
@@ -676,22 +677,40 @@ function VariantsEditor({ attributes, variants, optionCatalog, onAttributes, onV
 
 const MATERIAL_ATTRIBUTE = /چوب|متریال|پرداخت|فینیش|رویه|wood|material|finish|پارچه|fabric|کوسن|cushion/i;
 
+/** Woods picked from the material library have no attribute axis; the storefront matches them by this label. */
+const FINISH_MAPPING_ATTRIBUTE = "متریال";
+
 function MaterialGalleryImageMapper({
   attributes,
+  finishes,
   gallery,
   value,
   onChange,
 }: {
   attributes: { name: string; values: string[] }[];
+  finishes: string[];
   gallery: string[];
   value: { attribute: string; value: string; image: string }[];
   onChange: (mappings: { attribute: string; value: string; image: string }[]) => void;
 }) {
-  const materialOptions = attributes.flatMap((attribute) =>
+  const [finishNames, setFinishNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!finishes.length) return;
+    shopApi
+      .materials()
+      .then((rows) => setFinishNames(Object.fromEntries(rows.map((row) => [row.slug, row.name]))))
+      .catch(() => setFinishNames({}));
+  }, [finishes.length]);
+
+  const attributeOptions = attributes.flatMap((attribute) =>
     MATERIAL_ATTRIBUTE.test(attribute.name)
       ? attribute.values.filter((item) => item.trim()).map((item) => ({ attribute: attribute.name, value: item }))
       : [],
   );
+  const finishOptions = finishes
+    .map((slug) => ({ attribute: FINISH_MAPPING_ATTRIBUTE, value: finishNames[slug] || slug }))
+    .filter((item) => !attributeOptions.some((option) => option.value.trim() === item.value.trim()));
+  const materialOptions = [...attributeOptions, ...finishOptions];
 
   function selectedImage(attribute: string, materialValue: string) {
     return value.find((item) => item.attribute === attribute && item.value === materialValue)?.image || "";
@@ -711,7 +730,7 @@ function MaterialGalleryImageMapper({
         </p>
       </div>
       {!materialOptions.length ? (
-        <p className="text-[11px] text-forest/40">ابتدا در بخش «ویژگی‌ها» محورهایی مانند چوب، پارچه یا پارچه کوسن اضافه کنید.</p>
+        <p className="text-[11px] text-forest/40">ابتدا در «جزئیات محصول» متریال انتخاب کنید یا در بخش «ویژگی‌ها» محورهایی مانند چوب، پارچه یا پارچه کوسن اضافه کنید.</p>
       ) : !gallery.length ? (
         <p className="text-[11px] text-forest/40">ابتدا حداقل یک تصویر در گالری محصول آپلود کنید.</p>
       ) : (

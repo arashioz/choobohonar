@@ -160,6 +160,10 @@ export default function CommerceProductDetail({
     if (!next) return;
     setSelectedMaterial(next.slug);
     setAdded(false);
+    const mapped = (product.materialImageMappings || []).find(
+      (mapping) => mapping.image && [next.name, next.slug].some((label) => label?.trim() === mapping.value.trim()),
+    );
+    if (mapped) setActiveImage(mapped.image);
     if (materialAttribute) {
       const option = materialAttribute.options.find(
         (entry) =>
