@@ -21,6 +21,7 @@ import {
 import CampaignBannersPanel from "@/components/shop/CampaignBannersPanel";
 import CategoryPageMediaPanel from "@/components/shop/CategoryPageMediaPanel";
 import { groupProductsByCatalog } from "@/lib/catalog-taxonomy";
+import { usePendingProformaCount } from "@/lib/use-pending-proforma";
 
 type Tab = "products" | "orders" | "proformas" | "invoices";
 
@@ -267,6 +268,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
     setSelectedProductIds(selected ? new Set(products.map((product) => product._id)) : new Set());
   }
 
+  const pendingProforma = usePendingProformaCount();
   const tabs: { id: Tab; label: string }[] = [
     { id: "orders", label: "سفارشات آنلاین" },
     { id: "proformas", label: "پیش‌فاکتورها" },
@@ -343,6 +345,11 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
               }`}
             >
               {t.label}
+              {t.id === "proformas" && pendingProforma ? (
+                <span className="mr-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brick px-1.5 text-[10px] font-semibold text-white">
+                  {pendingProforma.toLocaleString("fa-IR")}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>}
@@ -460,6 +467,11 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                           >
                             {order.orderNumber}
                           </Link>
+                          {order.proformaId && !order.invoiceId && order.status !== "cancelled" ? (
+                            <span className="mr-2 inline-block rounded-full bg-brick/10 px-2 py-0.5 text-[10px] font-medium text-brick">
+                              در انتظار فاکتور
+                            </span>
+                          ) : null}
                         </td>
                         <td className="px-4 py-3 text-forest/70">
                           <div>{order.customer.name}</div>

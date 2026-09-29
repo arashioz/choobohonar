@@ -37,6 +37,13 @@ const STATUS_FLOW: OrderStatus[] = [
   'delivered',
 ];
 
+/** A proforma the manager has not yet turned into an invoice. */
+const PENDING_PROFORMA_FILTER = {
+  proformaId: { $ne: null },
+  invoiceId: null,
+  status: { $ne: 'cancelled' },
+};
+
 @Injectable()
 export class OrderService implements OnModuleInit {
   constructor(
@@ -500,15 +507,23 @@ export class OrderService implements OnModuleInit {
   }
 
   async stats() {
-    const [total, paid, preparing, shipping, delivered, pendingPay] =
-      await Promise.all([
-        this.orderModel.countDocuments(),
-        this.orderModel.countDocuments({ status: 'paid' }),
-        this.orderModel.countDocuments({ status: 'preparing' }),
-        this.orderModel.countDocuments({ status: 'shipping' }),
-        this.orderModel.countDocuments({ status: 'delivered' }),
-        this.orderModel.countDocuments({ 'payment.status': 'pending' }),
-      ]);
+    const [
+      total,
+      paid,
+      preparing,
+      shipping,
+      delivered,
+      pendingPay,
+      pendingProforma,
+    ] = await Promise.all([
+      this.orderModel.countDocuments(),
+      this.orderModel.countDocuments({ status: 'paid' }),
+      this.orderModel.countDocuments({ status: 'preparing' }),
+      this.orderModel.countDocuments({ status: 'shipping' }),
+      this.orderModel.countDocuments({ status: 'delivered' }),
+      this.orderModel.countDocuments({ 'payment.status': 'pending' }),
+      this.orderModel.countDocuments(PENDING_PROFORMA_FILTER),
+    ]);
 
     const revenue = await this.orderModel.aggregate([
       { $match: { 'payment.status': 'paid' } },
@@ -522,6 +537,7 @@ export class OrderService implements OnModuleInit {
       shipping,
       delivered,
       pendingPay,
+      pendingProforma,
       revenue: revenue[0]?.sum || 0,
       flow: STATUS_FLOW,
     };

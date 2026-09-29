@@ -23,7 +23,7 @@ export default function CommerceProductCard({
   product,
   priority = false,
   className,
-  imageAspect = "portrait",
+  imageAspect = "landscape",
 }: CommerceProductCardProps) {
   const collection = getCollectionName(product);
 
@@ -45,7 +45,7 @@ export default function CommerceProductCard({
               priority={priority}
               unoptimized={isUploadedMedia(product.image)}
               sizes="(max-width: 640px) 92vw, (max-width: 1024px) 48vw, 32vw"
-              className="media-hover object-cover"
+              className="media-hover object-contain"
             />
           ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-forest/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />

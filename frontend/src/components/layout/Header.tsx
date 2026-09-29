@@ -187,6 +187,9 @@ export default function Header() {
                   )}
                 >
                   {item.label}
+                  {item.badge ? (
+                    <sup className="mr-0.5 text-[8px] font-normal tracking-normal opacity-60">{item.badge}</sup>
+                  ) : null}
                   <span
                     className={cn(
                       "absolute inset-x-0 -bottom-0.5 h-px origin-right bg-current transition-transform duration-300 ease-out-expo group-hover:scale-x-100 group-focus-within:scale-x-100",
@@ -325,6 +328,9 @@ export default function Header() {
                   style={{ transitionDelay: open ? `${80 + i * 50}ms` : "0ms" }}
                 >
                   {item.label}
+                  {item.badge ? (
+                    <span className="mr-2 align-middle text-[10px] font-normal text-paper/45">{item.badge}</span>
+                  ) : null}
                 </Link>
                 {item.children?.length ? (
                   <div className="mt-3 grid gap-1 sm:mt-4 sm:gap-2">

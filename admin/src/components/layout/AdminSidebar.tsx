@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { usePendingProformaCount } from "@/lib/use-pending-proforma";
+import { cn, toFa } from "@/lib/utils";
 
 type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "settings" | "customers" | "leads" | "collections" | "seo" | "logout";
 
@@ -58,6 +59,8 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const pendingProforma = usePendingProformaCount();
+  const badgeFor = (href: string) => (href === "/admin/shop" ? pendingProforma : 0);
 
   async function logout() {
     setLoggingOut(true);
@@ -95,10 +98,18 @@ export default function AdminSidebar() {
                 <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors", active ? "bg-peach/35 text-forest" : "text-forest/38 group-hover:text-forest/70")}>
                   <NavIcon name={item.icon} size={18} />
                 </span>
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block text-[12px] font-medium">{item.label}</span>
                   <span className="mt-0.5 block truncate text-[9px] text-forest/30">{item.description}</span>
                 </span>
+                {badgeFor(item.href) ? (
+                  <span
+                    className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brick px-1.5 text-[10px] font-semibold text-white shadow-[0_0_0_3px_rgba(176,74,48,0.14)]"
+                    title={`${toFa(badgeFor(item.href))} پیش‌فاکتور در انتظار صدور فاکتور`}
+                  >
+                    {toFa(badgeFor(item.href))}
+                  </span>
+                ) : null}
                 {active && <span className="absolute -right-5 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-l-full bg-brick/70" />}
               </Link>
             );
@@ -131,7 +142,8 @@ export default function AdminSidebar() {
       <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-6 gap-0.5 overflow-x-auto rounded-2xl border border-forest/10 bg-[#f8f5f0]/95 p-1.5 shadow-xl shadow-forest/10 backdrop-blur-xl md:hidden" aria-label="منوی موبایل">
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href);
-          return <Link key={item.href} href={item.href} className={cn("flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] transition-colors", active ? "bg-peach/35 text-forest" : "text-forest/35")}><NavIcon name={item.icon} size={17} /><span className="truncate">{item.label.replace(" دیجیتال", "")}</span></Link>;
+          const badge = badgeFor(item.href);
+          return <Link key={item.href} href={item.href} className={cn("relative flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[8px] transition-colors", active ? "bg-peach/35 text-forest" : "text-forest/35")}><NavIcon name={item.icon} size={17} /><span className="truncate">{item.label.replace(" دیجیتال", "")}</span>{badge ? <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brick px-1 text-[8px] font-semibold text-white">{toFa(badge)}</span> : null}</Link>;
         })}
       </nav>
     </>

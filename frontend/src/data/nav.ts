@@ -10,6 +10,9 @@ export const productMegaMenu: NavChildItem[] = commerceCategories.map((category)
   description: category.description,
 }));
 
+/** The gallery is under construction; the nav marks it and the page shows a placeholder. */
+export const GALLERY_HREF = "/gallery";
+
 function isAccessoryNavEntry(label?: string, href?: string) {
   return /accessory|accessories|اکسسوری/i.test(`${label || ""} ${href || ""}`);
 }
@@ -22,6 +25,7 @@ export function sanitizeStorefrontNav(items: NavItem[]): NavItem[] {
       if (item.href === "/products") {
         return { ...item, children: productMegaMenu };
       }
+      if (item.href === GALLERY_HREF) return { ...item, badge: "بزودی" };
       const children = item.children?.filter((child) => !isAccessoryNavEntry(child.label, child.href));
       return children ? { ...item, children } : item;
     });

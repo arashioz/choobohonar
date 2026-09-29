@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cmsListItems, cmsRequest, type CmsEntry } from "@/lib/cms";
+import { usePendingProformaCount } from "@/lib/use-pending-proforma";
 
 type Summary = Record<
   "article" | "product" | "material" | "project" | "collection" | "story",
@@ -58,6 +59,7 @@ export default function DashboardOverview() {
     story: empty,
   });
   const [loading, setLoading] = useState(true);
+  const pendingProforma = usePendingProformaCount();
 
   useEffect(() => {
     Promise.all(
@@ -118,8 +120,9 @@ export default function DashboardOverview() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`group flex min-h-[8.5rem] flex-col justify-between rounded-2xl border px-5 py-5 transition-colors ${tone.card}`}
+                  className={`group relative flex min-h-[8.5rem] flex-col justify-between rounded-2xl border px-5 py-5 transition-colors ${tone.card}`}
                 >
+                  {item.href === "/admin/shop" && pendingProforma ? <PendingProformaBadge count={pendingProforma} className="absolute left-4 top-4" /> : null}
                   <div>
                     <h3 className="text-base font-medium tracking-tight">{item.title}</h3>
                     <p className={`mt-2 text-[11px] leading-5 ${tone.note}`}>{item.note}</p>
@@ -173,8 +176,9 @@ export default function DashboardOverview() {
           <aside className="space-y-3 lg:col-span-4">
             <Link
               href="/admin/shop"
-              className="block rounded-2xl bg-forest p-5 text-paper transition-colors hover:bg-forest-700"
+              className="relative block rounded-2xl bg-forest p-5 text-paper transition-colors hover:bg-forest-700"
             >
+              {pendingProforma ? <PendingProformaBadge count={pendingProforma} className="absolute left-5 top-5" /> : null}
               <p className="text-[10px] tracking-[0.14em] text-peach" dir="ltr">SHOP</p>
               <h2 className="mt-2 text-lg font-medium">سفارش و پیش‌فاکتور</h2>
               <p className="mt-2 text-[11px] leading-5 text-paper/50">ورود مستقیم به فروشگاه عملیاتی.</p>
@@ -190,6 +194,18 @@ export default function DashboardOverview() {
         </div>
       </div>
     </main>
+  );
+}
+
+function PendingProformaBadge({ count, className }: { count: number; className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full bg-brick px-2.5 py-1 text-[10px] font-medium text-white shadow-[0_0_0_3px_rgba(176,74,48,0.18)] ${className || ""}`}>
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+      </span>
+      {count.toLocaleString("fa-IR")} پیش‌فاکتور جدید
+    </span>
   );
 }
 

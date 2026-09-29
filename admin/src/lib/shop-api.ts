@@ -230,9 +230,9 @@ export const shopApi = {
       shopFetch<ShopOrder>(`/orders/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status, note }),
-      }),
+      }).then(notifyOrdersChanged),
     issueInvoice: (id: string) =>
-      shopFetch<ShopInvoice>(`/orders/${id}/invoice`, { method: "POST" }),
+      shopFetch<ShopInvoice>(`/orders/${id}/invoice`, { method: "POST" }).then(notifyOrdersChanged),
     stats: () => shopFetch<OrderStats>("/orders/stats"),
   },
 
@@ -346,6 +346,13 @@ export type ShopInvoice = {
   amounts: { subtotal: number; shippingFee: number; total: number };
 };
 
+export const ORDERS_CHANGED_EVENT = "admin:orders-changed";
+
+function notifyOrdersChanged<T>(result: T): T {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(ORDERS_CHANGED_EVENT));
+  return result;
+}
+
 export type OrderStats = {
   total: number;
   paid: number;
@@ -353,6 +360,8 @@ export type OrderStats = {
   shipping: number;
   delivered: number;
   pendingPay: number;
+  /** Proformas not yet converted to an invoice. */
+  pendingProforma?: number;
   revenue: number;
   flow: string[];
 };

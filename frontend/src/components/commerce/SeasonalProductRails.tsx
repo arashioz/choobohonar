@@ -50,7 +50,7 @@ function MarqueeRow({
                 key={`${copy}-${product.slug}-${index}`}
                 className="w-[13.5rem] shrink-0 sm:w-[16.5rem] lg:w-[19.5rem]"
               >
-                <CommerceProductCard product={product} imageAspect="portrait" />
+                <CommerceProductCard product={product} />
               </div>
             ))}
           </div>
