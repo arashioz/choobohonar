@@ -501,6 +501,9 @@ export class CollectionsService {
         .exec(),
       this.products.find({}).select('name series').lean().exec(),
     ]);
+    const byLength = (a: { name: string }, b: { name: string }) =>
+      this.normalizeForMatch(b.name).length -
+      this.normalizeForMatch(a.name).length;
     const rules = collections
       .map((collection) => ({
         name: this.collectionName(
@@ -509,21 +512,33 @@ export class CollectionsService {
         series: String(collection.series || '').trim(),
       }))
       .filter((rule) => rule.name)
-      .sort(
-        (a, b) =>
-          this.normalizeForMatch(b.name).length -
-          this.normalizeForMatch(a.name).length,
-      );
+      .sort(byLength);
+    // Products imported without a collection attribute can still carry a
+    // series name another product already uses; only fill empty ones.
+    const ruleKeys = new Set(
+      rules.map((rule) => this.normalizeForMatch(rule.name)),
+    );
+    const seriesRules = [
+      ...new Set(
+        products.map((product) => String(product.series || '').trim()),
+      ),
+    ]
+      .filter((name) => name && !ruleKeys.has(this.normalizeForMatch(name)))
+      .map((name) => ({ name, series: name }))
+      .sort(byLength);
 
     const operations: any[] = [];
     const ambiguous: string[] = [];
     let matched = 0;
     let alreadyCorrect = 0;
     for (const product of products) {
-      const title = this.normalizeForMatch(product.name || '');
-      const matches = rules.filter((rule) =>
-        title.includes(this.normalizeForMatch(rule.name)),
+      let matches = rules.filter((rule) =>
+        this.nameContains(product.name || '', rule.name),
       );
+      if (!matches.length && !String(product.series || '').trim())
+        matches = seriesRules.filter((rule) =>
+          this.nameContains(product.name || '', rule.name),
+        );
       if (!matches.length) continue;
       const best = matches[0];
       if (
@@ -703,6 +718,15 @@ export class CollectionsService {
         String(collection.description || ''),
       )
     );
+  }
+
+  private nameContains(name: string, series: string): boolean {
+    const tokens = (value: string) =>
+      this.normalizeForMatch(value)
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .trim();
+    const needle = tokens(series);
+    return Boolean(needle) && ` ${tokens(name)} `.includes(` ${needle} `);
   }
 
   private normalizeForMatch(value: string): string {

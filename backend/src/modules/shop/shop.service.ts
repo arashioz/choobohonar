@@ -92,6 +92,16 @@ function normalizeSeriesValue(value: string): string {
     .trim();
 }
 
+/** Whole-word containment, so short series names never match inside another word. */
+function nameContainsSeries(name: string, series: string): boolean {
+  const tokens = (value: string) =>
+    normalizeSeriesValue(value)
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .trim();
+  const needle = tokens(series);
+  return Boolean(needle) && ` ${tokens(name)} `.includes(` ${needle} `);
+}
+
 function normalizeImportName(value: string): string {
   return value
     .toLowerCase()
@@ -1390,24 +1400,35 @@ export class ShopService implements OnModuleInit {
   private async seriesFromProductName(
     name: string,
   ): Promise<string | undefined> {
-    const normalizedName = normalizeSeriesValue(name);
-    const collections = await this.namedCollectionModel
-      .find({ status: { $ne: 'archived' } })
-      .select('name series')
-      .lean()
-      .exec();
-    const matches = collections
-      .map((collection) => ({
+    const [collections, knownSeries] = await Promise.all([
+      this.namedCollectionModel
+        .find({ status: { $ne: 'archived' } })
+        .select('name series')
+        .lean()
+        .exec(),
+      this.productModel.distinct('series').exec(),
+    ]);
+    const rules = [
+      ...collections.map((collection) => ({
         name: String(collection.name || '')
           .replace(/^کالکشن\s+/u, '')
           .trim(),
         series: String(collection.series || '').trim(),
-      }))
-      .filter(
-        (collection) =>
-          collection.name &&
-          normalizedName.includes(normalizeSeriesValue(collection.name)),
-      )
+      })),
+      ...(knownSeries as unknown[])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+        .map((value) => ({ name: value, series: value })),
+    ];
+    const seen = new Set<string>();
+    const matches = rules
+      .filter((rule) => {
+        const key = normalizeSeriesValue(rule.name);
+        if (!rule.name || seen.has(key) || !nameContainsSeries(name, rule.name))
+          return false;
+        seen.add(key);
+        return true;
+      })
       .sort(
         (a, b) =>
           normalizeSeriesValue(b.name).length -

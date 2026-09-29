@@ -54,9 +54,18 @@ function rulesForCmsCollection(collection: CmsCollection): MatchRule[] {
   }));
 }
 
+function tokens(value: string): string {
+  return normalize(value)
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 function matches(product: Product, rules: MatchRule[]): MatchRule[] {
-  const title = normalize(product.name || '');
-  return rules.filter((rule) => title.includes(normalize(rule.name)));
+  const title = ` ${tokens(product.name || '')} `;
+  return rules.filter((rule) => {
+    const needle = tokens(rule.name);
+    return Boolean(needle) && title.includes(` ${needle} `);
+  });
 }
 
 async function main() {
@@ -98,10 +107,23 @@ async function main() {
     ...namedRules,
     ...cmsCollections.flatMap(rulesForCmsCollection),
   ].sort((a, b) => normalize(b.name).length - normalize(a.name).length);
+  // Products imported without a collection attribute can still carry a
+  // series name another product already uses; only fill empty ones.
+  const ruleKeys = new Set(allRules.map((rule) => normalize(rule.name)));
+  const seriesRules = unique(
+    products.map((product) => String(product.series || '').trim()),
+  )
+    .filter((name) => !ruleKeys.has(normalize(name)))
+    .map((name) => ({ name, series: name }))
+    .sort((a, b) => normalize(b.name).length - normalize(a.name).length);
 
   const productOperations: mongoose.AnyBulkWriteOperation<Product>[] = [];
+  const filledFromSeries: string[] = [];
   for (const product of products) {
-    const found = matches(product, allRules);
+    let found = matches(product, allRules);
+    const fromSeries =
+      !found.length && !String(product.series || '').trim();
+    if (fromSeries) found = matches(product, seriesRules);
     if (!found.length) continue;
     const best = found[0];
     if (
@@ -112,6 +134,7 @@ async function main() {
       continue;
     const series = best.series || best.name;
     if (normalize(product.series || '') !== normalize(series)) {
+      if (fromSeries) filledFromSeries.push(`${product.name} => ${series}`);
       productOperations.push({
         updateOne: {
           filter: { _id: product._id },
@@ -157,6 +180,7 @@ async function main() {
         scannedProducts: products.length,
         cmsCollectionsFound: cmsCollections.length,
         productSeriesUpdated: productOperations.length,
+        filledFromSeries,
         cmsCollectionsUpdated: collectionsUpdated,
       },
       null,
