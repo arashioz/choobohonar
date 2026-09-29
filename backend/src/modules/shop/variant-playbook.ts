@@ -99,6 +99,13 @@ export function isInternalStructureAttribute(name: string) {
   return /^ساختار$/i.test(name.trim());
 }
 
+/** WooCommerce keys such as pa_bedding-color or p2_bedding_color. Not a customer label. */
+export function isMachineAttributeName(name: string) {
+  const label = name.trim();
+  if (/^pa[_-]/i.test(label)) return true;
+  return /^[a-z][a-z0-9]*([_-][a-z0-9]+)+$/i.test(label);
+}
+
 export function isSeatAttribute(name: string, values: string[] = []) {
   const label = name.trim();
   if (/^(ظرفیت|نفره|seats?|seater)$/i.test(label)) return true;
@@ -190,6 +197,10 @@ export function classifyAttribute(name: string, values: string[] = [], hint: Pro
 
   if (kind === "headboard-material") {
     return { role: "linked" as const, ui: "readonly" as const, kind, family };
+  }
+
+  if (isMachineAttributeName(name)) {
+    return { role: "ignore" as const, ui: "readonly" as const, kind, family };
   }
 
   if (isInternalStructureAttribute(name) && isMattressProduct(hint)) {

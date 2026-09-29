@@ -61,6 +61,19 @@ describe('variant playbook', () => {
 
   it('hides mattress construction from storefront options', () => {
     expect(classifyAttribute('ساختار', ['فنر متصل'], { category: 'تشک', name: 'تشک الارا' }).role).toBe('ignore');
+    expect(
+      classifyAttribute('pa_bedding-color', ['copper', 'charcoal'], {
+        category: 'سرویس روتختی',
+        name: 'سرویس روتختی فریزیا',
+        onPricedVariant: true,
+      }).role,
+    ).toBe('ignore');
+    expect(
+      classifyAttribute('p2_bedding_color', ['dark-blue', 'Gray'], {
+        category: 'سرویس روتختی',
+        onPricedVariant: true,
+      }).role,
+    ).toBe('ignore');
     expect(classifyAttribute('سایز', ['180', '90'], { category: 'تشک', name: 'تشک الارا' }).role).toBe('purchase');
   });
 

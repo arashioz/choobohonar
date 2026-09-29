@@ -5,6 +5,7 @@ import {
   isHeadboardMaterialAttribute,
   isHeadboardTypeAttribute,
   isInternalStructureAttribute,
+  isMachineAttributeName,
   isLengthAttribute,
   isMattressProduct,
   isMechanismAttribute,
@@ -384,6 +385,7 @@ export function getCraftAttributes(product: ShopProduct) {
     if (PRODUCT_TYPE_ATTRIBUTE.test(attribute.name.trim())) return false;
     if (isLengthAttribute(attribute.name)) return false;
     if (isInternalStructureAttribute(attribute.name) && isMattressProduct(product)) return false;
+    if (isMachineAttributeName(attribute.name)) return false;
     const key = isCollectionAttribute(attribute.name, attribute.taxonomy) ? "collection" : attribute.name.trim();
     if (seen.has(key)) return false;
     seen.add(key);
