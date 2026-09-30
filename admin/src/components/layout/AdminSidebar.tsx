@@ -7,11 +7,13 @@ import { useState } from "react";
 import { usePendingProformaCount } from "@/lib/use-pending-proforma";
 import { cn, toFa } from "@/lib/utils";
 
-type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "settings" | "customers" | "leads" | "collections" | "seo" | "logout";
+type IconName = "home" | "shop" | "article" | "bot" | "archive" | "book" | "settings" | "customers" | "leads" | "collections" | "seo" | "folder" | "logout";
 
 const navItems: { label: string; description: string; href: string; icon: IconName }[] = [
   { label: "نمای کلی", description: "صفحه اصلی پنل", href: "/admin", icon: "home" },
   { label: "فروشگاه", description: "محصولات، سفارش‌ها و فاکتورها", href: "/admin/shop", icon: "shop" },
+  { label: "فایل منیجر", description: "پوشه‌ها، تصاویر و رسانه‌های آپلود", href: "/admin/files", icon: "folder" },
+  { label: "مدیریت آثار", description: "محصول، پروژه و کالکشن", href: "/admin/manage", icon: "archive" },
   { label: "مقالات", description: "ایجاد، ویرایش و انتشار", href: "/admin/articles", icon: "article" },
   { label: "داشبورد سئو", description: "پیلار، کیورد و سرچ‌کنسول", href: "/admin/seo", icon: "seo" },
   { label: "صفحات سایت", description: "ناوبری، برند و فرم‌ها", href: "/admin/pages", icon: "book" },
@@ -19,7 +21,6 @@ const navItems: { label: string; description: string; href: string; icon: IconNa
   { label: "مشتریان", description: "CRM و پیگیری ارتباط", href: "/admin/customers", icon: "customers" },
   { label: "درخواست‌ها", description: "فرم‌های سایت و بریف معماری", href: "/admin/leads", icon: "leads" },
   { label: "چوب‌نویس", description: "دستیار هوشمند محتوا", href: "/admin/content", icon: "bot" },
-  { label: "مدیریت آثار", description: "محصول، پروژه و کالکشن", href: "/admin/manage", icon: "archive" },
   { label: "برندبوک دیجیتال", description: "راهنمای هویت برند", href: "/admin/brandbook", icon: "book" },
   { label: "تنظیمات سئو", description: "Google Search Console", href: "/admin/settings", icon: "settings" },
 ];
@@ -47,6 +48,7 @@ function NavIcon({ name, size = 20 }: { name: IconName; size?: number }) {
   if (name === "customers") return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3.5 20c.5-3.3 2.3-5 5.5-5s5 1.7 5.5 5M16 5.5a3 3 0 0 1 0 5.8M17 15.2c2.1.3 3.3 1.9 3.7 4.8" /></svg>;
   if (name === "collections") return <svg {...common}><path d="M4 7h16v13H4z" /><path d="M4 7l8-3 8 3" /><path d="M9 11h6M9 15h4" /></svg>;
   if (name === "leads") return <svg {...common}><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h4" /><path d="m16.5 16.5 1.2 1.2 2.8-3" /></svg>;
+  if (name === "folder") return <svg {...common}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" /></svg>;
   if (name === "seo") return <svg {...common}><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /><path d="M8.5 11h5M11 8.5v5" /></svg>;
   return <svg {...common}><path d="M10 4H5v16h5" /><path d="M14 8l4 4-4 4M18 12H9" /></svg>;
 }
