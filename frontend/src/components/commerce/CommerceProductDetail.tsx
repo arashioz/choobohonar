@@ -218,7 +218,7 @@ export default function CommerceProductDetail({
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:gap-16 xl:gap-24">
             <div className="min-w-0">
-              <div className="relative aspect-square overflow-hidden bg-forest/[0.04]">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-forest/[0.03] sm:aspect-square md:rounded-3xl">
                 {activeImage ? (
                   <Image
                     key={activeImage}
@@ -228,44 +228,44 @@ export default function CommerceProductDetail({
                     priority
                     unoptimized={isUploadedMedia(activeImage)}
                     sizes="(max-width: 1024px) 100vw, 60vw"
-                    className="object-cover animate-[commerce-image-in_600ms_cubic-bezier(0.16,1,0.3,1)]"
+                    className="object-contain p-2 animate-[commerce-image-in_600ms_cubic-bezier(0.16,1,0.3,1)] sm:p-4 md:object-cover md:p-0"
                   />
                 ) : null}
-                <div className="absolute right-5 top-5 flex flex-col gap-2">
+                <div className="absolute right-3 top-3 flex flex-col gap-1.5 sm:right-5 sm:top-5 sm:gap-2">
                   {!product.isInStock ? (
-                    <span className="rounded-full bg-paper/90 px-4 py-2 text-xs font-medium text-brick backdrop-blur-md">
+                    <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-brick backdrop-blur-md sm:px-4 sm:py-2 sm:text-xs">
                       ناموجود
                     </span>
                   ) : null}
                   {collection ? (
-                    <span className="rounded-full bg-forest/85 px-4 py-2 text-xs font-medium text-paper backdrop-blur-md">
+                    <span className="rounded-full bg-forest/85 px-3 py-1.5 text-[11px] font-medium text-paper backdrop-blur-md sm:px-4 sm:py-2 sm:text-xs">
                       کالکشن {collection}
                     </span>
                   ) : null}
                 </div>
-                <a href={activeImage} target="_blank" rel="noopener noreferrer" className="absolute bottom-5 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-paper/90 text-forest backdrop-blur-md" aria-label="بازکردن تصویر اصلی محصول">
+                <a href={activeImage} target="_blank" rel="noopener noreferrer" className="absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-full bg-paper/90 text-forest backdrop-blur-md transition-transform active:scale-95 sm:bottom-5 sm:left-5 sm:h-12 sm:w-12" aria-label="بازکردن تصویر اصلی محصول">
                   ↗
                 </a>
                 {activeImageCaption ? (
-                  <p className="absolute bottom-5 right-5 max-w-[min(24rem,calc(100%-6.5rem))] rounded-full bg-paper/90 px-4 py-2 text-xs text-forest backdrop-blur-md">
+                  <p className="absolute bottom-3 right-3 max-w-[min(20rem,calc(100%-4.5rem))] truncate rounded-full bg-paper/90 px-3 py-1.5 text-[11px] text-forest backdrop-blur-md sm:bottom-5 sm:right-5 sm:max-w-[min(24rem,calc(100%-6.5rem))] sm:px-4 sm:py-2 sm:text-xs">
                     {activeImageCaption}
                   </p>
                 ) : null}
               </div>
 
               {gallery.length > 1 ? (
-                <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto">
+                <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto pb-1 sm:gap-3">
                   {gallery.map((src, index) => (
                     <button
                       key={`${src}-${index}`}
                       type="button"
                       onClick={() => setActiveImage(src)}
                       className={cn(
-                        "relative aspect-square w-24 shrink-0 overflow-hidden border transition-colors md:w-28",
-                        activeImage === src ? "border-forest" : "border-transparent opacity-65 hover:opacity-100",
+                        "relative aspect-square w-20 shrink-0 overflow-hidden rounded-xl border bg-forest/[0.02] transition-all sm:w-24 md:w-28",
+                        activeImage === src ? "border-forest ring-1 ring-forest/20" : "border-transparent opacity-65 hover:opacity-100",
                       )}
                     >
-                      <Image src={src} alt={`${product.name}، تصویر ${toFa(index + 1)}`} fill unoptimized={isUploadedMedia(src)} sizes="112px" className="object-cover" />
+                      <Image src={src} alt={`${product.name}، تصویر ${toFa(index + 1)}`} fill unoptimized={isUploadedMedia(src)} sizes="112px" className="object-contain p-1 sm:object-cover sm:p-0" />
                     </button>
                   ))}
                 </div>
