@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Issue the first Let's Encrypt certificate and switch nginx to HTTPS.
+# Issue or expand the Let's Encrypt certificate and switch nginx to HTTPS.
 # Run on the server from the repository root, after DNS points here:
 #
 #   ./deploy/init-ssl.sh admin@choobohonar.com
 #   SITE_DOMAIN=choobohonar.com COMPOSE_FILE=docker-compose.prod.yml ./deploy/init-ssl.sh admin@choobohonar.com
 #
+# Covers: choobohonar.com, www.choobohonar.com, admin.choobohonar.com
 # Renewals are handled afterwards by the long-running `certbot` service.
 set -euo pipefail
 
@@ -25,9 +26,11 @@ resolve() { getent ahostsv4 "$1" 2>/dev/null | awk 'NR==1 {print $1}'; }
 server_ip="$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
 apex_ip="$(resolve "$DOMAIN")"
 www_ip="$(resolve "www.$DOMAIN")"
+admin_ip="$(resolve "admin.$DOMAIN")"
 echo "server IP: ${server_ip:-unknown}"
 echo "$DOMAIN -> ${apex_ip:-not resolved}"
 echo "www.$DOMAIN -> ${www_ip:-not resolved}"
+echo "admin.$DOMAIN -> ${admin_ip:-not resolved}"
 
 if [ -z "$apex_ip" ]; then
   echo "DNS for $DOMAIN does not resolve yet; wait for propagation and retry." >&2
@@ -38,32 +41,56 @@ if [ -n "$server_ip" ] && [ "$apex_ip" != "$server_ip" ]; then
   echo "         Behind a CDN this is expected, but the HTTP-01 challenge must still reach this server." >&2
 fi
 
-domains=(-d "$DOMAIN")
-if [ -n "$www_ip" ]; then
-  domains+=(-d "www.$DOMAIN")
-else
-  echo "www.$DOMAIN does not resolve; issuing for $DOMAIN only."
-fi
-
 docker compose up -d nginx
 
-token="ping-$(date +%s)"
-echo "$token" > "$WEBROOT/.well-known/acme-challenge/$token"
-if ! curl -fsS --max-time 10 "http://$DOMAIN/.well-known/acme-challenge/$token" | grep -q "$token"; then
+test_challenge() {
+  local host="$1"
+  local token="ping-$(date +%s)-$RANDOM"
+  echo "$token" > "$WEBROOT/.well-known/acme-challenge/$token"
+  local ok=0
+  if curl -fsS --max-time 10 "http://$host/.well-known/acme-challenge/$token" 2>/dev/null | grep -q "$token"; then
+    ok=1
+  fi
   rm -f "$WEBROOT/.well-known/acme-challenge/$token"
+  return $((1 - ok))
+}
+
+if ! test_challenge "$DOMAIN"; then
   echo "http://$DOMAIN/.well-known/acme-challenge/ is not reachable through nginx (port 80 closed or DNS not here)." >&2
   exit 1
 fi
-rm -f "$WEBROOT/.well-known/acme-challenge/$token"
+
+domains=(-d "$DOMAIN")
+
+if [ -n "$www_ip" ]; then
+  if test_challenge "www.$DOMAIN"; then
+    domains+=(-d "www.$DOMAIN")
+  else
+    echo "warning: www.$DOMAIN challenge unreachable; skipping www."
+  fi
+else
+  echo "www.$DOMAIN does not resolve; skipping www."
+fi
+
+if [ -n "$admin_ip" ]; then
+  if test_challenge "admin.$DOMAIN"; then
+    domains+=(-d "admin.$DOMAIN")
+  else
+    echo "warning: admin.$DOMAIN challenge unreachable; skipping admin."
+  fi
+else
+  echo "admin.$DOMAIN does not resolve; make sure DNS A record points here."
+fi
 
 staging_flag=()
 [ "$STAGING" = "1" ] && staging_flag=(--staging)
 
+echo "Requesting certificate for: ${domains[*]}"
 docker compose run --rm --entrypoint certbot certbot certonly \
   --webroot -w /var/www/certbot \
   "${domains[@]}" \
   --email "$EMAIL" --agree-tos --no-eff-email \
-  --keep-until-expiring --non-interactive \
+  --expand --keep-until-expiring --non-interactive \
   ${staging_flag[@]+"${staging_flag[@]}"}
 
 docker compose restart nginx
@@ -72,9 +99,14 @@ docker compose logs --tail=5 nginx | grep select-site || true
 
 cat <<EOF
 
-HTTPS is enabled for https://$DOMAIN
-Now set these in the root .env and recreate backend/admin:
-  FRONTEND_URL=https://$DOMAIN
+HTTPS is enabled for:
+  - Storefront: https://$DOMAIN
+  - Admin:      https://admin.$DOMAIN
+
+Now ensure these are set in the root .env and recreate backend/admin:
+  FRONTEND_URL=https://$DOMAIN,https://admin.$DOMAIN
   FORCE_HTTPS=true
+
+Then run:
   docker compose up -d --force-recreate backend admin
 EOF
