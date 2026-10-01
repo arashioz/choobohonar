@@ -10,6 +10,13 @@ export type ProductStory = {
   video: string;
 };
 
+function storyVideoType(src: string) {
+  const path = src.split("?")[0].toLowerCase();
+  if (path.endsWith(".webm")) return "video/webm";
+  if (path.endsWith(".mov")) return "video/quicktime";
+  return "video/mp4";
+}
+
 export default function ProductStoriesRail({
   stories,
   compact = false,
@@ -194,11 +201,11 @@ export default function ProductStoriesRail({
                 element.setAttribute("playsinline", "true");
                 element.setAttribute("webkit-playsinline", "true");
               }}
-              src={story.video}
               muted={!allowSound}
-              preload="metadata"
+              preload="auto"
               playsInline
               disablePictureInPicture
+              onClick={() => toggleStory(index)}
               onPlay={() => {
                 videoRefs.current.forEach((item, itemIndex) => {
                   if (itemIndex !== index) item?.pause();
@@ -207,20 +214,17 @@ export default function ProductStoriesRail({
               }}
               onPause={() => setPlaying((current) => current === index ? null : current)}
               onEnded={() => setPlaying((current) => current === index ? null : current)}
-              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/5 to-forest/20" />
-            <div className="commerce-grain pointer-events-none absolute inset-0 opacity-20" aria-hidden />
+              className="absolute inset-0 z-10 h-full w-full cursor-pointer object-cover"
+              aria-label={playing === index ? `توقف ${story.title}` : `پخش ${story.title}`}
+            >
+              <source src={story.video} type={storyVideoType(story.video)} />
+            </video>
+            <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-forest/95 via-forest/5 to-forest/20" />
+            <div className="commerce-grain pointer-events-none absolute inset-0 z-20 opacity-20" aria-hidden />
             <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between p-5 text-[10px] tracking-[0.2em] text-paper/70">
               <span>{story.label}</span>
               <span>{toFa(index + 1).padStart(2, "۰")}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => toggleStory(index)}
-              className="absolute inset-0 z-20 touch-manipulation cursor-pointer"
-              aria-label={playing === index ? `توقف ${story.title}` : `پخش ${story.title}`}
-            />
             {playing !== index && (
               <span className="pointer-events-none absolute left-1/2 top-1/2 z-30 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-hidden>
                 <span className="translate-x-[-1px] text-sm">▶</span>

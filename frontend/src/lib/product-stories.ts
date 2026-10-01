@@ -67,7 +67,7 @@ export async function fetchProductStories(): Promise<StorefrontStory[]> {
   return [{
     label: "Product Stories",
     title: "نزدیک‌تر از همیشه",
-    video: encodeURI("/030509_KC&H Clip 1.3.m4v"),
+    video: "/videos/product-story.mp4",
     rooms: [],
     categorySlugs: [],
   }];

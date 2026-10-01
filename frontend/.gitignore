@@ -40,3 +40,4 @@ next-env.d.ts
 /public/images/materials/
 /public/videos/*
 !/public/videos/hero-mobile.mp4
+!/public/videos/product-story.mp4
