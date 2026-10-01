@@ -1,12 +1,11 @@
 import type { Project } from "@/data/projects";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
-import ProjectNarrativeProducts from "@/components/projects/ProjectNarrativeProducts";
 
 export default function ProjectNarrative({ project }: { project: Project }) {
   if (!project.narrative?.paragraphs.length) return null;
 
-  const { eyebrow, title, paragraphs, products } = project.narrative;
+  const { eyebrow, title, paragraphs } = project.narrative;
 
   return (
     <section className="border-y border-forest/10 bg-paper py-24 md:py-32">
@@ -35,8 +34,6 @@ export default function ProjectNarrative({ project }: { project: Project }) {
               </FadeUp>
             ))}
           </div>
-
-          {products && products.length > 0 && <ProjectNarrativeProducts products={products} />}
         </div>
       </Container>
     </section>
