@@ -7,7 +7,6 @@ import { fetchPublicProjects } from "@/lib/public-projects";
 import Container from "@/components/layout/Container";
 import ProjectHero from "@/components/projects/ProjectHero";
 import ProjectStats from "@/components/projects/ProjectStats";
-import ProjectStory from "@/components/projects/ProjectStory";
 import ProjectNarrative from "@/components/projects/ProjectNarrative";
 import ProjectGallery from "@/components/projects/ProjectGallery";
 import ProjectInteriorCta from "@/components/projects/ProjectInteriorCta";
@@ -57,7 +56,6 @@ export default async function ProjectPage({ params }: PageProps) {
       </section>
       <ProjectStats project={project} />
       <ProjectProducts project={project} />
-      <ProjectStory project={project} />
       <ProjectNarrative project={project} />
       <ProjectGallery project={project} />
       <ProjectInteriorCta />
