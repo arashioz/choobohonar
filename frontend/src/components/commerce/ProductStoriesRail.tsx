@@ -22,8 +22,22 @@ export default function ProductStoriesRail({
   const pausedRef = useRef(false);
   const scrollFrameRef = useRef<number | undefined>(undefined);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const allowSoundRef = useRef(false);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState<number | null>(null);
+  const [allowSound, setAllowSound] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(hover: none), (pointer: coarse)");
+    const sync = () => {
+      const sound = !query.matches;
+      allowSoundRef.current = sound;
+      setAllowSound(sound);
+    };
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   const goTo = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
@@ -95,11 +109,30 @@ export default function ProductStoriesRail({
     [],
   );
 
-  const playStory = (index: number) => {
+  const toggleStory = (index: number) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+    if (!video.paused && !video.ended) {
+      video.pause();
+      return;
+    }
     videoRefs.current.forEach((item, itemIndex) => {
       if (itemIndex !== index) item?.pause();
     });
-    void videoRefs.current[index]?.play().catch(() => undefined);
+    const sound = allowSoundRef.current;
+    video.muted = !sound;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    if (sound) video.removeAttribute("muted");
+    else video.setAttribute("muted", "");
+    const start = video.play();
+    if (!start) return;
+    void start.catch(() => {
+      video.muted = true;
+      video.setAttribute("muted", "");
+      void video.play().catch(() => undefined);
+    });
   };
 
   return (
@@ -153,10 +186,19 @@ export default function ProductStoriesRail({
               : "group relative aspect-[9/16] w-[76vw] shrink-0 snap-center overflow-hidden rounded-[1.25rem] bg-paper/5 sm:w-[47vw] lg:w-[27vw] xl:w-[22vw]"}
           >
             <video
-              ref={(element) => { videoRefs.current[index] = element; }}
+              ref={(element) => {
+                videoRefs.current[index] = element;
+                if (!element) return;
+                element.muted = !allowSoundRef.current;
+                element.playsInline = true;
+                element.setAttribute("playsinline", "true");
+                element.setAttribute("webkit-playsinline", "true");
+              }}
               src={story.video}
+              muted={!allowSound}
               preload="metadata"
               playsInline
+              disablePictureInPicture
               onPlay={() => {
                 videoRefs.current.forEach((item, itemIndex) => {
                   if (itemIndex !== index) item?.pause();
@@ -165,17 +207,26 @@ export default function ProductStoriesRail({
               }}
               onPause={() => setPlaying((current) => current === index ? null : current)}
               onEnded={() => setPlaying((current) => current === index ? null : current)}
-              className="absolute inset-0 h-full w-full cursor-pointer object-cover"
-              aria-label={`پخش ویدیوی ${story.title}`}
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/95 via-forest/5 to-forest/20" />
             <div className="commerce-grain pointer-events-none absolute inset-0 opacity-20" aria-hidden />
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 text-[10px] tracking-[0.2em] text-paper/70">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between p-5 text-[10px] tracking-[0.2em] text-paper/70">
               <span>{story.label}</span>
               <span>{toFa(index + 1).padStart(2, "۰")}</span>
             </div>
-            {playing !== index && <button type="button" onClick={() => playStory(index)} className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-label={`پخش ${story.title}`}><span className="translate-x-[-1px] text-sm">▶</span></button>}
-            <h3 className="absolute inset-x-5 bottom-6 max-w-[16rem] text-2xl font-light leading-tight">
+            <button
+              type="button"
+              onClick={() => toggleStory(index)}
+              className="absolute inset-0 z-20 touch-manipulation cursor-pointer"
+              aria-label={playing === index ? `توقف ${story.title}` : `پخش ${story.title}`}
+            />
+            {playing !== index && (
+              <span className="pointer-events-none absolute left-1/2 top-1/2 z-30 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-paper/50 bg-forest/20 text-paper shadow-[0_0_0_10px_rgba(244,239,232,0.06)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:border-peach group-hover:bg-peach group-hover:text-forest" aria-hidden>
+                <span className="translate-x-[-1px] text-sm">▶</span>
+              </span>
+            )}
+            <h3 className="pointer-events-none absolute inset-x-5 bottom-6 z-30 max-w-[16rem] text-2xl font-light leading-tight">
               {story.title}
             </h3>
           </article>
