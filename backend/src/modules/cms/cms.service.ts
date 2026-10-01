@@ -661,11 +661,19 @@ export class CmsService implements OnModuleInit {
         );
       }
     };
-    take(data.productSlugs);
-    take(data.productIds);
-    take(data.products);
-    take(data.heroMarkers);
-    return [...new Set(collected)];
+    if (Array.isArray(data.productSlugs)) {
+      take(data.productSlugs);
+      return [...new Set(collected)];
+    }
+    if (Array.isArray(data.productIds)) {
+      take(data.productIds);
+      return [...new Set(collected)];
+    }
+    if (Array.isArray(data.products)) {
+      take(data.products);
+      return [...new Set(collected)];
+    }
+    return [];
   }
 
   private async migrateProjectContentModels() {
@@ -694,9 +702,10 @@ export class CmsService implements OnModuleInit {
           : {};
       const legacy = bySlug.get(project.slug) || {};
       const slugs = this.extractProductSlugs({ ...legacy, ...data });
-      if (slugs.length && (!Array.isArray(data.productSlugs) || !data.productSlugs.length)) {
+      if (slugs.length && !Array.isArray(data.productSlugs)) {
         data.productSlugs = slugs;
         data.productIds = slugs;
+        data.products = slugs;
       }
       if (data.featured === undefined && typeof legacy.featured === 'boolean') {
         data.featured = legacy.featured;
@@ -765,9 +774,12 @@ export class CmsService implements OnModuleInit {
     )
       return allowed;
     const data = allowed.data as Record<string, unknown>;
+    const nextProductSlugs = this.extractProductSlugs(data);
     const next: Record<string, unknown> = {
       ...data,
-      productSlugs: this.extractProductSlugs(data),
+      productSlugs: nextProductSlugs,
+      productIds: nextProductSlugs,
+      products: nextProductSlugs,
     };
     if (data.featured !== undefined) next.featured = Boolean(data.featured);
     if (Array.isArray(data.featuredImages)) {

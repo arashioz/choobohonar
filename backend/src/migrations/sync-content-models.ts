@@ -28,11 +28,19 @@ function extractProductSlugs(data: Record<string, unknown>): string[] {
       }
     }
   };
-  take(data.productSlugs);
-  take(data.productIds);
-  take(data.products);
-  take(data.heroMarkers);
-  return [...new Set(collected)];
+  if (Array.isArray(data.productSlugs)) {
+    take(data.productSlugs);
+    return [...new Set(collected)];
+  }
+  if (Array.isArray(data.productIds)) {
+    take(data.productIds);
+    return [...new Set(collected)];
+  }
+  if (Array.isArray(data.products)) {
+    take(data.products);
+    return [...new Set(collected)];
+  }
+  return [];
 }
 
 async function main() {
@@ -83,9 +91,10 @@ async function main() {
     const legacy = bySlug.get(String(project.slug)) || {};
     const slugs = extractProductSlugs({ ...legacy, ...data });
     let changed = false;
-    if (slugs.length && (!Array.isArray(data.productSlugs) || !data.productSlugs.length)) {
+    if (slugs.length && !Array.isArray(data.productSlugs)) {
       data.productSlugs = slugs;
       data.productIds = slugs;
+      data.products = slugs;
       changed = true;
     }
     if (data.featured === undefined && typeof legacy.featured === 'boolean') {

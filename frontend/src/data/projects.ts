@@ -166,11 +166,15 @@ function extractProjectProductSlugs(data: Record<string, unknown>, legacy: Parti
     take(data.productSlugs);
     return [...new Set(collected)];
   }
-  take(data.productIds);
-  take(data.products);
-  take(legacy.productSlugs);
-  take(legacy.narrative?.products);
-  return [...new Set(collected)];
+  if (Array.isArray(data.productIds)) {
+    take(data.productIds);
+    return [...new Set(collected)];
+  }
+  if (Array.isArray(data.products)) {
+    take(data.products);
+    return [...new Set(collected)];
+  }
+  return [];
 }
 
 const aknoon = getProjectImages("aknoon-residence");

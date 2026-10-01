@@ -374,7 +374,7 @@ function SpecificFields({ kind, title, data, setData, dataText, relations, image
         <Field label="مدت اجرا"><input value={dataText("duration")} onChange={(e) => setData("duration", e.target.value)} className={inputClass} placeholder="مثلاً ۱۰ ماه" /></Field>
       </div>
       <TagInput label="خدمات انجام‌شده" value={arrayValue(data.services)} onChange={(values) => setData("services", values)} placeholder="مثلاً طراحی داخلی" />
-      <ProjectProductsPicker value={productSlugValue(data)} onChange={(slugs) => { setData("productSlugs", slugs); setData("productIds", slugs); }} />
+      <ProjectProductsPicker value={productSlugValue(data)} onChange={(slugs) => { setData("productSlugs", slugs); setData("productIds", slugs); setData("products", slugs); }} />
     </Panel>
     <Panel title="پروژه شاخص" description="حداکثر دو پروژه شاخص در صفحه خانه و صفحه پروژه‌ها با همین عنوان و خلاصه نمایش داده می‌شوند. عکس‌های بنر را از گالری همین پروژه انتخاب کنید.">
       <label className="flex items-center justify-between rounded-xl border border-forest/10 bg-[#faf8f5] px-4 py-3">
@@ -416,7 +416,10 @@ function productSlugValue(data: Record<string, unknown>): string[] {
       return [];
     });
   };
-  return [...new Set([...fromList(data.productSlugs), ...fromList(data.productIds), ...fromList(data.products)])];
+  if (Array.isArray(data.productSlugs)) return [...new Set(fromList(data.productSlugs))];
+  if (Array.isArray(data.productIds)) return [...new Set(fromList(data.productIds))];
+  if (Array.isArray(data.products)) return [...new Set(fromList(data.products))];
+  return [];
 }
 
 function FeaturedBannerPicker({ images, value, onChange }: { images: string[]; value: string[]; onChange: (value: string[]) => void }) {
