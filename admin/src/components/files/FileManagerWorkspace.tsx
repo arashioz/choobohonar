@@ -21,6 +21,10 @@ export interface BreadcrumbItem {
   path: string;
 }
 
+function errorMessage(err: unknown, fallback: string) {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
+
 interface ListApiResponse {
   currentPath: string;
   breadcrumbs: BreadcrumbItem[];
@@ -128,8 +132,8 @@ export default function FileManagerWorkspace() {
         setTotalFiles(data.filesCount || 0);
         setTotalFolders(data.foldersCount || 0);
         setTotalPages(data.totalPages || 1);
-      } catch (err: any) {
-        setError(err.message || "خطا در برقراری ارتباط با سرور");
+      } catch (err: unknown) {
+        setError(errorMessage(err, "خطا در برقراری ارتباط با سرور"));
       } finally {
         setLoading(false);
       }
@@ -191,8 +195,8 @@ export default function FileManagerWorkspace() {
       );
       setDeleteTarget(null);
       loadFiles(currentPath, page);
-    } catch (err: any) {
-      showToast("error", err.message || "خطا در حذف");
+    } catch (err: unknown) {
+      showToast("error", errorMessage(err, "خطا در حذف"));
     } finally {
       setIsDeleting(false);
     }
@@ -218,8 +222,8 @@ export default function FileManagerWorkspace() {
       setNewFolderName("");
       setShowNewFolderModal(false);
       loadFiles(currentPath, 1);
-    } catch (err: any) {
-      showToast("error", err.message || "خطا در ساخت پوشه");
+    } catch (err: unknown) {
+      showToast("error", errorMessage(err, "خطا در ساخت پوشه"));
     } finally {
       setIsCreatingFolder(false);
     }
@@ -268,7 +272,6 @@ export default function FileManagerWorkspace() {
 
     setIsUploading(true);
     let successCount = 0;
-    let failCount = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -277,9 +280,8 @@ export default function FileManagerWorkspace() {
       try {
         await uploadSingleFile(file, currentPath);
         successCount++;
-      } catch (err: any) {
-        failCount++;
-        showToast("error", `خطا در آپلود ${file.name}: ${err.message}`);
+      } catch (err: unknown) {
+        showToast("error", `خطا در آپلود ${file.name}: ${errorMessage(err, "خطای نامشخص")}`);
       }
     }
 

@@ -37,7 +37,6 @@ import {
   gscKeywordMap,
   gscMeta,
   gscPages,
-  gscPillars,
   gscTotals,
   reportSources,
 } from "@/data/seo-report";
