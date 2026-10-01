@@ -371,6 +371,7 @@ function SpecificFields({ kind, title, data, setData, dataText, relations, image
         <Field label="موقعیت"><input value={dataText("location")} onChange={(e) => setData("location", e.target.value)} className={inputClass} /></Field>
         <Field label="سال اجرا"><input value={dataText("year")} onChange={(e) => setData("year", e.target.value)} className={inputClass} /></Field>
         <Field label="مساحت (متر مربع)"><input type="number" min="0" value={dataText("area")} onChange={(e) => setData("area", Number(e.target.value))} className={inputClass} /></Field>
+        <Field label="مدت اجرا"><input value={dataText("duration")} onChange={(e) => setData("duration", e.target.value)} className={inputClass} placeholder="مثلاً ۱۰ ماه" /></Field>
       </div>
       <TagInput label="خدمات انجام‌شده" value={arrayValue(data.services)} onChange={(values) => setData("services", values)} placeholder="مثلاً طراحی داخلی" />
       <ProjectProductsPicker value={productSlugValue(data)} onChange={(slugs) => { setData("productSlugs", slugs); setData("productIds", slugs); }} />

@@ -64,30 +64,75 @@ export function projectFromCms(entry: { slug: string; title: string; excerpt?: s
   const image = images[0] || legacy.image || "/images/projects/aknoon-residence/01.jpg";
   const projectType = String(data.projectType || legacy.category || "پروژه");
   const services = Array.isArray(data.services) ? data.services.map(String) : Array.isArray(legacy.scope) ? legacy.scope : [];
-  const area = data.area ? `${data.area} مترمربع` : legacy.area || "—";
+  const formatArea = (val: unknown, fallback?: string): string => {
+    if (val === undefined || val === null || val === "") return fallback || "—";
+    const str = String(val).trim();
+    if (!str) return fallback || "—";
+    return str.includes("متر") ? str : `${str} مترمربع`;
+  };
+  const area = formatArea(data.area, legacy.area);
+  const location = String(data.location || legacy.location || "—");
+  const year = String(data.year || legacy.year || "—");
+  const duration = String(data.duration || legacy.duration || "—");
+  const client = String(data.client || legacy.client || "");
   const productSlugs = extractProjectProductSlugs(data, legacy);
+
+  const standardLabels = new Set([
+    "متراژ",
+    "مساحت",
+    "موقعیت",
+    "سال اجرا",
+    "سال",
+    "مدت اجرا",
+    "مدت",
+    "کارفرما",
+    "دسته",
+    "نوع پروژه",
+  ]);
+
+  const customStats: ProjectStat[] = Array.isArray(legacy.stats)
+    ? legacy.stats
+        .filter(
+          (stat): stat is ProjectStat =>
+            Boolean(
+              stat &&
+              typeof stat === "object" &&
+              typeof stat.label === "string" &&
+              !standardLabels.has(stat.label.trim())
+            )
+        )
+        .map((stat) => ({
+          label: stat.label.trim(),
+          value: String(stat.value || "—"),
+        }))
+    : [];
+
+  const stats: ProjectStat[] = [
+    { label: "متراژ", value: area },
+    { label: "موقعیت", value: location },
+    { label: "سال اجرا", value: year },
+    { label: "مدت اجرا", value: duration },
+    { label: "کارفرما", value: client || "—" },
+    { label: "دسته", value: projectType },
+    ...customStats,
+  ];
 
   return {
     ...legacy,
     slug: entry.slug,
     title: entry.title,
     category: projectType,
-    year: String(data.year || legacy.year || "—"),
+    year,
     image,
-    location: String(data.location || legacy.location || "—"),
+    location,
     area,
-    client: String(data.client || legacy.client || ""),
-    duration: String(data.duration || legacy.duration || "—"),
+    client,
+    duration,
     scope: services,
     summary: entry.excerpt || legacy.summary || entry.description || "",
     description: entry.description || legacy.description || entry.excerpt || "",
     gallery: images.length ? images : legacy.gallery || [image],
-    stats: Array.isArray(legacy.stats) && legacy.stats.length ? legacy.stats : [
-      { label: "نوع پروژه", value: projectType },
-      { label: "موقعیت", value: String(data.location || legacy.location || "—") },
-      { label: "سال اجرا", value: String(data.year || legacy.year || "—") },
-      { label: "متراژ", value: area },
-    ],
+    stats,
     sections: Array.isArray(legacy.sections) ? legacy.sections : [],
     featured: Boolean(data.featured ?? legacy.featured),
     featuredAt: String(data.featuredAt || legacy.featuredAt || ""),

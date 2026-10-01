@@ -1,9 +1,50 @@
-import type { Project } from "@/data/projects";
+import type { Project, ProjectStat } from "@/data/projects";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Stagger from "@/components/motion/Stagger";
 
+export function getProjectDisplayStats(project: Project): ProjectStat[] {
+  const standardLabels = new Set([
+    "متراژ",
+    "مساحت",
+    "موقعیت",
+    "سال اجرا",
+    "سال",
+    "مدت اجرا",
+    "مدت",
+    "کارفرما",
+    "دسته",
+    "نوع پروژه",
+  ]);
+
+  const baseStats: ProjectStat[] = [
+    { label: "متراژ", value: project.area || "—" },
+    { label: "موقعیت", value: project.location || "—" },
+    { label: "سال اجرا", value: project.year || "—" },
+    { label: "مدت اجرا", value: project.duration || "—" },
+    { label: "کارفرما", value: project.client || "—" },
+    { label: "دسته", value: project.category || "—" },
+  ];
+
+  if (!Array.isArray(project.stats) || project.stats.length === 0) {
+    return baseStats;
+  }
+
+  // Retain any custom stats beyond the 6 standard ones
+  const extraStats = project.stats.filter(
+    (stat) =>
+      stat &&
+      typeof stat === "object" &&
+      typeof stat.label === "string" &&
+      !standardLabels.has(stat.label.trim())
+  );
+
+  return [...baseStats, ...extraStats];
+}
+
 export default function ProjectStats({ project }: { project: Project }) {
+  const stats = getProjectDisplayStats(project);
+
   return (
     <section className="bg-paper py-16 md:py-24">
       <Container>
@@ -25,7 +66,7 @@ export default function ProjectStats({ project }: { project: Project }) {
           </div>
 
           <Stagger className="grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-forest/10 sm:grid-cols-3">
-            {project.stats.map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label} className="bg-paper p-5 md:p-6">
                 <p className="text-sm text-forest/65">{stat.label}</p>
                 <p className="mt-2 text-lg font-light tracking-tight text-forest md:text-xl">{stat.value}</p>
