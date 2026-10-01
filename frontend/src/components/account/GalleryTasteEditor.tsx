@@ -51,7 +51,26 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
   }
 
   return (
-    <section className="mt-20 border-t border-forest/10 pt-16">
+    <section className="relative mt-20 overflow-clip border-t border-forest/10 pt-16">
+      <div className="absolute inset-0 z-20 flex items-center justify-center px-6">
+        <div className="max-w-md rounded-[2rem] border border-forest/10 bg-paper/80 px-8 py-10 text-center shadow-[0_30px_80px_-30px_rgba(9,43,28,0.35)] backdrop-blur-xl md:px-12 md:py-12">
+          <p className="eyebrow text-brick">Gallery</p>
+          <h2 className="mt-4 text-[clamp(1.75rem,4vw,2.5rem)] font-light leading-tight tracking-tightest text-forest">
+            سلیقه گالری در دست ساخت
+          </h2>
+          <p className="mt-3 text-lg text-forest/55">بزودی…</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm">
+            <Link href="/projects" className="rounded-full bg-forest px-5 py-2.5 text-paper transition-colors hover:bg-forest/90">
+              دیدن پروژه‌ها
+            </Link>
+            <Link href="/products" className="rounded-full border border-forest/15 px-5 py-2.5 text-forest transition-colors hover:border-forest/40">
+              فروشگاه
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div aria-hidden inert className="pointer-events-none select-none opacity-70 blur-[6px]">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <h2 className="text-2xl font-extralight tracking-tight text-forest">سلیقه فید گالری</h2>
         <Link href="/gallery" className="text-xs text-forest/40 transition-colors hover:text-forest">
@@ -112,6 +131,7 @@ export default function GalleryTasteEditor({ initial, onSaved, save }: Props) {
         >
           بازگرداندن پیش‌فرض
         </button>
+      </div>
       </div>
     </section>
   );
