@@ -9,6 +9,7 @@ import {
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { CreateInteriorBriefDto } from './dto/create-interior-brief.dto';
 import { UpdateLeadStatusDto } from './dto/update-lead-status.dto';
+import { normalizeFollowUpStatus } from '../../common/follow-up-status';
 
 @Injectable()
 export class LeadsService {
@@ -32,15 +33,16 @@ export class LeadsService {
     return { id: lead._id.toString(), ok: true };
   }
 
-  async listLeads(type?: string, status?: string): Promise<LeadDocument[]> {
-    const filter: Record<string, string> = {};
+  async listLeads(type?: string, status?: string) {
+    const filter: Record<string, unknown> = {};
     if (type) filter.type = type;
-    if (status) filter.status = status;
-    return this.leadModel
+    if (status) filter.status = this.statusFilter(status);
+    const items = await this.leadModel
       .find(filter)
       .sort({ createdAt: -1 })
       .limit(100)
       .exec();
+    return items.map((item) => this.present(item));
   }
 
   async getLead(id: string): Promise<LeadDocument> {
@@ -49,22 +51,11 @@ export class LeadsService {
     return lead;
   }
 
-  async updateLeadStatus(
-    id: string,
-    dto: UpdateLeadStatusDto,
-  ): Promise<LeadDocument> {
-    const updated = await this.leadModel
-      .findByIdAndUpdate(
-        id,
-        {
-          status: dto.status,
-          ...(dto.adminNote !== undefined ? { adminNote: dto.adminNote } : {}),
-        },
-        { new: true },
-      )
-      .exec();
-    if (!updated) throw new NotFoundException(`Lead ${id} not found`);
-    return updated;
+  async updateLeadStatus(id: string, dto: UpdateLeadStatusDto) {
+    const lead = await this.getLead(id);
+    this.applyFollowUp(lead, dto);
+    await lead.save();
+    return this.present(lead);
   }
 
   async removeLead(id: string): Promise<{ ok: true }> {
@@ -97,13 +88,15 @@ export class LeadsService {
     return { id: brief._id.toString(), ok: true };
   }
 
-  async listInteriorBriefs(status?: string): Promise<InteriorBriefDocument[]> {
-    const filter = status ? { status } : {};
-    return this.briefModel
+  async listInteriorBriefs(status?: string) {
+    const filter: Record<string, unknown> = {};
+    if (status) filter.status = this.statusFilter(status);
+    const items = await this.briefModel
       .find(filter)
       .sort({ createdAt: -1 })
       .limit(100)
       .exec();
+    return items.map((item) => this.present(item));
   }
 
   async getInteriorBrief(id: string): Promise<InteriorBriefDocument> {
@@ -112,22 +105,43 @@ export class LeadsService {
     return brief;
   }
 
-  async updateInteriorBriefStatus(
-    id: string,
+  async updateInteriorBriefStatus(id: string, dto: UpdateLeadStatusDto) {
+    const brief = await this.getInteriorBrief(id);
+    this.applyFollowUp(brief, dto);
+    await brief.save();
+    return this.present(brief);
+  }
+
+  private statusFilter(status: string) {
+    const normalized = normalizeFollowUpStatus(status);
+    if (normalized === 'reviewed') return { $in: ['reviewed', 'read'] };
+    return normalized;
+  }
+
+  private applyFollowUp(
+    doc: {
+      status: string;
+      adminNote?: string;
+      followUpHistory?: { from: string; to: string; at: Date; by: string }[];
+    },
     dto: UpdateLeadStatusDto,
-  ): Promise<InteriorBriefDocument> {
-    const updated = await this.briefModel
-      .findByIdAndUpdate(
-        id,
-        {
-          status: dto.status,
-          ...(dto.adminNote !== undefined ? { adminNote: dto.adminNote } : {}),
-        },
-        { new: true },
-      )
-      .exec();
-    if (!updated) throw new NotFoundException(`Interior brief ${id} not found`);
-    return updated;
+  ) {
+    const from = normalizeFollowUpStatus(doc.status);
+    const to = normalizeFollowUpStatus(dto.status);
+    if (doc.status !== to) {
+      if (!doc.followUpHistory) doc.followUpHistory = [];
+      doc.followUpHistory.push({ from, to, at: new Date(), by: 'admin' });
+      doc.status = to;
+    }
+    if (dto.adminNote !== undefined) doc.adminNote = dto.adminNote;
+  }
+
+  private present(doc: { toObject: () => Record<string, unknown> }) {
+    const plain = doc.toObject();
+    plain.status = normalizeFollowUpStatus(
+      typeof plain.status === 'string' ? plain.status : undefined,
+    );
+    return plain;
   }
 
   async removeInteriorBrief(id: string): Promise<{ ok: true }> {

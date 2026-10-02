@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { shopApi, storefrontProductUrl, type ShopInvoice } from "@/lib/shop-api";
+import {
+  FOLLOW_UP_STATUS_LABELS,
+  type FollowUpStatus,
+} from "@/lib/follow-up-status";
 
 function formatPrice(n: number) {
   return `${n.toLocaleString("en-US")} تومان`;
@@ -15,12 +19,19 @@ export default function InvoiceDetailAdminPage() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [followUp, setFollowUp] = useState<FollowUpStatus>("new");
 
   useEffect(() => {
     if (!params.id) return;
     shopApi.invoices
       .get(params.id)
-      .then(setInvoice)
+      .then(async (next) => {
+        setInvoice(next);
+        if (next.kind === "proforma" && next.orderId) {
+          const order = await shopApi.orders.get(next.orderId);
+          setFollowUp((order.followUpStatus || "new") as FollowUpStatus);
+        }
+      })
       .catch((e) => {
         console.error("[admin/shop/invoice] load", e);
         setError(e instanceof Error ? e.message : "خطا");
@@ -38,6 +49,30 @@ export default function InvoiceDetailAdminPage() {
             {invoice.kind === "proforma" ? "← پیش‌فاکتورها" : "← فاکتورها"}
           </Link>
           <div className="flex items-center gap-2">
+            {invoice.kind === "proforma" ? (
+              <select
+                value={followUp}
+                disabled={busy}
+                onChange={async (event) => {
+                  const next = event.target.value as FollowUpStatus;
+                  setBusy(true);
+                  setActionError("");
+                  try {
+                    const order = await shopApi.orders.setFollowUp(invoice.orderId, next);
+                    setFollowUp((order.followUpStatus || next) as FollowUpStatus);
+                  } catch (err) {
+                    setActionError(err instanceof Error ? err.message : "تغییر وضعیت انجام نشد");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-xs"
+              >
+                {Object.entries(FOLLOW_UP_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            ) : null}
             {invoice.kind === "proforma" ? (
               <button
                 type="button"

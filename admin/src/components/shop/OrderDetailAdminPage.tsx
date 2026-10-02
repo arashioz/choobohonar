@@ -9,6 +9,10 @@ import {
   storefrontProductUrl,
   type ShopOrder,
 } from "@/lib/shop-api";
+import {
+  FOLLOW_UP_STATUS_LABELS,
+  type FollowUpStatus,
+} from "@/lib/follow-up-status";
 
 const FLOW = ["pending", "confirmed", "paid", "preparing", "shipping", "delivered"];
 
@@ -120,6 +124,33 @@ export default function OrderDetailAdminPage() {
 
       <main className="relative z-10 mx-auto max-w-4xl space-y-6 px-5 py-8 sm:px-8">
         {error ? <p className="text-sm text-brick">{error}</p> : null}
+
+        {order.kind === "proforma" ? (
+          <section className="rounded-2xl border border-forest/10 bg-white/80 p-5">
+            <p className="mb-3 text-xs text-forest/45">وضعیت پیگیری</p>
+            <select
+              value={order.followUpStatus || "new"}
+              disabled={busy}
+              onChange={async (event) => {
+                const next = event.target.value as FollowUpStatus;
+                setBusy(true);
+                setError("");
+                try {
+                  setOrder(await shopApi.orders.setFollowUp(order._id, next));
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "تغییر وضعیت انجام نشد");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-sm"
+            >
+              {Object.entries(FOLLOW_UP_STATUS_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </section>
+        ) : null}
 
         <section className="rounded-2xl border border-forest/10 bg-white/80 p-5">
           <p className="text-xs text-forest/45 mb-3">استپ وضعیت سفارش</p>

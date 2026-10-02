@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { followUpLabel } from "@/lib/follow-up-status";
 
 type Status = "lead" | "active" | "inactive";
 type Tier = "vip" | "silver" | "gold" | null;
@@ -32,6 +33,7 @@ type CommerceOrder = {
   status: string;
   kind?: "online" | "proforma";
   archivedAt?: string | null;
+  followUpStatus?: string | null;
   amounts?: { total?: number };
   createdAt?: string;
   items?: { name: string; qty: number }[];
@@ -470,7 +472,11 @@ export default function CustomersWorkspace() {
                             <div className="flex items-center justify-between gap-2">
                               <a href={`/admin/shop/orders/${order._id}`} className="text-[11px] font-medium text-forest hover:underline" dir="ltr">{order.orderNumber}</a>
                               <span className="text-[10px] text-forest/45">
-                                {order.archivedAt ? "بایگانی" : order.status}
+                                {order.archivedAt
+                                  ? "بایگانی"
+                                  : order.kind === "proforma"
+                                    ? followUpLabel(order.followUpStatus)
+                                    : order.status}
                               </span>
                             </div>
                             <p className="mt-1 text-[10px] text-forest/45">

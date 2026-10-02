@@ -237,6 +237,11 @@ export const shopApi = {
       shopFetch<ShopOrder>(`/orders/${id}/archive`, { method: "POST" }).then(notifyOrdersChanged),
     restore: (id: string) =>
       shopFetch<ShopOrder>(`/orders/${id}/restore`, { method: "POST" }).then(notifyOrdersChanged),
+    setFollowUp: (id: string, status: string) =>
+      shopFetch<ShopOrder>(`/orders/${id}/follow-up`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }).then(notifyOrdersChanged),
     stats: () => shopFetch<OrderStats>("/orders/stats"),
   },
 
@@ -311,6 +316,13 @@ export type ShopOrder = {
   invoiceId?: string;
   proformaId?: string;
   archivedAt?: string | null;
+  followUpStatus?: string | null;
+  followUpHistory?: {
+    from: string;
+    to: string;
+    at: string;
+    by?: string;
+  }[];
   statusHistory?: {
     from: string;
     to: string;

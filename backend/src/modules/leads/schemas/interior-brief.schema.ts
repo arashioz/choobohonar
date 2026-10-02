@@ -1,9 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import {
+  FOLLOW_UP_STATUSES,
+  FollowUpHistoryEntry,
+  FollowUpHistorySchema,
+  type FollowUpStatus,
+} from '../../../common/follow-up-status';
 
 export type InteriorBriefDocument = InteriorBrief & Document;
 
-export type InteriorBriefStatus = 'new' | 'read' | 'archived';
+export type InteriorBriefStatus = FollowUpStatus | 'read';
 
 @Schema({ timestamps: true })
 export class InteriorBrief {
@@ -50,10 +56,13 @@ export class InteriorBrief {
   notes?: string;
 
   @Prop({
-    enum: ['new', 'read', 'archived'],
+    enum: [...FOLLOW_UP_STATUSES, 'read'],
     default: 'new',
   })
   status: InteriorBriefStatus;
+
+  @Prop({ type: [FollowUpHistorySchema], default: [] })
+  followUpHistory: FollowUpHistoryEntry[];
 
   @Prop()
   adminNote?: string;

@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEmail,
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -11,6 +12,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
+import {
+  FOLLOW_UP_STATUSES,
+  type FollowUpStatus,
+} from '../../../common/follow-up-status';
 
 function emptyToUndefined(value: unknown) {
   if (typeof value === 'string' && value.trim() === '') return undefined;
@@ -140,6 +145,11 @@ export class UpdateOrderStatusDto {
   @IsOptional()
   @IsString()
   note?: string;
+}
+
+export class UpdateFollowUpStatusDto {
+  @IsIn([...FOLLOW_UP_STATUSES])
+  status: FollowUpStatus;
 }
 
 export class MockPayDto {

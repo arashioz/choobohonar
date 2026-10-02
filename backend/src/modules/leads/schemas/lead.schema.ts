@@ -1,5 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import {
+  FOLLOW_UP_STATUSES,
+  FollowUpHistoryEntry,
+  FollowUpHistorySchema,
+  type FollowUpStatus,
+} from '../../../common/follow-up-status';
 
 export type LeadDocument = Lead & Document;
 
@@ -9,7 +15,7 @@ export type LeadType =
   | 'cooperation'
   | 'representation';
 
-export type LeadStatus = 'new' | 'read' | 'archived';
+export type LeadStatus = FollowUpStatus | 'read';
 
 @Schema({ timestamps: true })
 export class Lead {
@@ -37,10 +43,13 @@ export class Lead {
   data: Record<string, unknown>;
 
   @Prop({
-    enum: ['new', 'read', 'archived'],
+    enum: [...FOLLOW_UP_STATUSES, 'read'],
     default: 'new',
   })
   status: LeadStatus;
+
+  @Prop({ type: [FollowUpHistorySchema], default: [] })
+  followUpHistory: FollowUpHistoryEntry[];
 
   @Prop()
   adminNote?: string;

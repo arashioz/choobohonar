@@ -23,6 +23,7 @@ import {
 import {
   CreateOrderDto,
   MockPayDto,
+  UpdateFollowUpStatusDto,
   UpdateOrderStatusDto,
 } from './dto/shop-order.dto';
 import { UpdateCampaignBannerDto } from './dto/shop-campaign-banner.dto';
@@ -219,6 +220,7 @@ export class ShopController {
     @Query('q') q?: string,
     @Query('kind') kind?: string,
     @Query('archived') archived?: string,
+    @Query('followUp') followUp?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -227,6 +229,7 @@ export class ShopController {
       q,
       kind,
       archived,
+      followUp,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -262,6 +265,15 @@ export class ShopController {
     @Body() dto: UpdateOrderStatusDto,
   ) {
     return this.orderService.updateStatus(id, dto);
+  }
+
+  @Patch('orders/:id/follow-up')
+  @UseGuards(JwtAuthGuard)
+  updateFollowUp(
+    @Param('id') id: string,
+    @Body() dto: UpdateFollowUpStatusDto,
+  ) {
+    return this.orderService.setFollowUpStatus(id, dto.status);
   }
 
   @Post('orders/:id/invoice')

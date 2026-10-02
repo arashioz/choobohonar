@@ -27,6 +27,10 @@ import {
   UpdateOrderStatusDto,
 } from './dto/shop-order.dto';
 import { CustomersService } from '../customers/customers.service';
+import {
+  type FollowUpStatus,
+  normalizeFollowUpStatus,
+} from '../../common/follow-up-status';
 
 const STATUS_FLOW: OrderStatus[] = [
   'pending',
@@ -183,7 +187,13 @@ export class OrderService implements OnModuleInit {
         ? (order as ShopOrderDocument).toObject()
         : order;
     const items = Array.isArray(plain.items) ? plain.items : [];
-    return { ...plain, items: await this.enrichItems(items) };
+    const followUpStatus =
+      plain.kind === 'proforma'
+        ? normalizeFollowUpStatus(
+            typeof plain.followUpStatus === 'string' ? plain.followUpStatus : null,
+          )
+        : plain.followUpStatus;
+    return { ...plain, followUpStatus, items: await this.enrichItems(items) };
   }
 
   async presentInvoice(invoice: ShopInvoiceDocument | Record<string, unknown>) {
@@ -254,6 +264,19 @@ export class OrderService implements OnModuleInit {
       shipping: dto.shipping,
       payment: { method: paymentMethod, status: 'pending' },
       amounts: { subtotal, shippingFee, total },
+      ...(kind === 'proforma'
+        ? {
+            followUpStatus: 'new' as const,
+            followUpHistory: [
+              {
+                from: 'none',
+                to: 'new',
+                at: new Date(),
+                by: 'customer',
+              },
+            ],
+          }
+        : {}),
     });
 
     await this.customers.ensureLeadFromOrder({
@@ -276,6 +299,7 @@ export class OrderService implements OnModuleInit {
     q?: string;
     kind?: string;
     archived?: string;
+    followUp?: string;
     page?: number;
     limit?: number;
   }) {
@@ -291,6 +315,20 @@ export class OrderService implements OnModuleInit {
         clauses.push({ archivedAt: { $ne: null } });
       } else if (query.archived !== 'all') {
         clauses.push({ archivedAt: null });
+      }
+      if (query.followUp) {
+        const followUp = normalizeFollowUpStatus(query.followUp);
+        clauses.push(
+          followUp === 'new'
+            ? {
+                $or: [
+                  { followUpStatus: 'new' },
+                  { followUpStatus: null },
+                  { followUpStatus: { $exists: false } },
+                ],
+              }
+            : { followUpStatus: followUp },
+        );
       }
     }
     if (query.q?.trim()) {
@@ -316,12 +354,40 @@ export class OrderService implements OnModuleInit {
     ]);
 
     return {
-      items,
+      items: items.map((item) =>
+        item.kind === 'proforma'
+          ? {
+              ...item,
+              followUpStatus: normalizeFollowUpStatus(item.followUpStatus),
+            }
+          : item,
+      ),
       total,
       page,
       limit,
       pages: Math.ceil(total / limit) || 1,
     };
+  }
+
+  async setFollowUpStatus(id: string, status: FollowUpStatus) {
+    const order = await this.get(id);
+    if (order.kind !== 'proforma') {
+      throw new BadRequestException('وضعیت پیگیری فقط برای پیش‌فاکتور است');
+    }
+    const from = normalizeFollowUpStatus(order.followUpStatus);
+    const to = normalizeFollowUpStatus(status);
+    if (order.followUpStatus === to) return this.presentOrder(order);
+
+    if (!order.followUpHistory) order.followUpHistory = [];
+    order.followUpHistory.push({
+      from,
+      to,
+      at: new Date(),
+      by: 'admin',
+    });
+    order.followUpStatus = to;
+    await order.save();
+    return this.presentOrder(order);
   }
 
   async get(id: string) {

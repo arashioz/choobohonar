@@ -1,8 +1,12 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+import {
+  FOLLOW_UP_STATUSES,
+  type FollowUpStatus,
+} from '../../../common/follow-up-status';
 
 export class UpdateLeadStatusDto {
-  @IsEnum(['new', 'read', 'archived'])
-  status: 'new' | 'read' | 'archived';
+  @IsIn([...FOLLOW_UP_STATUSES, 'read'])
+  status: FollowUpStatus | 'read';
 
   @IsOptional()
   @IsString()

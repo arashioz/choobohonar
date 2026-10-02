@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Status = "new" | "read" | "archived";
+import {
+  FOLLOW_UP_STATUS_LABELS,
+  followUpLabel,
+  type FollowUpStatus,
+} from "@/lib/follow-up-status";
+
+type Status = FollowUpStatus;
 type Kind = "lead" | "interior";
 type RequestItem = {
   _id: string;
@@ -26,7 +32,7 @@ type RequestItem = {
   notes?: string;
 };
 
-const statusLabels: Record<Status, string> = { new: "جدید", read: "بررسی‌شده", archived: "بایگانی" };
+const statusLabels = FOLLOW_UP_STATUS_LABELS;
 const typeLabels: Record<NonNullable<RequestItem["type"]>, string> = {
   contact: "تماس",
   consultation: "مشاوره",
@@ -94,7 +100,7 @@ export default function LeadsWorkspace() {
   const counts = useMemo(() => ({
     total: items.length,
     fresh: items.filter((item) => item.status === "new").length,
-    read: items.filter((item) => item.status === "read").length,
+    read: items.filter((item) => item.status === "reviewed").length,
   }), [items]);
 
   function select(item: RequestItem) {
@@ -154,7 +160,7 @@ export default function LeadsWorkspace() {
       </header>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        {[[counts.total, "کل درخواست‌ها"], [counts.fresh, "جدید"], [counts.read, "بررسی‌شده"]].map(([value, label]) => <div key={String(label)} className="rounded-xl border border-forest/10 bg-white/70 p-4"><b className="text-xl text-forest">{Number(value).toLocaleString("fa-IR")}</b><p className="mt-1 text-[10px] text-forest/40">{label}</p></div>)}
+        {[[counts.total, "کل درخواست‌ها"], [counts.fresh, "جدید"], [counts.read, "بررسی شد"]].map(([value, label]) => <div key={String(label)} className="rounded-xl border border-forest/10 bg-white/70 p-4"><b className="text-xl text-forest">{Number(value).toLocaleString("fa-IR")}</b><p className="mt-1 text-[10px] text-forest/40">{label}</p></div>)}
       </div>
 
       <div className="mt-5 flex flex-wrap gap-3">
@@ -177,7 +183,7 @@ export default function LeadsWorkspace() {
               <span className="min-w-[150px] flex-1"><b className="block text-sm font-medium text-forest">{item.name}</b><span className="mt-1 block text-[10px] text-forest/45" dir="ltr">{item.phone}{item.email ? ` · ${item.email}` : ""}</span></span>
               <span className="text-[10px] text-forest/45">{kind === "interior" ? item.spaceType || "بریف معماری" : item.type ? typeLabels[item.type] : "فرم"}</span>
               <span className="text-[10px] text-forest/40">{date(item.createdAt)}</span>
-              <span className="rounded-full bg-sage/25 px-2.5 py-1 text-[9px] text-forest">{statusLabels[item.status]}</span>
+              <span className="rounded-full bg-sage/25 px-2.5 py-1 text-[9px] text-forest">{followUpLabel(item.status)}</span>
             </button>)}
           </div> : <p className="p-10 text-center text-xs text-forest/40">درخواستی برای این فیلتر وجود ندارد.</p>}
         </section>
@@ -187,7 +193,7 @@ export default function LeadsWorkspace() {
             <div className="flex items-start justify-between gap-3 border-b border-forest/10 pb-4"><div><h2 className="text-lg font-medium text-forest">{selected.name}</h2><p className="mt-1 text-xs text-forest/50" dir="ltr">{selected.phone}{selected.email ? ` · ${selected.email}` : ""}</p></div><span className="text-[10px] text-forest/40">{date(selected.createdAt)}</span></div>
             <dl className="mt-4 space-y-3">{details(selected, kind).map(([label, value]) => <div key={label}><dt className="text-[10px] text-forest/40">{label}</dt><dd className="mt-1 whitespace-pre-wrap text-xs leading-6 text-forest/75">{value}</dd></div>)}</dl>
             <div className="mt-5 border-t border-forest/10 pt-4"><label className="text-[10px] text-forest/45">یادداشت مدیر</label><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={4} className={`${inputClass} mt-2 resize-y`} placeholder="نتیجه تماس یا پیگیری…" />
-              <div className="mt-3 flex flex-wrap gap-2"><select value={selected.status} onChange={(event) => void update(event.target.value as Status)} disabled={saving} className={`${inputClass} w-auto`}><option value="new">جدید</option><option value="read">بررسی‌شده</option><option value="archived">بایگانی</option></select><button type="button" onClick={() => void update(selected.status)} disabled={saving} className="rounded-lg bg-forest px-3 py-2 text-xs text-paper disabled:opacity-50">{saving ? "در حال ذخیره…" : "ذخیره یادداشت"}</button><button type="button" onClick={() => void remove()} disabled={saving} className="rounded-lg border border-brick/25 px-3 py-2 text-xs text-brick disabled:opacity-50">حذف</button></div>
+              <div className="mt-3 flex flex-wrap gap-2"><select value={selected.status} onChange={(event) => void update(event.target.value as Status)} disabled={saving} className={`${inputClass} w-auto`}>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><button type="button" onClick={() => void update(selected.status)} disabled={saving} className="rounded-lg bg-forest px-3 py-2 text-xs text-paper disabled:opacity-50">{saving ? "در حال ذخیره…" : "ذخیره یادداشت"}</button><button type="button" onClick={() => void remove()} disabled={saving} className="rounded-lg border border-brick/25 px-3 py-2 text-xs text-brick disabled:opacity-50">حذف</button></div>
             </div>
           </> : <p className="py-12 text-center text-xs leading-6 text-forest/45">یک درخواست را برای دیدن جزئیات و پیگیری انتخاب کنید.</p>}
         </aside>

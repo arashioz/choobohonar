@@ -22,6 +22,10 @@ import CampaignBannersPanel from "@/components/shop/CampaignBannersPanel";
 import CategoryPageMediaPanel from "@/components/shop/CategoryPageMediaPanel";
 import { groupProductsByCatalog } from "@/lib/catalog-taxonomy";
 import { usePendingProformaCount } from "@/lib/use-pending-proforma";
+import {
+  FOLLOW_UP_STATUS_LABELS,
+  type FollowUpStatus,
+} from "@/lib/follow-up-status";
 
 type Tab = "products" | "orders" | "proformas" | "invoices";
 
@@ -76,6 +80,8 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [invoices, setInvoices] = useState<ShopInvoice[]>([]);
   const [q, setQ] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
+  const [followUpFilter, setFollowUpFilter] = useState("");
+  const [followUpBusyId, setFollowUpBusyId] = useState("");
   const [showArchivedProformas, setShowArchivedProformas] = useState(false);
   const [archiveBusyId, setArchiveBusyId] = useState("");
   const [collapsedRooms, setCollapsedRooms] = useState<Record<string, boolean>>(
@@ -177,17 +183,18 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const loadOrders = useCallback(async () => {
     const [list, st] = await Promise.all([
       shopApi.orders.list({
-        status: orderStatus || undefined,
         q: q || undefined,
         kind: tab === "proformas" ? "proforma" : "online",
+        status: tab === "proformas" ? undefined : orderStatus || undefined,
         archived: tab === "proformas" && showArchivedProformas ? "1" : undefined,
+        followUp: tab === "proformas" ? followUpFilter || undefined : undefined,
         limit: 40,
       }),
       shopApi.orders.stats(),
     ]);
     setOrders(list.items);
     setOrderStats(st);
-  }, [q, orderStatus, showArchivedProformas, tab]);
+  }, [q, orderStatus, followUpFilter, showArchivedProformas, tab]);
 
   const loadInvoices = useCallback(async () => {
     const res = await shopApi.invoices.list({ q: q || undefined, kind: "invoice", limit: 40 });
@@ -378,7 +385,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
             }
             className="w-full max-w-md rounded-xl border border-forest/10 bg-white px-3 py-2 text-sm"
           />
-          {tab === "orders" || tab === "proformas" ? (
+          {tab === "orders" ? (
             <select
               value={orderStatus}
               onChange={(e) => setOrderStatus(e.target.value)}
@@ -386,6 +393,20 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
             >
               <option value="">همه وضعیت‌ها</option>
               {Object.entries(ORDER_STATUS_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {tab === "proformas" ? (
+            <select
+              value={followUpFilter}
+              onChange={(e) => setFollowUpFilter(e.target.value)}
+              className="rounded-xl border border-forest/10 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">همه وضعیت‌های پیگیری</option>
+              {Object.entries(FOLLOW_UP_STATUS_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
                 </option>
@@ -451,7 +472,7 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                     <th className="px-4 py-3 font-medium">{tab === "proformas" ? "پیش‌فاکتور" : "سفارش"}</th>
                     <th className="px-4 py-3 font-medium">مشتری</th>
                     <th className="px-4 py-3 font-medium">مبلغ</th>
-                    <th className="px-4 py-3 font-medium">وضعیت</th>
+                    <th className="px-4 py-3 font-medium">{tab === "proformas" ? "پیگیری" : "وضعیت"}</th>
                     <th className="px-4 py-3 font-medium">پرداخت</th>
                     {tab === "proformas" ? (
                       <th className="px-4 py-3 font-medium">عملیات</th>
@@ -518,7 +539,35 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                           {formatPrice(order.amounts.total)}
                         </td>
                         <td className="px-4 py-3">
-                          {ORDER_STATUS_LABELS[order.status] || order.status}
+                          {tab === "proformas" ? (
+                            <select
+                              value={order.followUpStatus || "new"}
+                              disabled={followUpBusyId === order._id}
+                              onChange={async (event) => {
+                                const next = event.target.value as FollowUpStatus;
+                                setFollowUpBusyId(order._id);
+                                setError("");
+                                try {
+                                  await shopApi.orders.setFollowUp(order._id, next);
+                                  setMessage("وضعیت پیگیری ذخیره شد.");
+                                  await loadOrders();
+                                } catch (err) {
+                                  setError(err instanceof Error ? err.message : "تغییر وضعیت انجام نشد");
+                                } finally {
+                                  setFollowUpBusyId("");
+                                }
+                              }}
+                              className="rounded-lg border border-forest/10 bg-white px-2 py-1 text-xs"
+                            >
+                              {Object.entries(FOLLOW_UP_STATUS_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            ORDER_STATUS_LABELS[order.status] || order.status
+                          )}
                         </td>
                         <td className="px-4 py-3 text-xs text-forest/55">
                           {order.payment.status}

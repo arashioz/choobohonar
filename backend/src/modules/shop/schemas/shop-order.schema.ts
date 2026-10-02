@@ -1,5 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import {
+  FOLLOW_UP_STATUSES,
+  FollowUpHistoryEntry,
+  FollowUpHistorySchema,
+  type FollowUpStatus,
+} from '../../../common/follow-up-status';
 
 export type ShopOrderDocument = ShopOrder & Document;
 
@@ -166,6 +172,13 @@ export class ShopOrder {
 
   @Prop({ type: Types.ObjectId, ref: 'ShopInvoice' })
   proformaId?: Types.ObjectId;
+
+  /** Sales follow-up for proformas. Kept apart from fulfillment status. */
+  @Prop({ enum: FOLLOW_UP_STATUSES, index: true })
+  followUpStatus?: FollowUpStatus;
+
+  @Prop({ type: [FollowUpHistorySchema], default: [] })
+  followUpHistory: FollowUpHistoryEntry[];
 
   /** Set when a manager files a proforma away from the active queue. */
   @Prop({ type: Date, default: null, index: true })
