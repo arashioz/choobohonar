@@ -83,11 +83,33 @@ export default function OrderDetailAdminPage() {
             <p className="mt-1 text-xs text-forest/40">{order.kind === "proforma" ? "پیش‌فاکتور" : "سفارش آنلاین"}</p>
           </div>
           <div className="flex gap-2">
+            {order.kind === "proforma" ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  const archived = Boolean(order.archivedAt);
+                  if (!window.confirm(archived ? "این پیش‌فاکتور به فهرست فعال برگردد؟" : "این پیش‌فاکتور بایگانی شود؟")) return;
+                  setBusy(true);
+                  setError("");
+                  try {
+                    setOrder(archived ? await shopApi.orders.restore(order._id) : await shopApi.orders.archive(order._id));
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "بایگانی انجام نشد");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                className="rounded-xl border border-forest/15 px-3 py-2 text-xs disabled:opacity-50"
+              >
+                {order.archivedAt ? "بازگردانی از بایگانی" : "بایگانی"}
+              </button>
+            ) : null}
             {order.invoiceId ? (
               <Link href={`/admin/shop/invoices/${order.invoiceId}`} className="rounded-xl bg-forest px-3 py-2 text-xs text-peach">
                 مشاهده فاکتور
               </Link>
-            ) : (
+            ) : order.archivedAt ? null : (
               <button type="button" disabled={busy} onClick={() => void makeInvoice()} className="rounded-xl border border-forest/15 px-3 py-2 text-xs disabled:opacity-50">
                 صدور فاکتور
               </button>

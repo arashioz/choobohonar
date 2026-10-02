@@ -233,6 +233,10 @@ export const shopApi = {
       }).then(notifyOrdersChanged),
     issueInvoice: (id: string) =>
       shopFetch<ShopInvoice>(`/orders/${id}/invoice`, { method: "POST" }).then(notifyOrdersChanged),
+    archive: (id: string) =>
+      shopFetch<ShopOrder>(`/orders/${id}/archive`, { method: "POST" }).then(notifyOrdersChanged),
+    restore: (id: string) =>
+      shopFetch<ShopOrder>(`/orders/${id}/restore`, { method: "POST" }).then(notifyOrdersChanged),
     stats: () => shopFetch<OrderStats>("/orders/stats"),
   },
 
@@ -306,6 +310,7 @@ export type ShopOrder = {
   amounts: { subtotal: number; shippingFee: number; total: number };
   invoiceId?: string;
   proformaId?: string;
+  archivedAt?: string | null;
   statusHistory?: {
     from: string;
     to: string;
@@ -324,6 +329,7 @@ export type ShopInvoice = {
   orderNumber: string;
   issuedAt: string;
   status: string;
+  archivedAt?: string | null;
   customer: { name: string; phone: string; email?: string };
   shipping: {
     address: string;

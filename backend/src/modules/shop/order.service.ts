@@ -42,6 +42,7 @@ const PENDING_PROFORMA_FILTER = {
   proformaId: { $ne: null },
   invoiceId: null,
   status: { $ne: 'cancelled' },
+  archivedAt: null,
 };
 
 @Injectable()
@@ -274,6 +275,7 @@ export class OrderService implements OnModuleInit {
     status?: string;
     q?: string;
     kind?: string;
+    archived?: string;
     page?: number;
     limit?: number;
   }) {
@@ -283,6 +285,13 @@ export class OrderService implements OnModuleInit {
     if (query.status) clauses.push({ status: query.status });
     if (query.kind === 'online' || query.kind === 'proforma') {
       clauses.push({ kind: query.kind });
+    }
+    if (query.kind === 'proforma') {
+      if (query.archived === '1' || query.archived === 'true') {
+        clauses.push({ archivedAt: { $ne: null } });
+      } else if (query.archived !== 'all') {
+        clauses.push({ archivedAt: null });
+      }
     }
     if (query.q?.trim()) {
       clauses.push({
@@ -396,7 +405,42 @@ export class OrderService implements OnModuleInit {
   }
 
   async issueInvoice(orderId: string) {
+    const order = await this.get(orderId);
+    if (order.archivedAt) {
+      throw new BadRequestException('پیش‌فاکتور بایگانی‌شده را نمی‌توان به فاکتور تبدیل کرد');
+    }
     return this.issueDocument(orderId, 'invoice');
+  }
+
+  async setProformaArchived(id: string, archived: boolean) {
+    const order = await this.get(id);
+    if (order.kind !== 'proforma') {
+      throw new BadRequestException('فقط پیش‌فاکتور قابل بایگانی است');
+    }
+    const alreadyArchived = Boolean(order.archivedAt);
+    if (alreadyArchived === archived) return this.presentOrder(order);
+
+    const at = archived ? new Date() : null;
+    order.archivedAt = at;
+    order.statusHistory.push({
+      from: order.status,
+      to: order.status,
+      at: new Date(),
+      by: 'admin',
+      note: archived ? 'بایگانی پیش‌فاکتور' : 'بازگشت پیش‌فاکتور از بایگانی',
+    });
+    await order.save();
+
+    if (order.proformaId) {
+      await this.invoiceModel.updateOne(
+        { _id: order.proformaId },
+        archived
+          ? { $set: { status: 'archived', archivedAt: at } }
+          : { $set: { status: 'issued', archivedAt: null } },
+      );
+    }
+
+    return this.presentOrder(order);
   }
 
   async issueDocument(orderId: string, kind: 'invoice' | 'proforma') {

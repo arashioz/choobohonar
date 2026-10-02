@@ -31,6 +31,7 @@ type CommerceOrder = {
   orderNumber: string;
   status: string;
   kind?: "online" | "proforma";
+  archivedAt?: string | null;
   amounts?: { total?: number };
   createdAt?: string;
   items?: { name: string; qty: number }[];
@@ -468,7 +469,9 @@ export default function CustomersWorkspace() {
                           <li key={order._id} className="rounded-lg border border-forest/8 px-3 py-2">
                             <div className="flex items-center justify-between gap-2">
                               <a href={`/admin/shop/orders/${order._id}`} className="text-[11px] font-medium text-forest hover:underline" dir="ltr">{order.orderNumber}</a>
-                              <span className="text-[10px] text-forest/45">{order.status}</span>
+                              <span className="text-[10px] text-forest/45">
+                                {order.archivedAt ? "بایگانی" : order.status}
+                              </span>
                             </div>
                             <p className="mt-1 text-[10px] text-forest/45">
                               {(order.amounts?.total || 0).toLocaleString("en-US")} تومان

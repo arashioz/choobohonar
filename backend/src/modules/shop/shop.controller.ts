@@ -218,6 +218,7 @@ export class ShopController {
     @Query('status') status?: string,
     @Query('q') q?: string,
     @Query('kind') kind?: string,
+    @Query('archived') archived?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -225,6 +226,7 @@ export class ShopController {
       status,
       q,
       kind,
+      archived,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
@@ -266,6 +268,18 @@ export class ShopController {
   @UseGuards(JwtAuthGuard)
   issueInvoice(@Param('id') id: string) {
     return this.orderService.issueInvoice(id);
+  }
+
+  @Post('orders/:id/archive')
+  @UseGuards(JwtAuthGuard)
+  archiveProforma(@Param('id') id: string) {
+    return this.orderService.setProformaArchived(id, true);
+  }
+
+  @Post('orders/:id/restore')
+  @UseGuards(JwtAuthGuard)
+  restoreProforma(@Param('id') id: string) {
+    return this.orderService.setProformaArchived(id, false);
   }
 
   /* ── Invoices ───────────────────────────────────────────── */

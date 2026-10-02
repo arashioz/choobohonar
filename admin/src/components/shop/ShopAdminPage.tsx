@@ -76,6 +76,8 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
   const [invoices, setInvoices] = useState<ShopInvoice[]>([]);
   const [q, setQ] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
+  const [showArchivedProformas, setShowArchivedProformas] = useState(false);
+  const [archiveBusyId, setArchiveBusyId] = useState("");
   const [collapsedRooms, setCollapsedRooms] = useState<Record<string, boolean>>(
     {},
   );
@@ -178,13 +180,14 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
         status: orderStatus || undefined,
         q: q || undefined,
         kind: tab === "proformas" ? "proforma" : "online",
+        archived: tab === "proformas" && showArchivedProformas ? "1" : undefined,
         limit: 40,
       }),
       shopApi.orders.stats(),
     ]);
     setOrders(list.items);
     setOrderStats(st);
-  }, [q, orderStatus, tab]);
+  }, [q, orderStatus, showArchivedProformas, tab]);
 
   const loadInvoices = useCallback(async () => {
     const res = await shopApi.invoices.list({ q: q || undefined, kind: "invoice", limit: 40 });
@@ -389,6 +392,24 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
               ))}
             </select>
           ) : null}
+          {tab === "proformas" ? (
+            <div className="flex rounded-xl border border-forest/10 bg-white p-1 text-sm">
+              <button
+                type="button"
+                onClick={() => setShowArchivedProformas(false)}
+                className={`rounded-lg px-3 py-1.5 ${showArchivedProformas ? "text-forest/55" : "bg-forest text-paper"}`}
+              >
+                فعال
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowArchivedProformas(true)}
+                className={`rounded-lg px-3 py-1.5 ${showArchivedProformas ? "bg-forest text-paper" : "text-forest/55"}`}
+              >
+                بایگانی‌شده‌ها
+              </button>
+            </div>
+          ) : null}
         </div>
         {importing ? <div className="h-2 overflow-hidden rounded-full bg-forest/10"><div className="h-full bg-forest transition-[width]" style={{ width: `${importProgress}%` }} /></div> : null}
 
@@ -432,13 +453,16 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                     <th className="px-4 py-3 font-medium">مبلغ</th>
                     <th className="px-4 py-3 font-medium">وضعیت</th>
                     <th className="px-4 py-3 font-medium">پرداخت</th>
+                    {tab === "proformas" ? (
+                      <th className="px-4 py-3 font-medium">عملیات</th>
+                    ) : null}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={tab === "proformas" ? 6 : 5}
                         className="px-4 py-8 text-center text-forest/40"
                       >
                         در حال بارگذاری…
@@ -447,10 +471,14 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                   ) : orders.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={tab === "proformas" ? 6 : 5}
                         className="px-4 py-8 text-center text-forest/40"
                       >
-                        {tab === "proformas" ? "پیش‌فاکتوری نیست" : "سفارشی نیست"}
+                        {tab === "proformas"
+                          ? showArchivedProformas
+                            ? "پیش‌فاکتور بایگانی‌شده‌ای نیست"
+                            : "پیش‌فاکتوری نیست"
+                          : "سفارشی نیست"}
                       </td>
                     </tr>
                   ) : (
@@ -467,7 +495,11 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                           >
                             {order.orderNumber}
                           </Link>
-                          {order.proformaId && !order.invoiceId && order.status !== "cancelled" ? (
+                          {order.archivedAt ? (
+                            <span className="mr-2 inline-block rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-medium text-forest/60">
+                              بایگانی
+                            </span>
+                          ) : order.proformaId && !order.invoiceId && order.status !== "cancelled" ? (
                             <span className="mr-2 inline-block rounded-full bg-brick/10 px-2 py-0.5 text-[10px] font-medium text-brick">
                               در انتظار فاکتور
                             </span>
@@ -491,6 +523,40 @@ export default function ShopAdminPage({ productsOnly = false }: { productsOnly?:
                         <td className="px-4 py-3 text-xs text-forest/55">
                           {order.payment.status}
                         </td>
+                        {tab === "proformas" ? (
+                          <td className="px-4 py-3">
+                            <button
+                              type="button"
+                              disabled={archiveBusyId === order._id}
+                              onClick={async () => {
+                                const archived = Boolean(order.archivedAt);
+                                const confirmText = archived
+                                  ? "این پیش‌فاکتور به فهرست فعال برگردد؟"
+                                  : "این پیش‌فاکتور بایگانی شود؟";
+                                if (!window.confirm(confirmText)) return;
+                                setArchiveBusyId(order._id);
+                                setError("");
+                                try {
+                                  if (archived) await shopApi.orders.restore(order._id);
+                                  else await shopApi.orders.archive(order._id);
+                                  setMessage(archived ? "پیش‌فاکتور به فهرست فعال برگشت." : "پیش‌فاکتور بایگانی شد.");
+                                  await loadOrders();
+                                } catch (err) {
+                                  setError(err instanceof Error ? err.message : "بایگانی انجام نشد");
+                                } finally {
+                                  setArchiveBusyId("");
+                                }
+                              }}
+                              className="rounded-lg border border-forest/15 px-3 py-1.5 text-xs text-forest/70 hover:border-forest/35 disabled:opacity-50"
+                            >
+                              {archiveBusyId === order._id
+                                ? "…"
+                                : order.archivedAt
+                                  ? "بازگردانی"
+                                  : "بایگانی"}
+                            </button>
+                          </td>
+                        ) : null}
                       </tr>
                     ))
                   )}

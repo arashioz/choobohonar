@@ -167,6 +167,10 @@ export class ShopOrder {
   @Prop({ type: Types.ObjectId, ref: 'ShopInvoice' })
   proformaId?: Types.ObjectId;
 
+  /** Set when a manager files a proforma away from the active queue. */
+  @Prop({ type: Date, default: null, index: true })
+  archivedAt?: Date | null;
+
   @Prop()
   adminNote?: string;
 }

@@ -20,8 +20,11 @@ export class ShopInvoice {
   @Prop({ default: () => new Date() })
   issuedAt: Date;
 
-  @Prop({ enum: ['issued', 'void'], default: 'issued', index: true })
-  status: 'issued' | 'void';
+  @Prop({ enum: ['issued', 'void', 'archived'], default: 'issued', index: true })
+  status: 'issued' | 'void' | 'archived';
+
+  @Prop({ type: Date, default: null })
+  archivedAt?: Date | null;
 
   @Prop({ type: Object, required: true })
   customer: {

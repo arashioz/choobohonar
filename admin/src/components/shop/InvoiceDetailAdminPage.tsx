@@ -13,6 +13,8 @@ export default function InvoiceDetailAdminPage() {
   const params = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<ShopInvoice | null>(null);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -35,12 +37,42 @@ export default function InvoiceDetailAdminPage() {
           <Link href={invoice.kind === "proforma" ? "/admin/shop?tab=proformas" : "/admin/shop?tab=invoices"} className="text-xs text-forest/45">
             {invoice.kind === "proforma" ? "← پیش‌فاکتورها" : "← فاکتورها"}
           </Link>
-          <button type="button" onClick={() => window.print()} className="rounded-xl border border-forest/10 px-3 py-2 text-xs">
-            چاپ
-          </button>
+          <div className="flex items-center gap-2">
+            {invoice.kind === "proforma" ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  const archived = invoice.status === "archived" || Boolean(invoice.archivedAt);
+                  if (!window.confirm(archived ? "این پیش‌فاکتور به فهرست فعال برگردد؟" : "این پیش‌فاکتور بایگانی شود؟")) return;
+                  setBusy(true);
+                  setActionError("");
+                  try {
+                    if (archived) await shopApi.orders.restore(invoice.orderId);
+                    else await shopApi.orders.archive(invoice.orderId);
+                    const next = await shopApi.invoices.get(invoice._id);
+                    setInvoice(next);
+                  } catch (err) {
+                    setActionError(err instanceof Error ? err.message : "بایگانی انجام نشد");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                className="rounded-xl border border-forest/10 px-3 py-2 text-xs disabled:opacity-50"
+              >
+                {invoice.status === "archived" || invoice.archivedAt ? "بازگردانی از بایگانی" : "بایگانی"}
+              </button>
+            ) : null}
+            <button type="button" onClick={() => window.print()} className="rounded-xl border border-forest/10 px-3 py-2 text-xs">
+              چاپ
+            </button>
+          </div>
         </div>
       </header>
 
+      {actionError ? (
+        <p className="mx-auto max-w-3xl px-5 pt-4 text-sm text-brick sm:px-8 print:hidden">{actionError}</p>
+      ) : null}
       <main className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
         <div className="rounded-2xl border border-forest/10 bg-white p-8">
           <div className="flex items-start justify-between gap-4">
