@@ -27,13 +27,33 @@ const WHITE = {
     "M0 80 C34 80 58 75 70 68 C84 58 92 55 100 55 C108 55 116 58 130 68 C142 75 166 80 200 80 L200 80 L0 80 Z",
 } as const;
 
-export default function HeroSection() {
+const DEFAULT_DESKTOP_VIDEO = "/videos/anzhelik.mp4";
+const DEFAULT_MOBILE_VIDEO = "/videos/hero-mobile.mp4";
+
+function videoMime(src: string) {
+  const path = src.split("?")[0].toLowerCase();
+  if (path.endsWith(".webm")) return "video/webm";
+  if (path.endsWith(".mov")) return "video/quicktime";
+  return "video/mp4";
+}
+
+type HeroSectionProps = {
+  desktopVideo?: string;
+  mobileVideo?: string;
+};
+
+export default function HeroSection({
+  desktopVideo = DEFAULT_DESKTOP_VIDEO,
+  mobileVideo = DEFAULT_MOBILE_VIDEO,
+}: HeroSectionProps) {
+  const desktopSrc = desktopVideo.trim() || DEFAULT_DESKTOP_VIDEO;
+  const mobileSrc = mobileVideo.trim() || DEFAULT_MOBILE_VIDEO;
   const root = useRef<HTMLElement>(null);
   const loader = useRef<HTMLDivElement>(null);
   const monogram = useRef<HTMLDivElement>(null);
   const media = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
-  const mobileVideo = useRef<HTMLVideoElement>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const [loaderHidden, setLoaderHidden] = useState(false);
   const [introReady, setIntroReady] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -43,7 +63,7 @@ export default function HeroSection() {
   }, [introReady, videoReady]);
 
   useEffect(() => {
-    const heroVideos = [video.current, mobileVideo.current].filter(
+    const heroVideos = [video.current, mobileVideoRef.current].filter(
       (item): item is HTMLVideoElement => Boolean(item),
     );
     if (!heroVideos.length) return;
@@ -57,7 +77,7 @@ export default function HeroSection() {
       // Only play the source visible at the current breakpoint. This avoids
       // downloading two hero videos on tablets and phones, and lets iPads use
       // the guaranteed mobile MP4 instead of a missing desktop asset.
-      const activeVideo = desktopQuery.matches ? video.current : mobileVideo.current;
+      const activeVideo = desktopQuery.matches ? video.current : mobileVideoRef.current;
       heroVideos.forEach((item) => {
         if (item === activeVideo) void item.play().catch(() => undefined);
         else item.pause();
@@ -193,13 +213,14 @@ export default function HeroSection() {
 
   const markVideoReady = (event: SyntheticEvent<HTMLVideoElement>) => {
     const desktop = window.matchMedia("(min-width: 1280px)").matches;
-    if (event.currentTarget === (desktop ? video.current : mobileVideo.current)) setVideoReady(true);
+    if (event.currentTarget === (desktop ? video.current : mobileVideoRef.current)) setVideoReady(true);
   };
 
   return (
     <section ref={root} id="top" className="relative h-[100svh] w-full overflow-hidden bg-forest">
       <div ref={media} className="absolute inset-0 will-change-transform">
         <video
+          key={desktopSrc}
           ref={video}
           autoPlay
           muted
@@ -211,13 +232,12 @@ export default function HeroSection() {
           onError={markVideoReady}
           className="absolute inset-0 hidden h-full w-full object-cover xl:block"
         >
-          <source src="/videos/anzhelik.mp4" type="video/mp4" />
-          {/* Keep desktop/tablet rendering usable if the optional desktop
-              asset is not present in the deployment image. */}
-          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
+          <source src={desktopSrc} type={videoMime(desktopSrc)} />
+          <source src={mobileSrc} type={videoMime(mobileSrc)} />
         </video>
         <video
-          ref={mobileVideo}
+          key={mobileSrc}
+          ref={mobileVideoRef}
           autoPlay
           muted
           loop
@@ -228,7 +248,7 @@ export default function HeroSection() {
           onError={markVideoReady}
           className="absolute inset-0 h-full w-full object-cover xl:hidden"
         >
-          <source src="/videos/hero-mobile.mp4" type="video/mp4" />
+          <source src={mobileSrc} type={videoMime(mobileSrc)} />
         </video>
         {/* Stronger floor wash so the field reads as solid green */}
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/45" />

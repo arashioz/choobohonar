@@ -175,6 +175,7 @@ export class CmsService implements OnModuleInit {
       'legacy-contact-forms.json',
       'فرم‌های تماس',
     );
+    await this.seedHomePage();
     await this.migrateProjectContentModels();
   }
 
@@ -578,6 +579,71 @@ export class CmsService implements OnModuleInit {
         error instanceof Error ? error.message : error,
       );
     }
+  }
+
+  /** Home page shell. Hero videos stay editable; later home sections can live on the same record. */
+  private async seedHomePage() {
+    await this.entryModel
+      .updateOne(
+        { kind: 'page', slug: 'home' },
+        {
+          $setOnInsert: {
+            kind: 'page',
+            slug: 'home',
+            title: 'خانه',
+            status: 'published',
+            excerpt: 'تنظیمات صفحه خانه',
+            content: '',
+            data: {
+              hero: {
+                desktopVideo: '/videos/anzhelik.mp4',
+                mobileVideo: '/videos/hero-mobile.mp4',
+              },
+              showcase: [
+                {
+                  image: '/images/projects/aknoon-residence/07.jpg',
+                  caption: 'اقامتگاه آکنون',
+                },
+                {
+                  image: '/images/projects/shenaj-villa/68.jpg',
+                  caption: 'ویلای شناج',
+                },
+                {
+                  image: '/images/projects/armon-hotel/25.jpg',
+                  caption: 'هتل آرمون',
+                },
+              ],
+            },
+            tags: [],
+            publishedAt: new Date(),
+          },
+        },
+        { upsert: true },
+      )
+      .exec();
+    await this.entryModel
+      .updateOne(
+        { kind: 'page', slug: 'home', 'data.showcase': { $exists: false } },
+        {
+          $set: {
+            'data.showcase': [
+              {
+                image: '/images/projects/aknoon-residence/07.jpg',
+                caption: 'اقامتگاه آکنون',
+              },
+              {
+                image: '/images/projects/shenaj-villa/68.jpg',
+                caption: 'ویلای شناج',
+              },
+              {
+                image: '/images/projects/armon-hotel/25.jpg',
+                caption: 'هتل آرمون',
+              },
+            ],
+          },
+        },
+      )
+      .exec();
   }
 
   private async seedPageData(slug: string, filename: string, title: string) {

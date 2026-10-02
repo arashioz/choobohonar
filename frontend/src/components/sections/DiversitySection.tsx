@@ -9,7 +9,12 @@ import Parallax from "@/components/motion/Parallax";
 import { registerGsap, gsap, prefersReducedMotion, scrollTriggerConfig } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
-export default function DiversitySection() {
+type DiversityShot = { image: string; caption: string };
+
+export default function DiversitySection({ images }: { images?: DiversityShot[] }) {
+  const provided = images?.filter((item) => item.image && item.caption) ?? [];
+  const shots = (provided.length === 3 ? provided : diversityImages).slice(0, 3);
+
   return (
     <section className="relative overflow-hidden bg-paper py-28 md:py-40">
       <Container className="relative">
@@ -31,8 +36,8 @@ export default function DiversitySection() {
 
         <div className="pointer-events-none relative mt-20 hidden h-[52rem] md:block">
           <ScatterImage
-            src={diversityImages[0].image}
-            caption={diversityImages[0].caption}
+            src={shots[0].image}
+            caption={shots[0].caption}
             className="absolute left-[1%] top-4 w-[34%]"
             aspect="aspect-[3/4.4]"
             speed={95}
@@ -40,8 +45,8 @@ export default function DiversitySection() {
             sizes="34vw"
           />
           <ScatterImage
-            src={diversityImages[1].image}
-            caption={diversityImages[1].caption}
+            src={shots[1].image}
+            caption={shots[1].caption}
             className="absolute left-[41%] top-[24rem] w-[23%]"
             aspect="aspect-[4/3]"
             speed={35}
@@ -49,8 +54,8 @@ export default function DiversitySection() {
             sizes="23vw"
           />
           <ScatterImage
-            src={diversityImages[2].image}
-            caption={diversityImages[2].caption}
+            src={shots[2].image}
+            caption={shots[2].caption}
             className="absolute right-[2%] top-32 w-[29%]"
             aspect="aspect-square"
             speed={130}
@@ -61,22 +66,22 @@ export default function DiversitySection() {
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:hidden">
           <ScatterImage
-            src={diversityImages[0].image}
-            caption={diversityImages[0].caption}
+            src={shots[0].image}
+            caption={shots[0].caption}
             className="w-full"
             aspect="aspect-[3/4]"
             mobile
           />
           <ScatterImage
-            src={diversityImages[1].image}
-            caption={diversityImages[1].caption}
+            src={shots[1].image}
+            caption={shots[1].caption}
             className="w-full"
             aspect="aspect-[4/3]"
             mobile
           />
           <ScatterImage
-            src={diversityImages[2].image}
-            caption={diversityImages[2].caption}
+            src={shots[2].image}
+            caption={shots[2].caption}
             className="w-full"
             aspect="aspect-square"
             mobile

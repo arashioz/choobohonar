@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type ResourcePath } from "@/lib/cms";
 import { uploadMedia } from "@/lib/upload";
 import GalleryPageEditor, { asGalleryMediaItems } from "@/components/gallery/GalleryPageEditor";
+import HomeHeroEditor, { readHomeHero, readHomeShowcase } from "@/components/pages/HomeHeroEditor";
 import ProjectProductsPicker from "@/components/projects/ProjectProductsPicker";
 
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
@@ -174,6 +175,12 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
       </div>
 
       <div className="mx-auto grid max-w-[1380px] gap-5 px-5 py-7 sm:px-8 lg:grid-cols-12 lg:px-10">
+        {kind === "page" && entry.slug === "home" ? (
+          <div className="space-y-5 lg:col-span-12">
+            {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
+            <HomeHeroEditor hero={readHomeHero(data)} showcase={readHomeShowcase(data)} onChange={(hero) => setData("hero", hero)} onShowcaseChange={(showcase) => setData("showcase", showcase)} onBusyChange={setUploading} onProgress={setUploadProgress} />
+          </div>
+        ) : null}
         {kind === "page" && entry.slug === "gallery" ? (
           <div className="space-y-5 lg:col-span-12">
             {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
@@ -185,7 +192,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
           </div>
         ) : null}
-        {!(kind === "page" && entry.slug === "gallery") ? (
+        {!(kind === "page" && (entry.slug === "gallery" || entry.slug === "home")) ? (
         <>
         <div className="space-y-5 lg:col-span-8">
           {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}

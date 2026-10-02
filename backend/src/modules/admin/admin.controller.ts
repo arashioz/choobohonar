@@ -14,7 +14,7 @@ import {
 import type { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { extname, join } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { File as MulterFile } from 'multer';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -99,9 +99,25 @@ export class AdminController {
         .json({ message: 'No file uploaded' });
     }
 
+    // Multer's `dest` drops the original extension, so nginx serves the file
+    // as application/octet-stream and browsers skip hero videos. Keep a
+    // known media extension so the public URL has the right content type.
+    const rawExt = extname(file.originalname).toLowerCase();
+    const safeExt = /^\.(mp4|webm|mov|m4v|jpe?g|png|webp|gif|avif)$/.test(rawExt)
+      ? rawExt
+      : '';
+    let filename = file.filename;
+    if (safeExt && !filename.toLowerCase().endsWith(safeExt)) {
+      filename = `${filename}${safeExt}`;
+      await fs.rename(
+        join(process.cwd(), 'uploads', file.filename),
+        join(process.cwd(), 'uploads', filename),
+      );
+    }
+
     // A relative URL works through both the development proxy and production
     // nginx, unlike an internal Docker hostname such as backend:3001.
-    const url = `/uploads/${file.filename}`;
+    const url = `/uploads/${filename}`;
 
     // If a "target" was provided, persist the mapping so the admin dashboard
     // can show which site slots have an uploaded asset.
@@ -117,7 +133,7 @@ export class AdminController {
           // ignore if file doesn't exist
         }
 
-        map[target] = { filename: file.filename, url };
+        map[target] = { filename, url };
         await fs.writeFile(mapPath, JSON.stringify(map, null, 2), 'utf-8');
       } catch (e) {
         // don't fail the upload if persisting mapping fails
@@ -126,7 +142,7 @@ export class AdminController {
     }
 
     return res.status(HttpStatus.OK).json({
-      filename: file.filename,
+      filename,
       url,
       target,
     });
