@@ -239,7 +239,6 @@ export function pricedVariantAttributeNames(
 ) {
   const names = new Set<string>();
   for (const variant of variants) {
-    if (variant.enabled === false) continue;
     const price = Number(variant.price);
     if (!(Number.isFinite(price) && price > 0)) continue;
     for (const option of variant.options || []) {

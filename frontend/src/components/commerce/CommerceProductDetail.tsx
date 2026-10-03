@@ -136,9 +136,12 @@ export default function CommerceProductDetail({
   const priceValue = selectedVariant
     ? Number(selectedVariant.price || 0)
     : Number(product.prices?.value ?? 0);
+  const selectedVariantUnavailable = selectedVariant?.enabled === false;
+  const showUnavailable = !product.isInStock || selectedVariantUnavailable;
   const canAddToCart =
     product.isInStock &&
     product.isPurchasable &&
+    !selectedVariantUnavailable &&
     Number.isFinite(priceValue) &&
     priceValue > 0 &&
     (!product.variants?.length || Boolean(selectedVariant && (selectedVariant.stockQty > 0 || product.isInStock)));
@@ -232,7 +235,7 @@ export default function CommerceProductDetail({
                   />
                 ) : null}
                 <div className="absolute right-3 top-3 flex flex-col gap-1.5 sm:right-5 sm:top-5 sm:gap-2">
-                  {!product.isInStock ? (
+                  {showUnavailable ? (
                     <span className="rounded-full bg-paper/90 px-3 py-1.5 text-[11px] font-medium text-brick backdrop-blur-md sm:px-4 sm:py-2 sm:text-xs">
                       ناموجود
                     </span>
@@ -280,7 +283,7 @@ export default function CommerceProductDetail({
               <div className="mt-8 flex items-end justify-between gap-6 border-y border-forest/10 py-6">
                 <div>
                   <p className="text-xs text-forest/45">قیمت</p>
-                  {product.isInStock ? (
+                  {!showUnavailable ? (
                     <p className="mt-2 text-2xl font-light text-forest">{formatSelectedCatalogPrice(product, selectedVariant)}</p>
                   ) : priceValue > 0 ? (
                     <div className="mt-2 flex flex-wrap items-end gap-3">

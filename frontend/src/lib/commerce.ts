@@ -268,6 +268,13 @@ function optionHasEnabledVariant(product: ShopProduct, attributeName: string, op
   return pool.some((variant) => variantHasOption(variant, attributeName, optionLabel));
 }
 
+function optionHasVisibleVariant(product: ShopProduct, attributeName: string, optionLabel: string) {
+  const unsellable = (product.variants || []).some(
+    (variant) => variant.enabled === false && variantHasOption(variant, attributeName, optionLabel),
+  );
+  return unsellable || optionHasEnabledVariant(product, attributeName, optionLabel);
+}
+
 function productHint(product: ShopProduct) {
   return { category: product.category, room: product.room, name: product.name };
 }
@@ -305,7 +312,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
     });
   }
 
-  for (const variant of enabledVariants(product)) {
+  for (const variant of product.variants || []) {
     for (const option of variant.options) {
       const siblingValues = variant.options.filter((entry) => entry.name === option.name).map((entry) => entry.value);
       if (!option.value || isLengthAttribute(option.name)) continue;
@@ -337,7 +344,7 @@ export function getProductAttributeOptions(product: ShopProduct): PurchaseAttrib
         ...attribute,
         options: attribute.options.filter((option) => {
           if (attribute.role !== "purchase") return true;
-          return optionHasEnabledVariant(product, attribute.label, option.label);
+          return optionHasVisibleVariant(product, attribute.label, option.label);
         }),
       }),
     }))
@@ -409,9 +416,12 @@ export function defaultAttributeSelection(product: ShopProduct, attributes: Purc
   const selected = selectionFromVariant(attributes, getHighestPricedVariant(product));
   for (const attribute of attributes) {
     if (!shouldPreferLargestOption(attribute)) continue;
-    const largest = attribute.options.reduce((best, option) =>
-      optionMagnitude(option.label) > optionMagnitude(best.label) ? option : best,
-    );
+    const largest = attribute.options.reduce((best, option) => {
+      const bestSellable = optionHasEnabledVariant(product, attribute.label, best.label);
+      const optionSellable = optionHasEnabledVariant(product, attribute.label, option.label);
+      if (optionSellable !== bestSellable) return optionSellable ? option : best;
+      return optionMagnitude(option.label) > optionMagnitude(best.label) ? option : best;
+    });
     const current = attribute.options.find((option) => option.id === selected[attribute.id]);
     if (!current || optionMagnitude(largest.label) > optionMagnitude(current.label)) {
       selected[attribute.id] = largest.id;
@@ -467,11 +477,11 @@ export function variantMatchingSelection(
   attributes: PurchaseAttribute[],
   selected: Record<string, string>,
 ) {
-  const ranked = enabledVariants(product)
+  const ranked = (product.variants || [])
     .filter((variant) => variant.options.some((option) => option.value?.trim()) || pricedVariants(product).every((item) => !item.options.some((option) => option.value?.trim())))
     .map((variant) => ({ variant, score: variantMatchScore(variant, attributes, selected) }))
     .filter((entry): entry is { variant: ProductVariant; score: number } => entry.score !== null)
-    .sort((left, right) => right.score - left.score || variantPrice(right.variant) - variantPrice(left.variant));
+    .sort((left, right) => right.score - left.score || Number(right.variant.enabled !== false) - Number(left.variant.enabled !== false) || variantPrice(right.variant) - variantPrice(left.variant));
 
   const bestScore = ranked[0]?.score ?? -1;
   const top = ranked.filter((entry) => entry.score === bestScore);
@@ -514,7 +524,7 @@ export function selectionForAttributeOption(
     return applyLinkedDimensions(attributes, { ...selected, [attributeId]: optionId }, attributeId);
   }
 
-  const candidates = enabledVariants(product).filter((variant) =>
+  const candidates = (product.variants || []).filter((variant) =>
     variantHasOption(variant, attribute.label, option.label),
   );
   if (!candidates.length) {
@@ -529,7 +539,7 @@ export function selectionForAttributeOption(
         const matches = variantHasOption(variant, item.label, currentLabel || "");
         return total + (matches ? 1 : 0);
       }, 0);
-    return score(right) - score(left) || variantPrice(right) - variantPrice(left);
+    return Number(right.enabled !== false) - Number(left.enabled !== false) || score(right) - score(left) || variantPrice(right) - variantPrice(left);
   });
 
   return applyLinkedDimensions(

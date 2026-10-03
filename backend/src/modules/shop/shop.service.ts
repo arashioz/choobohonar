@@ -16,6 +16,7 @@ import {
 } from './schemas/shop-product.schema';
 import { ShopCategory, ShopCategoryDocument } from './schemas/shop-category.schema';
 import { isLengthAttribute, presentShopProduct, withoutDimensionRangeAttributes } from './variant-playbook';
+import { applyInStockFlag, deriveInStock } from './variant-stock';
 import {
   ShopCampaignBanner,
   ShopCampaignBannerDocument,
@@ -136,60 +137,6 @@ function getSeriesFromProduct(
       normalizeSeriesValue(canonicalSeriesName(term.name)),
     ),
   );
-}
-
-type StockShape = {
-  inStock?: boolean;
-  trackInventory?: boolean;
-  stockQty?: number;
-  variants?: {
-    sku?: string;
-    options?: { name: string; value: string }[];
-    price?: number;
-    compareAtPrice?: number;
-    stockQty?: number;
-    image?: string;
-    enabled?: boolean;
-  }[];
-};
-
-function deriveInStock(product: StockShape): boolean {
-  if (typeof product.inStock === 'boolean') return product.inStock;
-  if (product.variants?.length) {
-    return product.variants.some(
-      (variant) => variant.enabled !== false && (variant.stockQty || 0) > 0,
-    );
-  }
-  if (product.trackInventory) return (product.stockQty || 0) > 0;
-  return true;
-}
-
-function applyInStockFlag<T extends StockShape>(product: T, inStock: boolean): T {
-  const variants = (product.variants || []).map((variant, index) => ({
-    sku: variant.sku,
-    options: (variant.options || []).map((option) => ({
-      name: option.name,
-      value: option.value,
-    })),
-    price: variant.price,
-    compareAtPrice: variant.compareAtPrice,
-    image: variant.image,
-    enabled: variant.enabled !== false,
-    stockQty: inStock
-      ? Math.max(Number(variant.stockQty || 0), index === 0 ? 1 : Number(variant.stockQty || 0))
-      : 0,
-  }));
-  if (inStock && variants.length && !variants.some((variant) => variant.enabled && variant.stockQty > 0)) {
-    variants[0].enabled = true;
-    variants[0].stockQty = Math.max(variants[0].stockQty, 1);
-  }
-  return {
-    ...product,
-    inStock,
-    trackInventory: true,
-    stockQty: inStock ? Math.max(Number(product.stockQty || 0), 1) : 0,
-    variants,
-  };
 }
 
 @Injectable()

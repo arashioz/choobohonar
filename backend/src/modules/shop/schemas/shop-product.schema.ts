@@ -122,7 +122,7 @@ export class ShopProduct {
   })
   attributes: { name: string; values: string[]; required: boolean }[];
 
-  /** هر ترکیبِ قابل فروش با قیمت و موجودی مستقل. */
+  /** هر ترکیب با قیمت و موجودی مستقل. enabled=false در فروشگاه می‌ماند و ناموجود است. */
   @Prop({
     type: [
       {

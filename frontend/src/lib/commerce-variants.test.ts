@@ -229,3 +229,26 @@ test("sofa fabric is display even when it is not a priced SKU", () => {
   assert.equal(seat?.role, "purchase");
   assert.deepEqual(fabric?.options.map((option) => option.label), ["کاپری دو"]);
 });
+
+test("unsellable variants stay selectable and match as that option", () => {
+  const bed = product({
+    slug: "تخت-خواب-الدر",
+    name: "تخت خواب آلدر",
+    category: "تخت خواب",
+    attributes: alderBed.attributes,
+    variants: [
+      ...alderBed.variants!,
+      { id: "140", sku: "d", options: [{ name: "سایز", value: "140" }], price: 170000000, stockQty: 0, enabled: false },
+    ],
+  });
+  const attributes = getProductAttributeOptions(bed);
+  const size = attributes.find((attribute) => attribute.label === "سایز");
+  assert.ok(size?.options.some((option) => option.label === "140"));
+  const option = size?.options.find((item) => item.label === "140");
+  assert.ok(option);
+  let selected = selectionFromVariant(attributes, getHighestPricedVariant(bed));
+  selected = selectionForAttributeOption(bed, attributes, selected, size!.id, option!.id);
+  const matched = variantMatchingSelection(bed, attributes, selected);
+  assert.equal(matched?.id, "140");
+  assert.equal(matched?.enabled, false);
+});

@@ -92,4 +92,21 @@ describe('variant playbook', () => {
     expect(presented.attributes?.map((attribute) => attribute.name)).toEqual(['سایز']);
     expect(presented.variants?.[0].options?.map((option) => option.name)).toEqual(['سایز']);
   });
+
+  it('keeps an unsellable variant in the storefront payload', () => {
+    const presented = presentShopProduct({
+      name: 'تخت خواب آلدر',
+      category: 'تخت خواب',
+      attributes: [{ name: 'سایز', values: ['180', '140'], required: true }],
+      variants: [
+        { enabled: true, price: 200, options: [{ name: 'سایز', value: '180' }] },
+        { enabled: false, price: 170, options: [{ name: 'سایز', value: '140' }] },
+      ],
+    });
+    expect(presented.variants?.map((variant) => variant.enabled)).toEqual([true, false]);
+    const attributes = presented.attributes as { name: string; role?: string }[] | undefined;
+    expect(attributes?.map((attribute) => [attribute.name, attribute.role])).toEqual([
+      ['سایز', 'purchase'],
+    ]);
+  });
 });
