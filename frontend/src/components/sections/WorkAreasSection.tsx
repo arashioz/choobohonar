@@ -4,11 +4,27 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { commerceCategories } from "@/data/commerce";
+import { HOME_PAGE_DEFAULTS, type HomeWorkArea } from "@/lib/home-page-content";
+import { isUploadedMedia } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
-export default function WorkAreasSection() {
+export default function WorkAreasSection({
+  eyebrow = HOME_PAGE_DEFAULTS.workAreas.eyebrow,
+  items,
+}: {
+  eyebrow?: string;
+  items?: HomeWorkArea[];
+}) {
   const [active, setActive] = useState(0);
-  const areas = commerceCategories;
+  const areas = commerceCategories.map((category) => {
+    const custom = items?.find((item) => item.slug === category.slug);
+    return {
+      ...category,
+      label: custom?.label?.trim() || category.label,
+      description: custom?.description?.trim() || category.description,
+      image: custom?.image?.trim() || category.image,
+    };
+  });
 
   return (
     <section id="work-areas" className="relative min-h-screen overflow-hidden bg-forest text-paper">
@@ -22,7 +38,7 @@ export default function WorkAreasSection() {
               i === active ? "scale-100 opacity-100" : "scale-[1.045] opacity-0"
             )}
           >
-            <Image src={area.image} alt="" fill sizes="100vw" className="object-cover" />
+            <Image src={area.image} alt="" fill sizes="100vw" unoptimized={isUploadedMedia(area.image)} className="object-cover" />
             <div className="absolute inset-0 bg-forest/75" />
             <div className="absolute inset-0 bg-gradient-to-l from-forest/90 via-transparent to-forest/50" />
           </div>
@@ -30,7 +46,7 @@ export default function WorkAreasSection() {
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-container flex-col justify-center px-6 py-28 md:px-10 lg:px-16">
-        <p className="eyebrow text-peach">گروه‌های کالایی</p>
+        <p className="eyebrow text-peach">{eyebrow}</p>
 
         <ul className="mt-10 flex flex-col">
           {areas.map((area, i) => (

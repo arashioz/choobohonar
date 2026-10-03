@@ -6,32 +6,43 @@ import { diversityImages } from "@/data/projects";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Parallax from "@/components/motion/Parallax";
+import { HOME_PAGE_DEFAULTS, type HomePageContent } from "@/lib/home-page-content";
+import { isUploadedMedia } from "@/lib/media";
 import { registerGsap, gsap, prefersReducedMotion, scrollTriggerConfig } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 type DiversityShot = { image: string; caption: string };
+type DiversityCopy = HomePageContent["diversity"];
 
-export default function DiversitySection({ images }: { images?: DiversityShot[] }) {
+export default function DiversitySection({
+  images,
+  copy,
+}: {
+  images?: DiversityShot[];
+  copy?: DiversityCopy;
+}) {
   const provided = images?.filter((item) => item.image && item.caption) ?? [];
   const shots = (provided.length === 3 ? provided : diversityImages).slice(0, 3);
+  const text = copy?.eyebrow ? copy : HOME_PAGE_DEFAULTS.diversity;
 
   return (
     <section className="relative overflow-hidden bg-paper py-28 md:py-40">
       <Container className="relative">
         <div className="relative z-10 max-w-3xl">
           <FadeUp as="p" className="eyebrow text-brick">
-            تنوع پروژه‌های ما
+            {text.eyebrow}
           </FadeUp>
           <FadeUp
             as="h2"
             delay={0.05}
             className="mt-6 text-balance text-[clamp(2rem,5vw,4.25rem)] font-light leading-[1.05] tracking-tightest text-forest"
           >
-            از نشیمن‌های گرم خانگی تا فضاهای اقامتی بزرگ — هر پروژه روایتی از{" "}
-            <span className="text-brick">چوب، نور و دستِ هنرمند</span> است.
+            {text.titleLead}{" "}
+            <span className="text-brick">{text.titleEmphasis}</span> {text.titleTail}
           </FadeUp>
           <FadeUp as="p" delay={0.1} className="mt-8 max-w-xl text-lg leading-relaxed text-forest/70">
-            نزدیک به پنجاه سال است که خانه‌ها را با مبلمانی می‌سازیم که برای زندگی واقعی طراحی شده‌اند؛.          </FadeUp>
+            {text.body}
+          </FadeUp>
         </div>
 
         <div className="pointer-events-none relative mt-20 hidden h-[52rem] md:block">
@@ -152,6 +163,7 @@ function ScatterImage({
           alt={caption}
           fill
           sizes={sizes}
+          unoptimized={isUploadedMedia(src)}
           className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.02]"
         />
       </div>

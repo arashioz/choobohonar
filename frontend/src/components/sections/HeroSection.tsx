@@ -40,11 +40,17 @@ function videoMime(src: string) {
 type HeroSectionProps = {
   desktopVideo?: string;
   mobileVideo?: string;
+  title?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
 };
 
 export default function HeroSection({
   desktopVideo = DEFAULT_DESKTOP_VIDEO,
   mobileVideo = DEFAULT_MOBILE_VIDEO,
+  title = "سبک دلخواه من",
+  ctaLabel = "فروشگاه",
+  ctaHref = "/products",
 }: HeroSectionProps) {
   const desktopSrc = desktopVideo.trim() || DEFAULT_DESKTOP_VIDEO;
   const mobileSrc = mobileVideo.trim() || DEFAULT_MOBILE_VIDEO;
@@ -258,16 +264,16 @@ export default function HeroSection({
         <h1 className="max-w-4xl text-balance text-[clamp(1.75rem,4.5vw,5rem)] font-light leading-[1.1] tracking-tightest text-paper">
           <span className="block overflow-hidden py-[0.04em]">
             <span data-hero-line className="block will-change-transform">
-              سبک دلخواه من
+              {title}
             </span>
           </span>
         </h1>
         <div data-hero-cta className="mt-8 flex flex-wrap items-center gap-3 sm:mt-10 sm:gap-4">
           <Link
-            href="/products"
+            href={ctaHref}
             className="inline-flex items-center gap-3 rounded-xl bg-peach px-6 py-3.5 text-sm font-medium text-forest transition-colors duration-300 hover:bg-peach-deep sm:px-7 sm:py-4"
           >
-            فروشگاه
+            {ctaLabel}
             <span aria-hidden>←</span>
           </Link>
         </div>

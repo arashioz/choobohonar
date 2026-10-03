@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Container from "@/components/layout/Container";
+import { HOME_PAGE_DEFAULTS, type HomePageContent } from "@/lib/home-page-content";
 import {
   registerGsap,
   gsap,
@@ -11,7 +12,7 @@ import {
   scrollTriggerConfig,
 } from "@/lib/gsap";
 
-export default function InterludeSection() {
+export default function InterludeSection({ copy = HOME_PAGE_DEFAULTS.interlude }: { copy?: HomePageContent["interlude"] }) {
   const rootRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -83,9 +84,9 @@ export default function InterludeSection() {
     };
   }, []);
 
-  const lead = "هر فضا، فرصتی برای ساختن خانه‌ای است که با دقت";
-  const emphasis = "لمس می‌شود";
-  const tail = "— نه فقط دیده.";
+  const lead = copy.lead;
+  const emphasis = copy.emphasis;
+  const tail = copy.tail;
 
   return (
     <section
@@ -109,7 +110,7 @@ export default function InterludeSection() {
           />
 
           <p data-interlude-eyebrow className="eyebrow text-brick">
-            خانه چوب و هنر
+            {copy.eyebrow}
           </p>
 
           <p className="mt-5 text-balance text-[clamp(1.45rem,3.4vw,2.35rem)] font-light leading-[1.35] tracking-tight text-forest md:mt-6">

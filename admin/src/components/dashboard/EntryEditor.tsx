@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type ResourcePath } from "@/lib/cms";
 import { uploadMedia } from "@/lib/upload";
 import GalleryPageEditor, { asGalleryMediaItems } from "@/components/gallery/GalleryPageEditor";
-import HomeHeroEditor, { readHomeHero, readHomeShowcase } from "@/components/pages/HomeHeroEditor";
+import HomePageEditor from "@/components/pages/HomeHeroEditor";
 import ProjectProductsPicker from "@/components/projects/ProjectProductsPicker";
 
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
@@ -80,6 +80,10 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
     return [...new Set([...ARTICLE_CATEGORIES, ...articleTaxonomy.categories, current].filter(Boolean))];
   }, [articleTaxonomy.categories, data.category]);
 
+  function patchData(recipe: (data: Record<string, unknown>) => Record<string, unknown>) {
+    setEntry((current) => ({ ...current, data: recipe({ ...(current.data || {}) }) }));
+    setDirty(true);
+  }
   function setField<K extends keyof typeof entry>(key: K, value: (typeof entry)[K]) { setEntry((current) => ({ ...current, [key]: value })); setDirty(true); }
   function setData(key: string, value: unknown) { setEntry((current) => ({ ...current, data: key === "__replace" ? (value as Record<string, unknown>) : { ...(current.data || {}), [key]: value } })); setDirty(true); }
   function setSeo(key: string, value: unknown) { setEntry((current) => ({ ...current, seo: { ...(current.seo || {}), [key]: value } })); setDirty(true); }
@@ -178,7 +182,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
         {kind === "page" && entry.slug === "home" ? (
           <div className="space-y-5 lg:col-span-12">
             {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
-            <HomeHeroEditor hero={readHomeHero(data)} showcase={readHomeShowcase(data)} onChange={(hero) => setData("hero", hero)} onShowcaseChange={(showcase) => setData("showcase", showcase)} onBusyChange={setUploading} onProgress={setUploadProgress} />
+            <HomePageEditor data={data} onPatch={patchData} onBusyChange={setUploading} onProgress={setUploadProgress} />
           </div>
         ) : null}
         {kind === "page" && entry.slug === "gallery" ? (

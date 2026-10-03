@@ -6,6 +6,7 @@ import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { consultationSubjects } from "@/data/contact-forms";
+import { HOME_PAGE_DEFAULTS, type HomePageContent } from "@/lib/home-page-content";
 import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitLead } from "@/lib/leads-api";
@@ -20,25 +21,27 @@ type Field = {
   full?: boolean;
 };
 
-const baseFields: Field[] = [
-  { name: "name", label: "نام و نام خانوادگی", type: "text", required: true },
-  { name: "phone", label: "شماره تماس", type: "tel", required: true },
-  {
-    name: "interest",
-    label: "موضوع درخواست",
-    type: "select",
-    required: true,
-    options: [...consultationSubjects],
-  },
-  { name: "message", label: "توضیحات", type: "textarea", full: true },
-];
+function consultationFields(copy: HomePageContent["consultation"]): Field[] {
+  return [
+    { name: "name", label: copy.nameLabel, type: "text", required: true },
+    { name: "phone", label: copy.phoneLabel, type: "tel", required: true },
+    {
+      name: "interest",
+      label: copy.interestLabel,
+      type: "select",
+      required: true,
+      options: [...consultationSubjects],
+    },
+    { name: "message", label: copy.messageLabel, type: "textarea", full: true },
+  ];
+}
 
 type Values = Record<string, string>;
 type Errors = Record<string, string>;
 
-export default function ConsultationSection() {
+export default function ConsultationSection({ copy = HOME_PAGE_DEFAULTS.consultation }: { copy?: HomePageContent["consultation"] }) {
   const [subjects, setSubjects] = useState<string[]>([...consultationSubjects]);
-  const fields = useMemo(() => baseFields.map((field) => field.name === "interest" ? { ...field, options: subjects } : field), [subjects]);
+  const fields = useMemo(() => consultationFields(copy).map((field) => field.name === "interest" ? { ...field, options: subjects } : field), [copy, subjects]);
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -102,18 +105,17 @@ export default function ConsultationSection() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">
             <FadeUp as="p" className="eyebrow text-brick">
-              مشاوره
+              {copy.eyebrow}
             </FadeUp>
             <FadeUp
               as="h2"
               delay={0.05}
               className="mt-6 text-balance text-[clamp(2.25rem,5vw,4.5rem)] font-light leading-[1.02] tracking-tightest"
             >
-              بیایید خانه‌ای که دوستش دارید را بسازیم.
+              {copy.title}
             </FadeUp>
             <FadeUp as="p" delay={0.1} className="mt-6 max-w-md text-lg leading-relaxed text-forest/70">
-              برای مشاوره فرم زیر را تکمیل کنید؛ یا برای ثبت سفارش طراحی داخلی، فرم هوشمند را
-              شروع کنید تا سلیقه و جزئیات فنی فضای خود را با تیم معماری داخلی به اشتراک بگذارید.
+              {copy.body}
             </FadeUp>
           </div>
 
@@ -121,9 +123,9 @@ export default function ConsultationSection() {
             {submitted ? (
               <FadeUp className="flex min-h-[20rem] flex-col items-start justify-center">
                 <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-forest text-2xl text-peach">✓</div>
-                <h3 className="text-3xl font-light tracking-tightest">درخواست شما ثبت شد</h3>
+                <h3 className="text-3xl font-light tracking-tightest">{copy.successTitle}</h3>
                 <p className="mt-3 max-w-md text-forest/70">
-                  سپاس از اعتماد شما. به‌زودی برای هماهنگی جلسه‌ی مشاوره با شما تماس می‌گیریم.
+                  {copy.successBody}
                 </p>
               </FadeUp>
             ) : (
@@ -165,7 +167,7 @@ export default function ConsultationSection() {
                   {FORM_ENABLED ? (
                     <div className="flex flex-col gap-3">
                       <Button as="button" type="submit" variant="primary" showArrow>
-                        {submitting ? "در حال ارسال…" : "ارسال درخواست"}
+                        {submitting ? "در حال ارسال…" : copy.submitLabel}
                       </Button>
                       {submitError ? <p className="text-sm text-brick">{submitError}</p> : null}
                     </div>
@@ -173,7 +175,7 @@ export default function ConsultationSection() {
                     <div className="flex flex-col gap-3">
                       <span className="pointer-events-none inline-block opacity-50" aria-disabled="true">
                         <Button as="button" type="submit" variant="primary" showArrow>
-                          ارسال درخواست
+                          {copy.submitLabel}
                         </Button>
                       </span>
                       <p className="text-sm text-forest/70">ارسال فرم موقتاً غیرفعال است و به‌زودی فعال می‌شود.</p>

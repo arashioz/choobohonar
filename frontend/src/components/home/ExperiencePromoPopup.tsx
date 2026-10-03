@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { HOME_PAGE_DEFAULTS, type HomePageContent } from "@/lib/home-page-content";
+import { isUploadedMedia } from "@/lib/media";
 import { setMenuScrollLocked } from "@/lib/lenis-control";
 
 const SCROLL_START_PX = 48;
@@ -9,7 +12,7 @@ const SCROLL_START_PX = 48;
 /** Survives client navigations and resets only on a full page load. */
 let closedUntilRefresh = false;
 
-export default function ExperiencePromoPopup() {
+export default function ExperiencePromoPopup({ promo = HOME_PAGE_DEFAULTS.promo }: { promo?: HomePageContent["promo"] }) {
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -70,23 +73,29 @@ export default function ExperiencePromoPopup() {
         >
           ×
         </button>
-        <Link href="/Experience" className="block text-paper">
-          <img
-            src="/experience/wall-mobile.jpg"
-            alt="نهمین نمایشگاه معماری تهران"
+        <Link href={promo.href} className="block text-paper">
+          <Image
+            src={promo.mobileImage}
+            alt={promo.alt}
+            width={900}
+            height={1200}
+            unoptimized={isUploadedMedia(promo.mobileImage)}
             className="h-auto max-h-[46dvh] w-full object-cover object-[center_32%] md:hidden"
           />
-          <img
-            src="/experience/wall-desktop.jpg"
+          <Image
+            src={promo.desktopImage}
             alt=""
+            width={1600}
+            height={1000}
+            unoptimized={isUploadedMedia(promo.desktopImage)}
             className="hidden h-auto max-h-[70dvh] w-full object-cover object-center md:block"
           />
           <span className="flex items-center justify-between gap-3 px-3.5 py-3 sm:gap-4 sm:px-6 sm:py-4">
             <span id="experience-promo-title" className="text-sm font-medium sm:text-base">
-              تجربه نمایشگاه
+              {promo.title}
             </span>
             <span className="text-sm text-peach">
-              ورود
+              {promo.ctaLabel}
               <span aria-hidden> ←</span>
             </span>
           </span>

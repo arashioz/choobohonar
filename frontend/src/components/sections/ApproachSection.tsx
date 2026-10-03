@@ -2,36 +2,26 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { HOME_PAGE_DEFAULTS, type HomeApproachStep } from "@/lib/home-page-content";
+import { isUploadedMedia } from "@/lib/media";
 import { registerGsap, gsap, prefersReducedMotion, scrollTriggerConfig } from "@/lib/gsap";
 import { toFa } from "@/lib/utils";
 
-const steps = [
-  {
-    n: 1,
-    title: "گفت‌وگو و درک فضا",
-    body: "کار با شنیدن آغاز می‌شود؛ سبک زندگی، نور طبیعی و نسبت‌های فضا را می‌خوانیم تا طراحی از دل خانه شما بیرون بیاید.",
-    image: "/images/projects/aknoon-residence/11.jpg",
-  },
-  {
-    n: 2,
-    title: "طراحی و انتخاب متریال",
-    body: "هر قطعه را با چوب، روکش و پرداختی متناسب با فضا طراحی می‌کنیم؛ نمونه‌های واقعی متریال در کنار نقشه‌ها بررسی می‌شوند.",
-    image: "/images/projects/armon-hotel/24.jpg",
-  },
-  {
-    n: 3,
-    title: "ساخت و نصب",
-    body: "ساخت با اتصالات مهندسی‌شده و کنترل کیفیت چندمرحله‌ای انجام می‌شود و در نهایت در محل با دقت نصب و تحویل می‌گردد.",
-    image: "/images/projects/shenaj-villa/46.jpg",
-  },
-];
+const defaultSteps: HomeApproachStep[] = HOME_PAGE_DEFAULTS.approach.steps;
 
 // Timeline rhythm (in abstract units the scrub maps onto the pinned scroll range).
 const HOLD = 0.6; // each step rests here so it's clearly readable
 const TRANS = 1.1; // cross-step transition
 
-export default function ApproachSection() {
+export default function ApproachSection({
+  eyebrow = HOME_PAGE_DEFAULTS.approach.eyebrow,
+  steps = defaultSteps,
+}: {
+  eyebrow?: string;
+  steps?: HomeApproachStep[];
+}) {
   const root = useRef<HTMLDivElement>(null);
+  const sequence = (steps.length ? steps : defaultSteps).map((step, index) => ({ ...step, n: index + 1 }));
 
   useEffect(() => {
     const el = root.current;
@@ -60,7 +50,7 @@ export default function ApproachSection() {
         scrollTrigger: scrollTriggerConfig({
           trigger: el,
           start: "top top",
-          end: "+=" + steps.length * 110 + "%",
+          end: "+=" + bgs.length * 110 + "%",
           scrub: 1,
           pin: true,
           anticipatePin: 1,
@@ -71,7 +61,7 @@ export default function ApproachSection() {
       tl.to({}, { duration: HOLD });
 
       // …then conveyor each next step in, resting on each one.
-      for (let i = 1; i < steps.length; i++) {
+      for (let i = 1; i < bgs.length; i++) {
         const label = "step" + i;
         tl.addLabel(label)
           .to(bgs[i - 1], { autoAlpha: 0, duration: TRANS, ease: "power1.inOut" }, label)
@@ -95,9 +85,9 @@ export default function ApproachSection() {
       <section ref={root} className="relative h-[100svh] overflow-hidden bg-forest text-paper">
         {/* Background layer — one photo per step under the same dominant forest-green wash. */}
         <div className="absolute inset-0">
-          {steps.map((step) => (
+          {sequence.map((step) => (
             <div key={step.n} data-approach-bg className="absolute inset-0 will-change-[transform,opacity]">
-              <Image src={step.image} alt="" fill sizes="100vw" className="object-cover" priority={step.n === 1} />
+              <Image src={step.image} alt="" fill sizes="100vw" unoptimized={isUploadedMedia(step.image)} className="object-cover" priority={step.n === 1} />
               <div className="absolute inset-0 bg-forest/80" />
               <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/75" />
             </div>
@@ -106,10 +96,10 @@ export default function ApproachSection() {
 
         {/* Content layer — static eyebrow + a vertical conveyor of step copy. */}
         <div className="relative z-10 mx-auto flex h-full max-w-container flex-col px-6 pt-28 md:px-10 lg:px-16">
-          <p className="eyebrow shrink-0 text-peach">رویکرد ما</p>
+          <p className="eyebrow shrink-0 text-peach">{eyebrow}</p>
 
           <div className="relative mt-10 flex-1 overflow-hidden md:mt-14">
-            {steps.map((step) => (
+            {sequence.map((step) => (
               <div
                 key={step.n}
                 data-approach-text

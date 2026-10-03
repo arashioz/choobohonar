@@ -2,9 +2,16 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import PostCard from "@/components/magazine/PostCard";
+import { HOME_PAGE_DEFAULTS } from "@/lib/home-page-content";
 import { loadMagazineCatalog } from "@/lib/magazine-catalog";
 
-export default async function MagazineSection() {
+export default async function MagazineSection({
+  title = HOME_PAGE_DEFAULTS.magazine.title,
+  linkLabel = HOME_PAGE_DEFAULTS.magazine.linkLabel,
+}: {
+  title?: string;
+  linkLabel?: string;
+} = {}) {
   const { posts } = await loadMagazineCatalog();
   const latest = posts.slice(0, 3);
 
@@ -16,14 +23,14 @@ export default async function MagazineSection() {
             as="h2"
             className="text-balance text-[clamp(2.5rem,7vw,6rem)] font-light leading-[0.95] tracking-tightest text-forest"
           >
-            مجله
+            {title}
           </FadeUp>
           <FadeUp delay={0.1}>
             <Link
               href="/magazine"
               className="group inline-flex items-center gap-3 text-lg text-forest transition-colors hover:text-brick"
             >
-              مشاهده مجله
+              {linkLabel}
               <span className="transition-transform duration-300 ease-out-expo group-hover:-translate-x-2">←</span>
             </Link>
           </FadeUp>

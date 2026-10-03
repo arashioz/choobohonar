@@ -15,7 +15,7 @@ const SCROLL = {
   hold: 0.14,
 } as const;
 
-function ProjectInfoPanel({ project }: { project: Project }) {
+function ProjectInfoPanel({ project, linkLabel }: { project: Project; linkLabel: string }) {
   return (
     <div className="relative w-full">
       <div
@@ -34,7 +34,7 @@ function ProjectInfoPanel({ project }: { project: Project }) {
           href={`/projects/${project.slug}`}
           className="mt-6 inline-flex rounded-full border border-paper/40 px-6 py-2.5 text-xs font-medium tracking-[0.22em] text-paper transition-colors hover:bg-paper hover:text-forest"
         >
-          {"\u0645\u0634\u0627\u0647\u062f\u0647 \u067e\u0631\u0648\u0698\u0647"}
+          {linkLabel}
         </Link>
       </div>
 
@@ -48,7 +48,15 @@ function ProjectInfoPanel({ project }: { project: Project }) {
   );
 }
 
-function FeaturedProjectBlock({ project, index }: { project: Project; index: number }) {
+function FeaturedProjectBlock({
+  project,
+  index,
+  linkLabel,
+}: {
+  project: Project;
+  index: number;
+  linkLabel: string;
+}) {
   const rootRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -142,7 +150,7 @@ function FeaturedProjectBlock({ project, index }: { project: Project; index: num
           ))}
 
           <div style={{ height: `${SCROLL.info}svh` }} className="flex items-end">
-            <ProjectInfoPanel project={project} />
+            <ProjectInfoPanel project={project} linkLabel={linkLabel} />
           </div>
         </div>
       </div>
@@ -150,7 +158,13 @@ function FeaturedProjectBlock({ project, index }: { project: Project; index: num
   );
 }
 
-export default function FeaturedProjectsScroll({ projects }: { projects: Project[] }) {
+export default function FeaturedProjectsScroll({
+  projects,
+  linkLabel = "مشاهده پروژه",
+}: {
+  projects: Project[];
+  linkLabel?: string;
+}) {
   const featured = projects.slice(0, 2);
 
   useEffect(() => {
@@ -169,7 +183,7 @@ export default function FeaturedProjectsScroll({ projects }: { projects: Project
   return (
     <div className="relative">
       {featured.map((project, index) => (
-        <FeaturedProjectBlock key={project.slug} project={project} index={index} />
+        <FeaturedProjectBlock key={project.slug} project={project} index={index} linkLabel={linkLabel} />
       ))}
     </div>
   );
