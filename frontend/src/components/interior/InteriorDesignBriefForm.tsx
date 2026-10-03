@@ -14,6 +14,7 @@ import {
   timelineOptions,
   type MoodboardImage,
 } from "@/data/interior-architecture";
+import { isUploadedMedia } from "@/lib/media";
 import { cn, toFa } from "@/lib/utils";
 import { FORM_ENABLED } from "@/lib/form-utils";
 import { submitInteriorBrief } from "@/lib/leads-api";
@@ -295,6 +296,7 @@ export default function InteriorDesignBriefForm({ content = fallbackContent }: {
                                   alt={style.label}
                                   fill
                                   sizes="(max-width: 640px) 100vw, 280px"
+                                  unoptimized={isUploadedMedia(style.image)}
                                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                               </div>
@@ -583,6 +585,7 @@ function MoodboardRound({
                   alt={image.alt}
                   fill
                   sizes="(max-width: 768px) 100vw, 240px"
+                  unoptimized={isUploadedMedia(image.src)}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div

@@ -7,10 +7,20 @@ import Button from "@/components/ui/Button";
 import Container from "@/components/layout/Container";
 import { interiorHero as fallbackHero } from "@/data/interior-architecture";
 import { registerGsap, gsap, prefersReducedMotion } from "@/lib/gsap";
+import { isUploadedMedia } from "@/lib/media";
+import type { InteriorPageContent } from "@/lib/interior-page-content";
 
-type InteriorHeroContent = typeof fallbackHero;
+type InteriorHeroContent = InteriorPageContent["hero"];
 
-export default function InteriorHero({ content = fallbackHero }: { content?: InteriorHeroContent }) {
+const fallbackContent: InteriorHeroContent = {
+  ...fallbackHero,
+  primaryCtaLabel: "شروع فرم سفارش طراحی",
+  primaryCtaHref: "/interior-architecture-services/order",
+  secondaryCtaLabel: "مشاهده پروژه‌ها",
+  secondaryCtaHref: "/projects",
+};
+
+export default function InteriorHero({ content = fallbackContent }: { content?: InteriorHeroContent }) {
   const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -37,7 +47,7 @@ export default function InteriorHero({ content = fallbackHero }: { content?: Int
   return (
     <section ref={root} className="relative min-h-[92svh] overflow-hidden bg-forest text-paper">
       <div data-interior-hero-media className="absolute inset-0">
-        <Image src={content.image} alt="" fill priority sizes="100vw" className="object-cover" />
+        <Image src={content.image} alt="" fill priority sizes="100vw" unoptimized={isUploadedMedia(content.image)} className="object-cover" />
         <div className="absolute inset-0 bg-forest/72" />
         <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/70" />
       </div>
@@ -61,14 +71,14 @@ export default function InteriorHero({ content = fallbackHero }: { content?: Int
             {content.description}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <Button href="/interior-architecture-services/order" variant="primary" showArrow>
-              شروع فرم سفارش طراحی
+            <Button href={content.primaryCtaHref} variant="primary" showArrow>
+              {content.primaryCtaLabel}
             </Button>
             <Link
-              href="/projects"
+              href={content.secondaryCtaHref}
               className="inline-flex items-center gap-3 rounded-xl border border-paper/30 px-7 py-4 text-sm font-medium text-paper transition-colors hover:border-paper hover:bg-paper hover:text-forest"
             >
-              مشاهده پروژه‌ها
+              {content.secondaryCtaLabel}
               <span aria-hidden>←</span>
             </Link>
           </div>

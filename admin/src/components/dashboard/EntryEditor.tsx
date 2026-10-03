@@ -8,6 +8,7 @@ import { cmsRequest, type CmsEntry, type CmsEntryInput, type CmsKind, type Resou
 import { uploadMedia } from "@/lib/upload";
 import GalleryPageEditor, { asGalleryMediaItems } from "@/components/gallery/GalleryPageEditor";
 import HomePageEditor from "@/components/pages/HomeHeroEditor";
+import InteriorPageEditor from "@/components/pages/InteriorPageEditor";
 import ProjectProductsPicker from "@/components/projects/ProjectProductsPicker";
 
 type EditorProps = { kind: CmsKind; resourcePath?: ResourcePath; entryId?: string };
@@ -185,6 +186,12 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             <HomePageEditor data={data} onPatch={patchData} onBusyChange={setUploading} onProgress={setUploadProgress} />
           </div>
         ) : null}
+        {kind === "page" && entry.slug === "interior" ? (
+          <div className="space-y-5 lg:col-span-12">
+            {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
+            <InteriorPageEditor data={data} onPatch={patchData} onBusyChange={setUploading} onProgress={setUploadProgress} />
+          </div>
+        ) : null}
         {kind === "page" && entry.slug === "gallery" ? (
           <div className="space-y-5 lg:col-span-12">
             {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}
@@ -196,7 +203,7 @@ export default function EntryEditor({ kind, resourcePath, entryId }: EditorProps
             {!isNew && <Panel title="مدیریت رکورد"><div className="space-y-2">{entry.status !== "archived" && <button type="button" onClick={archive} className="w-full rounded-xl border border-forest/10 px-3 py-2.5 text-[11px] text-forest/55 hover:bg-white">انتقال به بایگانی</button>}<button type="button" onClick={remove} className="w-full rounded-xl border border-brick/15 px-3 py-2.5 text-[11px] text-brick hover:bg-brick/[0.04]">حذف کامل</button></div></Panel>}
           </div>
         ) : null}
-        {!(kind === "page" && (entry.slug === "gallery" || entry.slug === "home")) ? (
+        {!(kind === "page" && (entry.slug === "gallery" || entry.slug === "home" || entry.slug === "interior")) ? (
         <>
         <div className="space-y-5 lg:col-span-8">
           {notice && <div className={cn("rounded-xl border px-4 py-3 text-xs", notice.tone === "ok" ? "border-sage bg-sage/20 text-forest" : "border-brick/15 bg-brick/[0.05] text-brick")}>{notice.text}</div>}

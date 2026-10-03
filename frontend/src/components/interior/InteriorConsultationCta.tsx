@@ -2,24 +2,28 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import Button from "@/components/ui/Button";
 import { consultationChannels as fallbackChannels } from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, type InteriorPageContent } from "@/lib/interior-page-content";
 
-export default function InteriorConsultationCta({ channels = fallbackChannels }: { channels?: typeof fallbackChannels }) {
+export default function InteriorConsultationCta({
+  heading = INTERIOR_PAGE_DEFAULTS.consultation,
+  channels = fallbackChannels,
+}: {
+  heading?: InteriorPageContent["consultation"];
+  channels?: typeof fallbackChannels;
+}) {
   return (
     <section className="bg-peach py-24 text-forest md:py-32">
       <Container>
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
           <FadeUp className="lg:col-span-5">
-            <p className="eyebrow text-brick">شروع همکاری</p>
+            <p className="eyebrow text-brick">{heading.eyebrow}</p>
             <h2 className="mt-6 text-balance text-[clamp(2rem,4vw,3.75rem)] font-light leading-[1.02] tracking-tightest">
-              چیدمان فضای محبوبت را به ما بسپار
+              {heading.title}
             </h2>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-forest/70">
-              برای ثبت سفارش طراحی داخلی، فرم هوشمند را تکمیل کنید تا سلیقه و نیازهای فنی شما را بهتر بشناسیم؛ یا
-              مستقیماً با کارشناسان ما در تماس باشید.
-            </p>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-forest/70">{heading.body}</p>
             <div className="mt-10">
-              <Button href="/interior-architecture-services/order" variant="primary" showArrow>
-                شروع فرم سفارش
+              <Button href={heading.ctaHref} variant="primary" showArrow>
+                {heading.ctaLabel}
               </Button>
             </div>
           </FadeUp>

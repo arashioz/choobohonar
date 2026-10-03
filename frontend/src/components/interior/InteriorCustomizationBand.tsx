@@ -3,21 +3,26 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import { interiorCustomizationPieces as fallbackPieces } from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, type InteriorPageContent } from "@/lib/interior-page-content";
+import { isUploadedMedia } from "@/lib/media";
 
-export default function InteriorCustomizationBand({ items = fallbackPieces }: { items?: typeof fallbackPieces }) {
+export default function InteriorCustomizationBand({
+  heading = INTERIOR_PAGE_DEFAULTS.customizationHeading,
+  items = fallbackPieces,
+}: {
+  heading?: InteriorPageContent["customizationHeading"];
+  items?: typeof fallbackPieces;
+}) {
   return (
     <section className="bg-paper py-24 md:py-32">
       <Container>
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <FadeUp className="max-w-2xl">
-            <p className="eyebrow text-brick">سفارشی‌سازی</p>
+            <p className="eyebrow text-brick">{heading.eyebrow}</p>
             <h2 className="mt-6 text-balance text-[clamp(2rem,4vw,3.5rem)] font-light leading-[1.05] tracking-tightest text-forest">
-              قطعاتی که برای فضای شما ساخته می‌شوند
+              {heading.title}
             </h2>
-            <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-forest/68 md:text-lg">
-              مبلمان و عناصر چوبی هر پروژه با ابعاد، روکش و جزئیات همان فضا طراحی و در کارگاه ساخته می‌شوند — نه از روی
-              کاتالوگ آماده.
-            </p>
+            <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-forest/68 md:text-lg">{heading.body}</p>
           </FadeUp>
         </div>
 
@@ -34,6 +39,7 @@ export default function InteriorCustomizationBand({ items = fallbackPieces }: { 
                     alt={piece.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
+                    unoptimized={isUploadedMedia(piece.image)}
                     className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/20 to-transparent" />

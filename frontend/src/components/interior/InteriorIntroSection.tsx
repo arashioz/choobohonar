@@ -2,12 +2,18 @@ import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import InteriorIntroSlider from "@/components/interior/InteriorIntroSlider";
 import { interiorIntro as fallbackIntro, interiorStyles as fallbackStyles } from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, type InteriorPageContent } from "@/lib/interior-page-content";
+
+const fallbackContent: InteriorPageContent["intro"] = {
+  ...fallbackIntro,
+  support: INTERIOR_PAGE_DEFAULTS.intro.support,
+};
 
 export default function InteriorIntroSection({
-  content = fallbackIntro,
+  content = fallbackContent,
   styles = fallbackStyles,
 }: {
-  content?: typeof fallbackIntro;
+  content?: InteriorPageContent["intro"];
   styles?: typeof fallbackStyles;
 }) {
   return (
@@ -23,11 +29,7 @@ export default function InteriorIntroSection({
           </FadeUp>
           <FadeUp delay={0.08} className="lg:col-span-6 lg:col-start-7 lg:pt-16">
             <p className="text-pretty text-lg leading-relaxed text-forest/70 md:text-xl">{content.body}</p>
-            <p className="mt-6 text-pretty text-base leading-relaxed text-forest/60">
-              در انتخاب سایز و مدل مناسب مبلمان برای نشیمن خانه‌ی نو تردید دارید؟ به دنبال فرشی هستید که با دیگر وسایل
-              خانه جور دربیاید؟ برای چیدن دفتر کار خود به نظر یک کارشناس حرفه‌ای احتیاج دارید؟ تیم معماری داخلی خانه
-              چوب و هنر در کنار شماست.
-            </p>
+            <p className="mt-6 text-pretty text-base leading-relaxed text-forest/60">{content.support}</p>
           </FadeUp>
         </div>
       </Container>

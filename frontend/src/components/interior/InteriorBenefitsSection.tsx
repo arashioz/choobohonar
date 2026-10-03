@@ -1,16 +1,23 @@
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import { interiorBenefits as fallbackBenefits } from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, type InteriorPageContent } from "@/lib/interior-page-content";
 import { toFa } from "@/lib/utils";
 
-export default function InteriorBenefitsSection({ items = fallbackBenefits }: { items?: typeof fallbackBenefits }) {
+export default function InteriorBenefitsSection({
+  heading = INTERIOR_PAGE_DEFAULTS.benefitsHeading,
+  items = fallbackBenefits,
+}: {
+  heading?: InteriorPageContent["benefitsHeading"];
+  items?: typeof fallbackBenefits;
+}) {
   return (
     <section className="border-t border-forest/10 bg-paper py-24 md:py-32">
       <Container>
         <FadeUp className="max-w-2xl">
-          <p className="eyebrow text-brick">چرا خانه چوب و هنر</p>
+          <p className="eyebrow text-brick">{heading.eyebrow}</p>
           <h2 className="mt-6 text-balance text-[clamp(2rem,4vw,3.25rem)] font-light leading-[1.05] tracking-tightest text-forest">
-            تخصص ما در ترجمه‌ی سلیقه‌ی شما به فضا
+            {heading.title}
           </h2>
         </FadeUp>
 

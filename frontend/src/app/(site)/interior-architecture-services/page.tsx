@@ -8,55 +8,30 @@ import InteriorProcessSection from "@/components/interior/InteriorProcessSection
 import InteriorProjectsBand from "@/components/interior/InteriorProjectsBand";
 import { fetchPublicCmsPage } from "@/lib/public-cms";
 import { featuredProjectsFrom, fetchPublicProjects } from "@/lib/public-projects";
-import {
-  consultationChannels,
-  interiorBenefits,
-  interiorCustomizationPieces,
-  interiorHero,
-  interiorIntro,
-  interiorProcessSteps,
-  interiorStyles,
-} from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, readInteriorPageContent } from "@/lib/interior-page-content";
 
-type InteriorPageData = {
-  hero: typeof interiorHero;
-  intro: typeof interiorIntro;
-  customizationPieces: typeof interiorCustomizationPieces;
-  benefits: typeof interiorBenefits;
-  processSteps: typeof interiorProcessSteps;
-  consultationChannels: typeof consultationChannels;
-  styles: typeof interiorStyles;
-};
-
-export const metadata: Metadata = {
-  title: "خدمات معماری داخلی | خانه چوب و هنر",
-  description:
-    "برای دریافت مشاوره چیدمان و خدمات طراحی داخلی، با کارشناسان معماری داخلی خانه چوب و هنر صحبت کنید. امکان مشاوره حضوری، تلفنی و آنلاین.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await fetchPublicCmsPage("interior");
+  const content = readInteriorPageContent(page);
+  return {
+    title: content.metaTitle || INTERIOR_PAGE_DEFAULTS.metaTitle,
+    description: content.metaDescription || INTERIOR_PAGE_DEFAULTS.metaDescription,
+  };
+}
 
 export default async function InteriorArchitectureServicesPage() {
-  const page = await fetchPublicCmsPage<InteriorPageData>("interior");
-  const projects = await fetchPublicProjects();
-  const data = page?.items;
-  const content = {
-    hero: data?.hero || interiorHero,
-    intro: data?.intro || interiorIntro,
-    customizationPieces: data?.customizationPieces || interiorCustomizationPieces,
-    benefits: data?.benefits || interiorBenefits,
-    processSteps: data?.processSteps || interiorProcessSteps,
-    consultationChannels: data?.consultationChannels || consultationChannels,
-    styles: data?.styles || interiorStyles,
-  };
+  const [page, projects] = await Promise.all([fetchPublicCmsPage("interior"), fetchPublicProjects()]);
+  const content = readInteriorPageContent(page);
 
   return (
     <>
       <InteriorHero content={content.hero} />
       <InteriorIntroSection content={content.intro} styles={content.styles} />
-      <InteriorBenefitsSection items={content.benefits} />
-      <InteriorProcessSection steps={content.processSteps} />
-      <InteriorCustomizationBand items={content.customizationPieces} />
-      <InteriorProjectsBand projects={featuredProjectsFrom(projects, 8)} />
-      <InteriorConsultationCta channels={content.consultationChannels} />
+      <InteriorBenefitsSection heading={content.benefitsHeading} items={content.benefits} />
+      <InteriorProcessSection heading={content.processHeading} steps={content.processSteps} />
+      <InteriorCustomizationBand heading={content.customizationHeading} items={content.customizationPieces} />
+      <InteriorProjectsBand projects={featuredProjectsFrom(projects, 8)} copy={content.projects} />
+      <InteriorConsultationCta heading={content.consultation} channels={content.consultationChannels} />
     </>
   );
 }

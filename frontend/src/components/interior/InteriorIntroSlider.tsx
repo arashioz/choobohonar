@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { interiorStyles as fallbackStyles } from "@/data/interior-architecture";
 import { prefersReducedMotion } from "@/lib/gsap";
+import { isUploadedMedia } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
 export default function InteriorIntroSlider({ styles = fallbackStyles }: { styles?: typeof fallbackStyles }) {
@@ -36,11 +37,12 @@ export default function InteriorIntroSlider({ styles = fallbackStyles }: { style
       <div className="relative aspect-[4/5] sm:aspect-[5/6]">
         {slides.map((slide, index) => (
           <Image
-            key={slide.src}
+            key={`${slide.label}-${index}`}
             src={slide.src}
             alt={slide.alt}
             fill
             sizes="(max-width: 1024px) 100vw, 42vw"
+            unoptimized={isUploadedMedia(slide.src)}
             className={cn(
               "object-cover transition-opacity duration-700 ease-out-expo",
               index === active ? "opacity-100" : "opacity-0",
@@ -59,7 +61,7 @@ export default function InteriorIntroSlider({ styles = fallbackStyles }: { style
       <div className="absolute inset-x-0 top-0 flex justify-end gap-1.5 p-4" role="tablist" aria-label="اسلایدهای طراحی تا اجرا">
         {slides.map((slide, index) => (
           <button
-            key={slide.src}
+            key={`${slide.label}-${index}`}
             type="button"
             role="tab"
             aria-selected={index === active}

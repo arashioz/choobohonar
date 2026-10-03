@@ -1,16 +1,23 @@
 import Container from "@/components/layout/Container";
 import FadeUp from "@/components/motion/FadeUp";
 import { interiorProcessSteps as fallbackSteps } from "@/data/interior-architecture";
+import { INTERIOR_PAGE_DEFAULTS, type InteriorPageContent } from "@/lib/interior-page-content";
 import { toFa } from "@/lib/utils";
 
-export default function InteriorProcessSection({ steps = fallbackSteps }: { steps?: typeof fallbackSteps }) {
+export default function InteriorProcessSection({
+  heading = INTERIOR_PAGE_DEFAULTS.processHeading,
+  steps = fallbackSteps,
+}: {
+  heading?: InteriorPageContent["processHeading"];
+  steps?: typeof fallbackSteps;
+}) {
   return (
     <section className="bg-forest py-24 text-paper md:py-32">
       <Container>
         <FadeUp className="max-w-2xl">
-          <p className="eyebrow text-peach">فرآیند اجرا</p>
+          <p className="eyebrow text-peach">{heading.eyebrow}</p>
           <h2 className="mt-6 text-balance text-[clamp(2rem,4vw,3.5rem)] font-light leading-[1.05] tracking-tightest">
-            گام‌به‌گام در فرآیند اجرای پروژه
+            {heading.title}
           </h2>
         </FadeUp>
 
