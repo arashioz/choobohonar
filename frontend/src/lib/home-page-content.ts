@@ -60,6 +60,7 @@ export type HomePageContent = {
     successBody: string;
   };
   promo: {
+    enabled: boolean;
     title: string;
     ctaLabel: string;
     href: string;
@@ -150,6 +151,7 @@ export const HOME_PAGE_DEFAULTS: HomePageContent = {
     successBody: "سپاس از اعتماد شما. به‌زودی برای هماهنگی جلسه‌ی مشاوره با شما تماس می‌گیریم.",
   },
   promo: {
+    enabled: true,
     title: "تجربه نمایشگاه",
     ctaLabel: "ورود",
     href: "/Experience",
@@ -161,6 +163,10 @@ export const HOME_PAGE_DEFAULTS: HomePageContent = {
 
 function text(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function flag(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
 }
 
 function record(value: unknown): Record<string, unknown> {
@@ -294,6 +300,7 @@ export function readHomePageContent(page: unknown): HomePageContent {
       successBody: text(consultation.successBody, HOME_PAGE_DEFAULTS.consultation.successBody),
     },
     promo: {
+      enabled: flag(promo.enabled, HOME_PAGE_DEFAULTS.promo.enabled),
       title: text(promo.title, HOME_PAGE_DEFAULTS.promo.title),
       ctaLabel: text(promo.ctaLabel, HOME_PAGE_DEFAULTS.promo.ctaLabel),
       href: href(promo.href, HOME_PAGE_DEFAULTS.promo.href),

@@ -22,7 +22,7 @@ export default function ExperiencePromoPopup({ promo = HOME_PAGE_DEFAULTS.promo 
   };
 
   useEffect(() => {
-    if (closedUntilRefresh) return;
+    if (!promo.enabled || closedUntilRefresh) return;
     const onScroll = () => {
       if (closedUntilRefresh || window.scrollY < SCROLL_START_PX) return;
       setOpen(true);
@@ -30,7 +30,7 @@ export default function ExperiencePromoPopup({ promo = HOME_PAGE_DEFAULTS.promo 
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [promo.enabled]);
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +50,7 @@ export default function ExperiencePromoPopup({ promo = HOME_PAGE_DEFAULTS.promo 
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!promo.enabled || !open) return null;
 
   return (
     <div

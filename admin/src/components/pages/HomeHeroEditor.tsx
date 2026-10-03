@@ -49,6 +49,7 @@ type Consultation = {
 };
 
 type Promo = {
+  enabled: boolean;
   title: string;
   ctaLabel: string;
   href: string;
@@ -156,6 +157,7 @@ const DEFAULTS: HomePage = {
     successBody: "سپاس از اعتماد شما. به‌زودی برای هماهنگی جلسه‌ی مشاوره با شما تماس می‌گیریم.",
   },
   promo: {
+    enabled: true,
     title: "تجربه نمایشگاه",
     ctaLabel: "ورود",
     href: "/Experience",
@@ -325,6 +327,7 @@ export function readHomePage(data: Record<string, unknown> | undefined): HomePag
       successBody: text(consultation.successBody, DEFAULTS.consultation.successBody),
     },
     promo: {
+      enabled: typeof promo.enabled === "boolean" ? promo.enabled : DEFAULTS.promo.enabled,
       title: text(promo.title, DEFAULTS.promo.title),
       ctaLabel: text(promo.ctaLabel, DEFAULTS.promo.ctaLabel),
       href: text(promo.href, DEFAULTS.promo.href),
@@ -572,7 +575,19 @@ export default function HomePageEditor({ data, onPatch, onBusyChange, onProgress
         <Field label="متن پیام موفقیت"><textarea value={page.consultation.successBody} onChange={(event) => write("consultation", { ...page.consultation, successBody: event.target.value })} className={`${inputClass} min-h-20`} /></Field>
       </Block>
 
-      <Block kicker="PROMO" title="پاپ‌آپ نمایشگاه" hint="تصویر و متن پنجره‌ای که با اسکرول صفحه خانه باز می‌شود.">
+      <Block kicker="PROMO" title="پاپ‌آپ نمایشگاه" hint="وقتی نمایشگاهی در جریان نیست، نمایش را خاموش کنید. تصویر و متن فقط در حالت فعال، با اسکرول صفحه خانه باز می‌شوند.">
+        <label className="flex items-center justify-between gap-4 rounded-xl border border-forest/10 bg-[#faf8f5] px-4 py-3">
+          <span>
+            <span className="block text-sm font-medium text-forest">نمایش پاپ‌آپ</span>
+            <span className="mt-1 block text-[11px] leading-5 text-forest/45">خاموش باشد تا پنجرهٔ نمایشگاه روی سایت باز نشود.</span>
+          </span>
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-forest"
+            checked={page.promo.enabled}
+            onChange={(event) => write("promo", { ...page.promo, enabled: event.target.checked })}
+          />
+        </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="عنوان"><input value={page.promo.title} onChange={(event) => write("promo", { ...page.promo, title: event.target.value })} className={inputClass} /></Field>
           <Field label="متن دکمه"><input value={page.promo.ctaLabel} onChange={(event) => write("promo", { ...page.promo, ctaLabel: event.target.value })} className={inputClass} /></Field>
